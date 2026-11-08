@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1018" />
-  <meta name="description" content="FrameForge — a lightweight, frame-by-frame drawing and coded animation studio." />
+  <meta name="description" content="FrameForge — frame-by-frame drawing, code-driven 2D animation and dependency-free 3D scenes." />
   <title>FrameForge — Draw. Code. Animate.</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -74,7 +74,7 @@
       <div class="panel-tabs"><button class="panel-tab active" data-panel="scriptPanel">Frame code</button><button class="panel-tab" data-panel="projectPanel">Project</button></div>
       <section id="scriptPanel" class="panel-content active">
         <div class="panel-heading"><div><h2>Frame drawing script</h2><p>Use the Canvas 2D API to draw detailed artwork.</p></div><span class="code-pill">JS</span></div>
-        <div class="script-note">Your code runs locally in this browser. No image-generation model, API, or cloud rendering is involved.</div>
+        <div class="script-note">Your code runs locally. Use FF3D to build real 3D meshes, lights and cameras in JavaScript. Select Front, Back, Left, Right, Top, Bottom, Isometric or Free above. No image-generation model, API or cloud render is involved.</div>
         <textarea id="frameScript" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="JavaScript frame drawing code" placeholder="// Write Canvas 2D drawing code here...\n// Available: ctx, frame, width, height, time"></textarea>
         <div class="script-actions"><button id="runScriptBtn" class="button primary">Run on frame</button><button id="runAllScriptsBtn" class="button">Run all frames</button></div>
         <button id="clearScriptBtn" class="button full-width quiet">Clear code artwork</button>
@@ -90,7 +90,7 @@ ctx.bezierCurveTo(220, 80, 420, 340, 640, 150);
 ctx.stroke();</pre>
           <p>Use Bézier curves, gradients, clipping, paths, and procedural texture for complex scenes. Only run code you trust.</p>
         </details>
-        <div class="starter-code"><button id="loadStarterBtn" class="button small">Load detailed city example</button></div>
+        <div class="starter-code"><button id="loadStarterBtn" class="button small">Load 2D city example</button><button id="load3DStarterBtn" class="button small">Load 3D penguin example</button></div>
       </section>
       <section id="projectPanel" class="panel-content">
         <div class="panel-heading"><div><h2>Project settings</h2><p>Set the film canvas and playback speed.</p></div></div>
@@ -109,7 +109,7 @@ ctx.stroke();</pre>
         <h3 class="subheading">Project information</h3>
         <div class="info-row"><span>Frames</span><strong id="projectFrameCount">1</strong></div>
         <div class="info-row"><span>Duration</span><strong id="projectDuration">0.03 sec</strong></div>
-        <div class="info-row"><span>Renderer</span><strong>Canvas 2D</strong></div>
+        <div class="info-row"><span>Renderer</span><strong>3D software → Canvas 2D</strong></div>
         <div class="info-row"><span>External services</span><strong>None</strong></div>
         <div class="info-callout">The editor uses browser Canvas 2D, not WebGL or WebGPU. It needs no dedicated graphics card, although browser performance depends on your device and artwork complexity.</div>
       </section>
@@ -151,6 +151,6 @@ ctx.stroke();</pre>
   </div>
 
   <footer class="app-footer">FrameForge is a local drawing and animation tool. Your project stays in this browser unless you export or share the project file.</footer>
-  <script src="app.js"></script>
+  <script src="frameforge-3d.js"></script>\n  <script src="app.js"></script>
 </body>
 </html>
