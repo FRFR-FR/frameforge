@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1018" />
+  <meta name="description" content="FrameForge — a lightweight, frame-by-frame drawing and coded animation studio." />
+  <title>FrameForge — Draw. Code. Animate.</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">F</span><div><strong>FrameForge</strong><small>DRAW · CODE · ANIMATE</small></div></div>
+    <div class="project-meta">
+      <input id="projectName" class="project-name" aria-label="Project name" value="Untitled Film" maxlength="48" />
+      <span id="saveStatus" class="save-status">Local project</span>
+    </div>
+    <div class="top-actions">
+      <button id="newProjectBtn" class="button quiet">New</button>
+      <button id="openProjectBtn" class="button quiet">Open</button>
+      <button id="saveProjectBtn" class="button quiet">Save project</button>
+      <button id="exportVideoBtn" class="button primary">Export video</button>
+      <input id="projectFileInput" type="file" accept="application/json,.json" hidden />
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="tool-rail" aria-label="Drawing tools">
+      <div class="tool-group">
+        <button class="tool active" data-tool="brush" title="Brush (B)" aria-label="Brush"><span>✎</span><small>Brush</small></button>
+        <button class="tool" data-tool="pencil" title="Pencil" aria-label="Pencil"><span>〰</span><small>Pencil</small></button>
+        <button class="tool" data-tool="ink" title="Ink pen" aria-label="Ink pen"><span>／</span><small>Ink</small></button>
+        <button class="tool" data-tool="airbrush" title="Airbrush" aria-label="Airbrush"><span>◌</span><small>Air</small></button>
+        <button class="tool" data-tool="texture" title="Texture brush" aria-label="Texture brush"><span>▧</span><small>Texture</small></button>
+        <button class="tool" data-tool="eraser" title="Eraser (E)" aria-label="Eraser"><span>▱</span><small>Eraser</small></button>
+      </div>
+      <div class="rail-divider"></div>
+      <button id="importImageBtn" class="tool" title="Import image into current frame"><span>▣</span><small>Import</small></button>
+      <input id="imageFileInput" type="file" accept="image/*" hidden />
+      <div class="rail-bottom">
+        <button id="undoBtn" class="tool" title="Undo (Ctrl/Cmd+Z)"><span>↶</span><small>Undo</small></button>
+        <button id="redoBtn" class="tool" title="Redo (Ctrl/Cmd+Y)"><span>↷</span><small>Redo</small></button>
+      </div>
+    </aside>
+
+    <section class="center-stage">
+      <div class="stage-toolbar">
+        <div class="tool-settings">
+          <label class="setting color-setting">Color <input id="brushColor" type="color" value="#e7edf7" /></label>
+          <label class="setting size-setting">Size <input id="brushSize" type="range" min="1" max="120" value="8" /><output id="brushSizeValue">8 px</output></label>
+          <label class="setting opacity-setting">Opacity <input id="brushOpacity" type="range" min="5" max="100" value="90" /><output id="brushOpacityValue">90%</output></label>
+        </div>
+        <div class="stage-actions">
+          <button id="onionBtn" class="button small toggle" aria-pressed="false">Onion skin</button>
+          <button id="fitBtn" class="button small">Fit</button>
+          <button id="actualBtn" class="button small">100%</button>
+        </div>
+      </div>
+      <div id="stageViewport" class="stage-viewport">
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="onionCanvas" aria-hidden="true"></canvas>
+          <canvas id="paintCanvas" aria-label="Drawing canvas"></canvas>
+          <canvas id="scriptCanvas" aria-hidden="true"></canvas>
+        </div>
+      </div>
+      <div class="stage-footer">
+        <span id="canvasDimensions">720 × 1280 · Transparent</span>
+        <span id="cursorPosition">Ready</span>
+        <div class="zoom-controls"><button id="zoomOutBtn" aria-label="Zoom out">−</button><span id="zoomLabel">Fit</span><button id="zoomInBtn" aria-label="Zoom in">+</button></div>
+      </div>
+    </section>
+
+    <aside class="inspector">
+      <div class="panel-tabs"><button class="panel-tab active" data-panel="scriptPanel">Frame code</button><button class="panel-tab" data-panel="projectPanel">Project</button></div>
+      <section id="scriptPanel" class="panel-content active">
+        <div class="panel-heading"><div><h2>Frame drawing script</h2><p>Use the Canvas 2D API to draw detailed artwork.</p></div><span class="code-pill">JS</span></div>
+        <div class="script-note">Your code runs locally in this browser. No image-generation model, API, or cloud rendering is involved.</div>
+        <textarea id="frameScript" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="JavaScript frame drawing code" placeholder="// Write Canvas 2D drawing code here...\n// Available: ctx, frame, width, height, time"></textarea>
+        <div class="script-actions"><button id="runScriptBtn" class="button primary">Run on frame</button><button id="runAllScriptsBtn" class="button">Run all frames</button></div>
+        <button id="clearScriptBtn" class="button full-width quiet">Clear code artwork</button>
+        <button id="bakeScriptBtn" class="button full-width">Bake code layer into drawing</button>
+        <details class="code-help">
+          <summary>How to draw with code</summary>
+          <p>The script receives <code>ctx</code>, <code>frame</code> (1-based), <code>width</code>, <code>height</code>, and <code>time</code> in seconds. It runs on a transparent layer above your hand-drawn artwork.</p>
+          <pre>ctx.strokeStyle = "#e8b15b";
+ctx.lineWidth = 5;
+ctx.beginPath();
+ctx.moveTo(80, 200);
+ctx.bezierCurveTo(220, 80, 420, 340, 640, 150);
+ctx.stroke();</pre>
+          <p>Use Bézier curves, gradients, clipping, paths, and procedural texture for complex scenes. Only run code you trust.</p>
+        </details>
+        <div class="starter-code"><button id="loadStarterBtn" class="button small">Load detailed city example</button></div>
+      </section>
+      <section id="projectPanel" class="panel-content">
+        <div class="panel-heading"><div><h2>Project settings</h2><p>Set the film canvas and playback speed.</p></div></div>
+        <label class="field-label" for="canvasPreset">Canvas format</label>
+        <select id="canvasPreset" class="select-field">
+          <option value="portrait">Portrait · 720 × 1280</option>
+          <option value="landscape">Landscape · 1280 × 720</option>
+          <option value="square">Square · 1080 × 1080</option>
+        </select>
+        <button id="applyCanvasBtn" class="button full-width">Apply canvas size</button>
+        <div class="section-divider"></div>
+        <label class="field-label" for="fpsInput">Frames per second</label>
+        <div class="fps-row"><input id="fpsInput" class="number-field" type="number" min="1" max="60" value="30" /><span>FPS</span></div>
+        <label class="check-row"><input id="loopPlayback" type="checkbox" checked /> Loop playback</label>
+        <div class="section-divider"></div>
+        <h3 class="subheading">Project information</h3>
+        <div class="info-row"><span>Frames</span><strong id="projectFrameCount">1</strong></div>
+        <div class="info-row"><span>Duration</span><strong id="projectDuration">0.03 sec</strong></div>
+        <div class="info-row"><span>Renderer</span><strong>Canvas 2D</strong></div>
+        <div class="info-row"><span>External services</span><strong>None</strong></div>
+        <div class="info-callout">The editor uses browser Canvas 2D, not WebGL or WebGPU. It needs no dedicated graphics card, although browser performance depends on your device and artwork complexity.</div>
+      </section>
+    </aside>
+  </main>
+
+  <section class="timeline-panel">
+    <div class="timeline-header">
+      <div class="timeline-title"><h2>Timeline</h2><span id="frameCounter">Frame 1 / 1</span></div>
+      <div class="timeline-controls">
+        <button id="firstFrameBtn" class="icon-button" title="First frame">|◀</button>
+        <button id="prevFrameBtn" class="icon-button" title="Previous frame">◀</button>
+        <button id="playBtn" class="play-button" title="Play">▶</button>
+        <button id="nextFrameBtn" class="icon-button" title="Next frame">▶</button>
+        <button id="lastFrameBtn" class="icon-button" title="Last frame">▶|</button>
+        <span class="timeline-divider"></span>
+        <button id="addFrameBtn" class="button small">＋ Frame</button>
+        <button id="addTenFramesBtn" class="button small">＋ 10 frames</button>
+        <button id="duplicateFrameBtn" class="button small">Duplicate</button>
+        <button id="deleteFrameBtn" class="button small danger-text">Delete</button>
+      </div>
+    </div>
+    <div class="timeline-scrubber-row"><input id="timelineScrubber" type="range" min="0" max="0" value="0" /><span id="timeReadout">00:00:00</span></div>
+    <div id="frameStrip" class="frame-strip" aria-label="Animation frames"></div>
+    <div class="timeline-foot"><span>Tip: duplicate a frame, then make small changes for traditional frame-by-frame animation.</span><span>30 FPS default</span></div>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="exportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+    <div class="modal-card">
+      <button id="closeExportModal" class="modal-close" aria-label="Close">×</button>
+      <h2 id="exportTitle">Export your film</h2>
+      <p>FrameForge records the finished timeline in real time from the browser canvas. A long film takes as long to record as its playback duration.</p>
+      <div class="export-details"><span>Format</span><strong>WebM · silent</strong><span>Frame rate</span><strong id="exportFpsLabel">30 FPS</strong><span>Canvas</span><strong id="exportSizeLabel">720 × 1280</strong></div>
+      <div id="exportProgress" class="export-progress hidden"><div id="exportProgressFill"></div></div>
+      <div class="modal-actions"><button id="startExportBtn" class="button primary">Start export</button><button id="cancelExportBtn" class="button quiet">Cancel</button></div>
+      <p class="small-note">For best results, keep the browser tab open during export. WebM support depends on the browser; save the project JSON as a backup.</p>
+    </div>
+  </div>
+
+  <footer class="app-footer">FrameForge is a local drawing and animation tool. Your project stays in this browser unless you export or share the project file.</footer>
+  <script src="app.js"></script>
+</body>
+</html>
