@@ -595,7 +595,7 @@
     return `// FRAMEFORGE 3D STARTER — animated low-poly penguin
 // The camera selector above changes the view: front, back, left, right, top, bottom, isometric or free.
 // Available values: ctx, frame, width, height, time, FF3D
-const scene = new FF3D.Scene({ background: '#0b1b2e' });
+const scene = new FF3D.Scene({ background: '#0b1b2e', depthMode: 'zbuffer' });
 scene.addLight(FF3D.ambientLight(0.52));
 scene.addLight(FF3D.directionalLight([-0.55, 0.85, 0.45], 0.95));
 
@@ -637,7 +637,7 @@ rightFlipper.rotation[2] = 0.25 - Math.sin(time * 5) * 0.08;
 // Free view animates around the penguin; choose any named view from the camera menu
 const camera = new FF3D.Camera({ position: [6, 3.2, 8], target: [0, 0, 0], fov: 42 });
 camera.position = [Math.cos(time * 0.16) * 8, 3.2, Math.sin(time * 0.16) * 8];
-FF3D.render(ctx, scene, camera, { width, height });`;
+FF3D.render(ctx, scene, camera, { width, height, depthMode: 'zbuffer' });`;
   }
 
   function starterCityScript() {
