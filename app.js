@@ -513,8 +513,8 @@
     const context = scratch.getContext('2d');
     try {
       // The script is authored by the project owner and executes locally. Do not run untrusted code.
-      const execute = new Function('ctx', 'frame', 'width', 'height', 'time', `"use strict";\n${source}`);
-      execute(context, state.current + 1, state.width, state.height, state.current / state.fps);
+      const execute = new Function('ctx', 'frame', 'width', 'height', 'time', 'FF3D', `"use strict";\n${source}`);
+      execute(context, state.current + 1, state.width, state.height, state.current / state.fps, window.FF3D);
       const frame = currentFrame();
       frame.script = source;
       frame.scriptData = scratch.toDataURL('image/png');
@@ -544,8 +544,8 @@
         scratch.width = state.width;
         scratch.height = state.height;
         const context = scratch.getContext('2d');
-        const execute = new Function('ctx', 'frame', 'width', 'height', 'time', `"use strict";\n${source}`);
-        execute(context, index + 1, state.width, state.height, index / state.fps);
+        const execute = new Function('ctx', 'frame', 'width', 'height', 'time', 'FF3D', `"use strict";\n${source}`);
+        execute(context, index + 1, state.width, state.height, index / state.fps, window.FF3D);
         state.frames[index].script = source;
         state.frames[index].scriptData = scratch.toDataURL('image/png');
         if (index % 2 === 1) await new Promise((resolve) => setTimeout(resolve, 0));
@@ -588,6 +588,56 @@
     renderFrameStrip();
     scheduleAutosave();
     showToast('Code layer merged into the drawing layer.');
+  }
+
+
+  function starter3DSceneScript() {
+    return `// FRAMEFORGE 3D STARTER — animated low-poly penguin
+// The camera selector above changes the view: front, back, left, right, top, bottom, isometric or free.
+// Available values: ctx, frame, width, height, time, FF3D
+const scene = new FF3D.Scene({ background: '#0b1b2e' });
+scene.addLight(FF3D.ambientLight(0.52));
+scene.addLight(FF3D.directionalLight([-0.55, 0.85, 0.45], 0.95));
+
+// Snow island and icy plinth
+scene.add(FF3D.plane({ width: 18, depth: 18, position: [0, -1.72, 0], material: { color: '#d7e5eb' } }));
+scene.add(FF3D.cube({ size: 1, scale: [3.8, 0.18, 3.8], position: [0, -1.82, 0], material: { color: '#69aabe' } }));
+
+// Penguin body, belly and head
+const body = scene.add(FF3D.sphere({ radius: 1, segments: 18, rings: 12, position: [0, -0.28, 0], scale: [0.72, 1.15, 0.62], material: { color: '#202d3a' } }));
+scene.add(FF3D.sphere({ radius: 1, segments: 18, rings: 12, position: [0, -0.34, 0.49], scale: [0.54, 0.88, 0.22], material: { color: '#f4f0e6' } }));
+const head = scene.add(FF3D.sphere({ radius: 0.68, segments: 18, rings: 12, position: [0, 1.02, 0.04], scale: [1, 0.94, 0.9], material: { color: '#202d3a' } }));
+scene.add(FF3D.sphere({ radius: 0.13, segments: 10, rings: 7, position: [-0.22, 1.08, 0.61], material: { color: '#f8f4e9' } }));
+scene.add(FF3D.sphere({ radius: 0.13, segments: 10, rings: 7, position: [0.22, 1.08, 0.61], material: { color: '#f8f4e9' } }));
+scene.add(FF3D.sphere({ radius: 0.065, segments: 8, rings: 6, position: [-0.22, 1.08, 0.72], material: { color: '#111820' } }));
+scene.add(FF3D.sphere({ radius: 0.065, segments: 8, rings: 6, position: [0.22, 1.08, 0.72], material: { color: '#111820' } }));
+scene.add(FF3D.cone({ radius: 0.18, height: 0.42, segments: 8, position: [0, 0.84, 0.75], rotation: [Math.PI / 2, 0, 0], material: { color: '#e69a35' } }));
+
+// Flippers and feet
+const leftFlipper = scene.add(FF3D.cube({ size: 1, scale: [0.22, 0.82, 0.3], position: [-0.69, -0.22, 0.02], rotation: [0, 0, -0.25], material: { color: '#17232f' } }));
+const rightFlipper = scene.add(FF3D.cube({ size: 1, scale: [0.22, 0.82, 0.3], position: [0.69, -0.22, 0.02], rotation: [0, 0, 0.25], material: { color: '#17232f' } }));
+scene.add(FF3D.cube({ size: 1, scale: [0.52, 0.12, 0.4], position: [-0.34, -1.35, 0.24], material: { color: '#df8c2d' } }));
+scene.add(FF3D.cube({ size: 1, scale: [0.52, 0.12, 0.4], position: [0.34, -1.35, 0.24], material: { color: '#df8c2d' } }));
+
+// Snow particles are separate 3D objects at different depths
+for (let i = 0; i < 22; i++) {
+  const x = Math.sin(i * 12.37) * 5;
+  const y = -0.4 + ((i * 0.73) % 3.8);
+  const z = Math.cos(i * 7.13) * 3.2 - 1.5;
+  const flake = scene.add(FF3D.sphere({ radius: 0.035 + (i % 3) * 0.012, segments: 6, rings: 4, position: [x, y, z], material: { color: '#f3f7f6' } }));
+  flake.position[1] += Math.sin(time * 1.1 + i) * 0.12;
+}
+
+// Simple walk cycle driven by the timeline time variable
+body.rotation[2] = Math.sin(time * 5) * 0.045;
+head.rotation[2] = Math.sin(time * 5 + 0.5) * 0.025;
+leftFlipper.rotation[2] = -0.25 + Math.sin(time * 5) * 0.08;
+rightFlipper.rotation[2] = 0.25 - Math.sin(time * 5) * 0.08;
+
+// Free view animates around the penguin; choose any named view from the camera menu
+const camera = new FF3D.Camera({ position: [6, 3.2, 8], target: [0, 0, 0], fov: 42 });
+camera.position = [Math.cos(time * 0.16) * 8, 3.2, Math.sin(time * 0.16) * 8];
+FF3D.render(ctx, scene, camera, { width, height });`;
   }
 
   function starterCityScript() {
@@ -1030,6 +1080,11 @@ ctx.globalAlpha=1;
     $('redoBtn').addEventListener('click', redo);
     $('runScriptBtn').addEventListener('click', runFrameScript);
     $('runAllScriptsBtn').addEventListener('click', runScriptOnAllFrames);
+    window.FF3D.setEditorView($('cameraViewSelect').value);
+    $('cameraViewSelect').addEventListener('change', (event) => {
+      window.FF3D.setEditorView(event.target.value);
+      if ($('frameScript').value.includes('FF3D.render')) runFrameScript();
+    });
     $('clearScriptBtn').addEventListener('click', clearScriptLayer);
     $('bakeScriptBtn').addEventListener('click', bakeScriptLayer);
     $('frameScript').addEventListener('input', () => {
@@ -1042,6 +1097,12 @@ ctx.globalAlpha=1;
       currentFrame().script = $('frameScript').value;
       scheduleAutosave();
       showToast('Detailed city scene code loaded. Press Run on frame.');
+    });
+    $('load3DStarterBtn').addEventListener('click', () => {
+      $('frameScript').value = starter3DSceneScript();
+      currentFrame().script = $('frameScript').value;
+      scheduleAutosave();
+      showToast('3D penguin example loaded. Choose a camera view and press Run on frame.');
     });
     $('onionBtn').addEventListener('click', () => {
       state.onion = !state.onion;
