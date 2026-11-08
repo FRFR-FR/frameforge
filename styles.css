@@ -182,3 +182,19 @@ button { color: inherit; cursor: pointer; }
   .stage-actions #actualBtn { display: none; }
   .tool-settings .setting:first-child { display: none; }
 }
+
+.camera-view-control select {
+  min-width: 76px;
+  max-width: 94px;
+  border: 1px solid #34475d;
+  border-radius: 6px;
+  background: #172333;
+  color: #dbe8f5;
+  padding: 5px 6px;
+  font-size: 10px;
+}
+.starter-code { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 760px) {
+  .camera-view-control { gap: 3px; }
+  .camera-view-control select { min-width: 72px; padding: 4px 3px; }
+}
