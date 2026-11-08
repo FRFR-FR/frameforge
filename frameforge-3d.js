@@ -138,7 +138,7 @@
     }
     for (let y = 0; y < n; y++) for (let x = 0; x < s; x++) {
       const a = y * (s + 1) + x, b = a + s + 1;
-      f.push([a, b, a + 1], [a + 1, b, b + 1]);
+      f.push([a, a + 1, b], [a + 1, b + 1, b]);
     }
     return new Geometry(v, f);
   }
@@ -149,14 +149,14 @@
   }
 
   function cylinderGeometry(radiusTop, radiusBottom, height, segments) {
-    const top = Math.max(0, Number(radiusTop) || 0.5), bottom = Math.max(0, Number(radiusBottom) || 0.5);
+    const top = Math.max(0, Number.isFinite(Number(radiusTop)) ? Number(radiusTop) : 0.5), bottom = Math.max(0, Number.isFinite(Number(radiusBottom)) ? Number(radiusBottom) : 0.5);
     const h = (Number(height) || 1) / 2, s = Math.max(6, Math.min(48, segments | 0 || 16));
     const v = [], f = [];
     for (let i = 0; i < s; i++) { const a = i / s * Math.PI * 2; v.push([Math.cos(a) * bottom, -h, Math.sin(a) * bottom]); }
     for (let i = 0; i < s; i++) { const a = i / s * Math.PI * 2; v.push([Math.cos(a) * top, h, Math.sin(a) * top]); }
     const bottomCenter = v.length; v.push([0, -h, 0]);
     const topCenter = v.length; v.push([0, h, 0]);
-    for (let i = 0; i < s; i++) { const j = (i + 1) % s; f.push([i, j, s + j], [i, s + j, s + i], [bottomCenter, j, i], [topCenter, s + i, s + j]); }
+    for (let i = 0; i < s; i++) { const j = (i + 1) % s; f.push([i, s + j, j], [i, s + i, s + j], [bottomCenter, i, j], [topCenter, s + j, s + i]); }
     return new Geometry(v, f);
   }
 
@@ -260,6 +260,8 @@
       ctx.globalAlpha = tri.opacity;
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath();
       ctx.fillStyle = tri.color; ctx.fill();
+      // Slight same-color edge coverage prevents antialias gaps between adjacent triangles.
+      ctx.strokeStyle = tri.color; ctx.lineWidth = 1.05; ctx.lineJoin = 'round'; ctx.stroke();
       if (tri.wireframe) { ctx.strokeStyle = tri.wireColor; ctx.lineWidth = 1; ctx.stroke(); }
     }
     ctx.globalAlpha = 1;
