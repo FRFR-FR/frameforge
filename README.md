@@ -141,3 +141,42 @@ FF3D.render(ctx, scene, camera, { width, height });
 ### Renderer scope
 
 This is a lightweight software renderer intended for coded motion graphics, low-poly scenes, educational animations, and camera-angle control on mobile devices. It uses perspective or orthographic projection, face-based lighting, and painter-order triangle sorting. It is not a full replacement for Blender or a GPU engine: advanced physically based materials, texture maps, skeletal character rigs, shadows, and a per-pixel depth buffer are not included. Complex intersecting or transparent meshes may therefore need simpler geometry or careful draw ordering. The final output is still raster video on FrameForge's existing canvas timeline.
+
+
+### Solid meshes, z-buffer occlusion, and foot contact
+
+The 3D renderer now offers optional per-pixel depth buffering. This is useful when a character, props, terrain blocks, and scenery overlap or intersect in projection. Use `depthMode: "zbuffer"` on a Scene or a render call to draw opaque solid triangles with depth testing and depth writes. It prevents rear faces and objects behind a nearer solid surface from showing through.
+
+A mesh material is solid by default. You can override this per object:
+
+```js
+const wall = FF3D.cube({
+  size: 2,
+  material: FF3D.solidMaterial("#455b70")
+});
+
+// Overlay object: drawn after solid geometry, without writing solid depth.
+const glow = FF3D.cube({
+  size: 1,
+  material: {
+    color: "#f5c45b",
+    solid: false,
+    depthTest: false,
+    depthWrite: false,
+    opacity: 0.7
+  }
+});
+```
+
+For ground contact, `FF3D.clampFeetToGround(rootY, minFootOffset, groundY, clearance)` raises a character root when its lowest foot point would fall below the supporting surface. `minFootOffset` is the lowest foot point measured relative to the character root; `groundY` is the top of the supporting block; `clearance` defaults to 0.02 world units. Example:
+
+```js
+const rootY = FF3D.clampFeetToGround(
+  animatedRootY,
+  -1.42,  // lowest sole point relative to the rig root
+  groundBlockTopY,
+  0.025
+);
+```
+
+The painter renderer remains available for older projects. Use the z-buffer mode for opaque solid scenes that need reliable object occlusion and ground contact. Z-buffer rasterization is CPU-side and can take longer with very dense meshes, especially on mobile devices.
