@@ -61,7 +61,7 @@
       if (!(geometry instanceof Geometry)) throw new Error('FF3D.Mesh expects a Geometry.');
       const opts = options || {};
       this.geometry = geometry;
-      this.material = Object.assign({ color: '#8ea8c8', roughness: 0.82, opacity: 1, wireframe: false, wireColor: '#172336' }, material || {});
+      this.material = Object.assign({ color: '#8ea8c8', roughness: 0.82, opacity: 1, solid: true, depthTest: true, depthWrite: true, wireframe: false, wireColor: '#172336' }, material || {});
       this.position = vec3(opts.position, [0, 0, 0]);
       this.rotation = vec3(opts.rotation, [0, 0, 0]);
       this.scale = Array.isArray(opts.scale) ? vec3(opts.scale, [1, 1, 1]) : [1, 1, 1];
@@ -77,6 +77,7 @@
       this.lights = [{ type: 'ambient', color: '#ffffff', intensity: 0.38 }, { type: 'directional', direction: [-0.55, 0.78, 0.48], color: '#ffffff', intensity: 0.9 }];
       this.background = opts.background === undefined ? null : opts.background;
       this.fog = opts.fog || null;
+      this.depthMode = opts.depthMode === 'zbuffer' ? 'zbuffer' : 'painter';
     }
     add(object) {
       if (!(object instanceof Mesh)) throw new Error('Scene.add expects an FF3D.Mesh.');
@@ -250,23 +251,87 @@
         for (const lamp of directions) light += Math.max(0, V.dot(normal, lamp.direction)) * lamp.intensity;
         light = Math.max(0.16, Math.min(1.32, light));
         const base = colorRGB(mesh.material.color);
-        const rgb = cssColor(base, light, mesh.material);
-        triangles.push({ points: [pa, pb, pc], depth: (pa.z + pb.z + pc.z) / 3, color: rgb, opacity: Math.max(0, Math.min(1, Number(mesh.material.opacity) || 1)), wireframe: mesh.material.wireframe, wireColor: mesh.material.wireColor || '#172336' });
+        const pixelColor = base.map((value) => Math.max(0, Math.min(255, Math.round(value * light))));
+        const rgb = `rgb(${pixelColor[0]},${pixelColor[1]},${pixelColor[2]})`;
+        const opacity = mesh.material.opacity === undefined ? 1 : Math.max(0, Math.min(1, Number(mesh.material.opacity)));
+        triangles.push({ points: [pa, pb, pc], depth: (pa.z + pb.z + pc.z) / 3, color: rgb, pixelColor, opacity, solid: mesh.material.solid !== false, depthTest: mesh.material.depthTest !== false, depthWrite: mesh.material.depthWrite !== false, wireframe: mesh.material.wireframe, wireColor: mesh.material.wireColor || '#172336' });
       }
     }
+    const depthMode = opts.depthMode || scene.depthMode || 'painter';
     triangles.sort((a, b) => b.depth - a.depth);
-    for (const tri of triangles) {
-      const [a, b, c] = tri.points;
-      ctx.globalAlpha = tri.opacity;
-      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath();
-      ctx.fillStyle = tri.color; ctx.fill();
-      // Slight same-color edge coverage prevents antialias gaps between adjacent triangles.
-      ctx.strokeStyle = tri.color; ctx.lineWidth = 1.05; ctx.lineJoin = 'round'; ctx.stroke();
-      if (tri.wireframe) { ctx.strokeStyle = tri.wireColor; ctx.lineWidth = 1; ctx.stroke(); }
+    let solidCount = 0;
+    if (depthMode === 'zbuffer') {
+      // Opaque solid meshes get per-pixel depth testing and depth writes.
+      // This prevents intersecting geometry and feet/ground surfaces from drawing through each other.
+      const image = ctx.getImageData(0, 0, width, height);
+      const pixels = image.data;
+      const depthBuffer = new Float32Array(width * height);
+      depthBuffer.fill(Infinity);
+      const overlays = [];
+      for (const tri of triangles) {
+        if (!tri.solid || tri.opacity < 0.999 || !tri.depthTest) { overlays.push(tri); continue; }
+        solidCount += 1;
+        const [a, b, c] = tri.points;
+        const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+        if (Math.abs(denom) < 1e-8) continue;
+        const minX = Math.max(0, Math.floor(Math.min(a.x, b.x, c.x)));
+        const maxX = Math.min(width - 1, Math.ceil(Math.max(a.x, b.x, c.x)));
+        const minY = Math.max(0, Math.floor(Math.min(a.y, b.y, c.y)));
+        const maxY = Math.min(height - 1, Math.ceil(Math.max(a.y, b.y, c.y)));
+        const color = tri.pixelColor;
+        for (let y = minY; y <= maxY; y += 1) {
+          const py = y + 0.5;
+          for (let x = minX; x <= maxX; x += 1) {
+            const px = x + 0.5;
+            const w0 = ((b.y - c.y) * (px - c.x) + (c.x - b.x) * (py - c.y)) / denom;
+            const w1 = ((c.y - a.y) * (px - c.x) + (a.x - c.x) * (py - c.y)) / denom;
+            const w2 = 1 - w0 - w1;
+            if (w0 < -1e-5 || w1 < -1e-5 || w2 < -1e-5) continue;
+            const invZ = w0 / a.z + w1 / b.z + w2 / c.z;
+            if (invZ <= 0) continue;
+            const z = 1 / invZ;
+            const index = y * width + x;
+            if (z >= depthBuffer[index]) continue;
+            if (tri.depthWrite) depthBuffer[index] = z;
+            const offset = index * 4;
+            pixels[offset] = color[0];
+            pixels[offset + 1] = color[1];
+            pixels[offset + 2] = color[2];
+            pixels[offset + 3] = 255;
+          }
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+      // Transparent, non-solid, and overlay meshes are drawn after opaque geometry.
+      for (const tri of overlays) {
+        const [a, b, c] = tri.points;
+        ctx.globalAlpha = tri.opacity;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath();
+        ctx.fillStyle = tri.color; ctx.fill();
+        if (tri.wireframe) { ctx.strokeStyle = tri.wireColor; ctx.lineWidth = 1; ctx.stroke(); }
+      }
+      // Optional solid-object wireframes remain a visible authoring aid.
+      for (const tri of triangles) {
+        if (!tri.wireframe || !tri.solid) continue;
+        const [a, b, c] = tri.points;
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath();
+        ctx.strokeStyle = tri.wireColor; ctx.lineWidth = 1; ctx.stroke();
+      }
+    } else {
+      for (const tri of triangles) {
+        const [a, b, c] = tri.points;
+        ctx.globalAlpha = tri.opacity;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath();
+        ctx.fillStyle = tri.color; ctx.fill();
+        // Slight same-color edge coverage prevents antialias gaps between adjacent triangles.
+        ctx.strokeStyle = tri.color; ctx.lineWidth = 1.05; ctx.lineJoin = 'round'; ctx.stroke();
+        if (tri.wireframe) { ctx.strokeStyle = tri.wireColor; ctx.lineWidth = 1; ctx.stroke(); }
+      }
     }
     ctx.globalAlpha = 1;
     ctx.restore();
-    return { triangles: triangles.length, view: selectedView, projection: camera.projection };
+    return { triangles: triangles.length, solidTriangles: solidCount, view: selectedView, projection: camera.projection, depthMode };
   }
 
   let editorView = 'three-quarter';
@@ -276,6 +341,8 @@
     cube: primitives.cube, sphere: primitives.sphere, plane: primitives.plane,
     cylinder: primitives.cylinder, cone: primitives.cone, custom: primitives.custom,
     render,
+    solidMaterial(color, extras) { return Object.assign({ color: color || '#8ea8c8', opacity: 1, solid: true, depthTest: true, depthWrite: true }, extras || {}); },
+    clampFeetToGround(rootY, minFootOffset, groundY, clearance) { const gap = clearance === undefined ? 0.02 : Math.max(0, Number(clearance) || 0); return Math.max(Number(rootY) || 0, (Number(groundY) || 0) + gap - (Number(minFootOffset) || 0)); },
     setEditorView(name) { editorView = String(name || 'three-quarter'); },
     getEditorView() { return editorView; },
     views: ['front', 'back', 'left', 'right', 'top', 'bottom', 'three-quarter', 'isometric', 'free'],
