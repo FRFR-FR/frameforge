@@ -85,3 +85,59 @@ The frame-code feature executes JavaScript written into the editor. Only run cod
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+
+## Code-driven 3D animation (FrameForge 3D)
+
+FrameForge includes a dependency-free, CPU-based 3D scene renderer in `frameforge-3d.js`. It constructs meshes from geometry in JavaScript, applies object transforms, projects them through a camera, shades faces with ambient and directional lights, then draws the projected triangles into FrameForge's existing frame canvas. It does not generate or import pictures and does not require WebGL, a GPU, npm packages, or a remote rendering service.
+
+The frame-code editor receives an additional `FF3D` argument. Select **Load 3D penguin example** to load a working scene, choose a view from the Camera selector, then press **Run on frame** or **Run all frames**. The `time` value is the current frame time in seconds, so object and camera transforms can be animated across the timeline.
+
+### Camera views
+
+The Camera selector provides **Front, Back, Left, Right, Top, Bottom, 3/4, Isometric, and Free** views. A camera uses the editor view by default. To make a script keep its own camera position instead, create it with `useEditorView: false`, or call `camera.setView("front")`. Free mode uses the camera's own position and target.
+
+### Minimal 3D scene
+
+```js
+const scene = new FF3D.Scene({ background: "#101b2b" });
+scene.addLight(FF3D.ambientLight(0.45));
+scene.addLight(FF3D.directionalLight([-0.5, 0.8, 0.4], 0.9));
+
+const floor = FF3D.plane({
+  width: 12,
+  depth: 12,
+  position: [0, -1, 0],
+  material: { color: "#b7cbd6" }
+});
+scene.add(floor);
+
+const cube = FF3D.cube({
+  size: 2,
+  position: [0, 0, 0],
+  material: { color: "#d58d50", wireframe: false }
+});
+cube.rotation[1] = time * 0.7;
+scene.add(cube);
+
+const camera = new FF3D.Camera({
+  position: [5, 3, 7],
+  target: [0, 0, 0],
+  projection: "perspective",
+  fov: 48
+});
+FF3D.render(ctx, scene, camera, { width, height });
+```
+
+### Available building blocks
+
+- `new FF3D.Scene({ background })`, `scene.add(mesh)`, and `scene.addLight(light)`
+- `FF3D.cube(options)`, `sphere(options)`, `plane(options)`, `cylinder(options)`, and `cone(options)`
+- `FF3D.custom(vertices, triangles, material, options)` for user-authored meshes
+- `new FF3D.Camera({ position, target, projection, fov, orthoHeight })`
+- `camera.orbit(yaw, pitch, distance)`, `camera.dolly(amount)`, `camera.pan(x, y, z)`, and `camera.lookAt(target)`
+- `FF3D.ambientLight(intensity)`, `FF3D.directionalLight(direction, intensity)`, and `FF3D.render(ctx, scene, camera, options)`
+
+### Renderer scope
+
+This is a lightweight software renderer intended for coded motion graphics, low-poly scenes, educational animations, and camera-angle control on mobile devices. It uses perspective or orthographic projection, face-based lighting, and painter-order triangle sorting. It is not a full replacement for Blender or a GPU engine: advanced physically based materials, texture maps, skeletal character rigs, shadows, and a per-pixel depth buffer are not included. Complex intersecting or transparent meshes may therefore need simpler geometry or careful draw ordering. The final output is still raster video on FrameForge's existing canvas timeline.
