@@ -216,7 +216,7 @@
 
     const selectedView = camera.useEditorView ? editorView : camera.viewName;
     const pose = viewPose(camera, selectedView);
-    const basis = makeCameraBasis(ose);
+    const basis = makeCameraBasis(pose);
     const f = (height * 0.5) / Math.tan(camera.fov * Math.PI / 360);
     const centerX = width * 0.5, centerY = height * 0.5;
     const project = (world) => {
