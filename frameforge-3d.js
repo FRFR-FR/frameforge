@@ -222,7 +222,7 @@
     const project = (world) => {
       const rel = V.sub(world, pose.position);
       const x = V.dot(rel, basis.right), y = V.dot(rel, basis.up), z = V.dot(rel, basis.forward);
-      if (z <= camera.near || z >= camera.fari) return null;
+      if (z <= camera.near || z >= camera.far) return null;
       if (camera.projection === 'orthographic') {
         const scale = height / camera.orthoHeight;
         return { x: centerX + x * scale, y: centerY - y * scale, z };
