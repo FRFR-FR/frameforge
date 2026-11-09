@@ -170,7 +170,7 @@ def animate_emission(em_node, keys):
 def animated_text(camera, name, body, y, size, color, start_s, end_s, subtitle=False):
     mat = bpy.data.materials.new(name + " emission")
     em = set_emission(mat, color, 0.0)
-    ob = text_object(name, body, (0, y, -5.2), size, mat, parent=camera)
+    ob = text_object(name, body, (0, y, -15.2), size, mat, parent=camera)
     start = max(1, int(start_s * FPS))
     peak = min(FRAME_END, start + 8)
     fade = min(FRAME_END, int(end_s * FPS))
@@ -584,6 +584,12 @@ def build_scene(output_dir):
     graph_root.keyframe_insert(data_path="location", frame=250)
     graph_root.location.z = 4.25
     graph_root.keyframe_insert(data_path="location", frame=FRAME_END)
+    graph_root.scale = (0.001, 0.001, 0.001)
+    graph_root.keyframe_insert(data_path="scale", frame=1)
+    graph_root.keyframe_insert(data_path="scale", frame=180)
+    graph_root.scale = (1.0, 1.0, 1.0)
+    graph_root.keyframe_insert(data_path="scale", frame=250)
+    graph_root.keyframe_insert(data_path="scale", frame=FRAME_END)
     build_graph(graph_root, mats["node"], graph_edge_em, ring_em, label_em)
     animate_emission(graph_edge_em, [(1, 0.0), (180, 0.0), (205, 0.4), (250, 2.0), (FRAME_END, 2.0)])
     animate_emission(ring_em, [(1, 0.0), (180, 0.0), (215, 0.3), (255, 1.5), (FRAME_END, 1.5)])
