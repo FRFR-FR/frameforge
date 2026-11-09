@@ -89,9 +89,9 @@ MIT. See [LICENSE](LICENSE).
 
 ## Code-driven 3D animation (FrameForge 3D)
 
-FrameForge includes a dependency-free, CPU-based 3D scene renderer in `frameforge-3d.js`. It constructs meshes from geometry in JavaScript, applies object transforms, projects them through a camera, shades faces with ambient and directional lights, then draws the projected triangles into FrameForge's existing frame canvas. It does not generate or import pictures and does not require WebGL, a GPU, npm packages, or a remote rendering service.
+FrameForge includes a dependency-free, CPU-side preview renderer in `frameforge-3d.js`. It constructs low-poly meshes from JavaScript geometry, applies object transforms, projects them through a camera, shades faces and draws projected triangles into the browser frame canvas. It does not generate images and does not require WebGL, a GPU, npm packages or a remote rendering service. For high-quality rigged character films, use the native Blender CPU production pipeline documented below.
 
-The frame-code editor receives an additional `FF3D` argument. Select **Load 3D penguin example** to load a working scene, choose a view from the Camera selector, then press **Run on frame** or **Run all frames**. The `time` value is the current frame time in seconds, so object and camera transforms can be animated across the timeline.
+The frame-code editor receives an additional `FF3D` argument. Select **Load 3D penguin preview** to load a simple example, choose a view from the Camera selector, then press **Run on frame** or **Run all frames**. The `time` value is the current frame time in seconds, so object and camera transforms can be animated across the timeline. This renderer is intended for previews and lightweight coded scenes; it is not a rigging or full production engine.
 
 ### Camera views
 
@@ -182,10 +182,25 @@ const rootY = FF3D.clampFeetToGround(
 The painter renderer remains available for older projects. Use the z-buffer mode for opaque solid scenes that need reliable object occlusion and ground contact. Z-buffer rasterization is CPU-side and can take longer with very dense meshes, especially on mobile devices.
 
 
-## BROWN — Book One 90-second cinematic
+## BROWN — Book One production scene
 
-The **Load BROWN 90s scene** button in FrameForge loads the 720 × 1280, 15 FPS, 1,350-frame scene. After loading, open **Frame code** and choose **Run all frames** to render the script across the timeline. Long timelines use a sampled thumbnail strip; the timeline scrubber still addresses every frame.
+The earlier 15 FPS loose-cube BROWN sample is legacy material and is no longer loaded by the FrameForge interface. The production path is now the native **Blender CPU pipeline** in [`blender_pipeline/`](https://github.com/FRFR-FR/frameforge/tree/main/blender_pipeline).
 
-The matching editable project is in `examples/BROWN_Book_One_Minecraft_90s.frameforge.json`, and the standalone script is in `examples/BROWN_Book_One_Minecraft_Sequence.js`. Both use the built-in FF3D software renderer and require no external libraries or image-generation service.
+The new scene is configured for 720 × 1280, 30 FPS and 2,700 frames. It uses six armature-driven characters, a unified skinned body mesh per character, controlled facial features, Kesh's steering-wheel IK, a physical phone prop, a real vehicle path of at least 180 blocks before the impact, tracked cameras, a blast sequence and a quiet epilogue. Blender Cycles is explicitly configured for CPU rendering at 128 samples with denoising.
 
-**Renderer note:** FrameForge 3D is a CPU-based, code-driven mesh renderer. This is a stylized, block-built Minecraft-inspired scene, not a textured game-engine render with skeletal rigs or physically based materials. FrameForge's native video export is silent WebM; use the supplied final MP4 when you need the finished sound mix.
+### Start the BROWN pipeline
+
+1. Read the [Blender pipeline guide](https://github.com/FRFR-FR/frameforge/blob/main/blender_pipeline/README.md).
+2. Review or edit [`brown_scene_config.json`](https://github.com/FRFR-FR/frameforge/blob/main/blender_pipeline/brown_scene_config.json).
+3. Run the scene builder and all-frame structural audit:
+   ```bash
+   blender --background --python blender_pipeline/brown_scene_cpu.py -- --mode audit
+   ```
+4. Render all 2,700 frames:
+   ```bash
+   blender --background --python blender_pipeline/brown_scene_cpu.py -- --mode render
+   ```
+
+A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU Production](https://github.com/FRFR-FR/frameforge/actions/workflows/brown-blender-cpu.yml). Choose `audit` to build and validate or `render` to run the full CPU render, then download the workflow artifact.
+
+**Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
