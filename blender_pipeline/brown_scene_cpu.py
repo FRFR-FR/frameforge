@@ -474,7 +474,7 @@ def create_phone(kaylen):
     # The phone vibrates in the hand at the incoming-message moment, then drops with Kaylen.
     for sec, dx, rz in ((37.5,0,0),(37.62,.018,.10),(37.76,-.014,-.08),(37.90,0,0),(43.45,0,0)):
         frame = int(sec*FPS)+1
-        phone.location = (.52+dx,.73,1.42)
+        phone.location = (.52+dx,.66,1.32)
         phone.rotation_euler.z = rz
         phone.keyframe_insert(data_path="location",frame=frame)
         phone.keyframe_insert(data_path="rotation_euler",frame=frame)
@@ -489,7 +489,7 @@ def create_story_props(chars):
     # Amel's municipal-feed device: a small tablet with a lit, physical screen.
     amel = chars["Amel"]["rig"]
     tablet = cube_obj("Amel • Municipal Feed Tablet", (0,0,0), (.30,.035,.22), MAT["phone_body"], amel, .014, "BROWN • Props")
-    tablet.location = (-.44,.72,1.42)
+    tablet.location = (-.44,.66,1.32)
     tablet["prop_role"] = "municipal-feed-tablet"
     tablet_screen = cube_obj("Amel • Tablet Screen", (0,0,0), (.282,.008,.202), MAT["screen"], tablet, .004, "BROWN • Props")
     tablet_screen.location = (0,-.020,0)
@@ -556,7 +556,10 @@ def create_vehicle():
         for y in (-1.92,1.93):
             wheel = torus_obj("Vehicle • Tyre", (side*1.13,y,.47), .38,.16,MAT["rubber"],root,(0,math.pi/2,0))
             wheel["wheel_radius"] = .38
-            torus_obj("Vehicle • Alloy Hub", (side*1.145,y,.47), .18,.045,MAT["chrome"],root,(0,math.pi/2,0))
+            wheel["wheel_role"] = "vehicle-tyre"
+            wheel["collision_enabled"] = True
+            hub = torus_obj("Vehicle • Alloy Hub", (side*1.145,y,.47), .18,.045,MAT["chrome"],root,(0,math.pi/2,0))
+            hub["wheel_role"] = "wheel-hub"
     # Six visible seats in a three-row cabin.
     for row_y in (1.15,-.18,-1.50):
         for x in (-.56,.56):
@@ -584,9 +587,7 @@ def create_vehicle():
         hinge.rotation_euler.z = angle
         hinge.keyframe_insert(data_path="rotation_euler",frame=int(sec*FPS)+1)
     # Four wheel objects are audited and their rolling is driven by distance.
-    wheels = [o for o in root.children if o.name == "Vehicle • Tyre"]
-    if not wheels:
-        wheels = [o for o in bpy.data.objects if o.name == "Vehicle • Tyre"]
+    wheels = [o for o in root.children if o.get("wheel_role") == "vehicle-tyre"]
     # Dashboard clock is a 3D object inside the car, never a video caption.
     clock = add_text("Dashboard Clock • 21:39", "21:39", (-.30,1.83,1.27), .075, MAT["eye_white"], root)
     clock.data.align_x = "CENTER"
@@ -994,6 +995,9 @@ def setup_render(output_dir, threads):
     scene.render.resolution_x=OUTPUT_W
     scene.render.resolution_y=OUTPUT_H
     scene.render.resolution_percentage=100
+    scene.use_camera_switching=True
+    scene.render.use_motion_blur=True
+    scene.render.motion_blur_shutter=.28
     scene.render.fps=FPS
     scene.render.fps_base=1.0
     scene.frame_start=FRAME_START
@@ -1081,8 +1085,9 @@ def audit_scene(project):
     checks["physical_tovin_application"]=project["story_props"]["tovin_application"].get("prop_role")=="school-application"
     checks["physical_kaylen_paper_fragment"]=project["story_props"]["kaylen_application_fragment"].get("prop_role")=="school-application-fragment"
     checks["physical_amel_tablet"]=project["story_props"]["amel_tablet"].get("prop_role")=="municipal-feed-tablet"
-    wheel_count=sum(1 for obj in bpy.data.objects if obj.name=="Vehicle • Tyre")
+    wheel_count=sum(1 for obj in bpy.data.objects if obj.get("wheel_role")=="vehicle-tyre")
     checks["four_vehicle_wheels"]=wheel_count==4
+    checks["all_four_wheels_have_animation"]=sum(1 for obj in bpy.data.objects if obj.get("wheel_role")=="vehicle-tyre" and obj.animation_data is not None)==4
     checks["all_characters_have_exactly_two_ears"]=all(ch["body"].get("face_audit",{}).get("ears")==2 for ch in chars.values())
     checks["all_characters_have_exactly_two_eyes"]=all(ch["body"].get("face_audit",{}).get("eyes")==2 for ch in chars.values())
     steering_count=sum(1 for obj in bpy.data.objects if obj.get("prop_role")=="steering-wheel")
@@ -1093,10 +1098,22 @@ def audit_scene(project):
         rig,body=ch["rig"],ch["body"]
         expected={"eyes":2,"pupils":2,"brows":2,"ears":2,"nose":1,"mouth":1}
         face=dict(body.get("face_audit",{}))
-        checks[name+"_face_features_exact"]=face==expected
+        feature_map=ch["features"]
+        actual_face={
+            "eyes":(len(feature_map.get("eye.L",[]))+len(feature_map.get("eye.R",[])))//8,
+            "pupils":(len(feature_map.get("pupil.L",[]))+len(feature_map.get("pupil.R",[])))//8,
+            "brows":(len(feature_map.get("brow.L",[]))+len(feature_map.get("brow.R",[])))//8,
+            "ears":(len(feature_map.get("ear.L",[]))+len(feature_map.get("ear.R",[])))//8,
+            "nose":len(feature_map.get("nose",[]))//8,
+            "mouth":len(feature_map.get("mouth",[]))//8
+        }
+        checks[name+"_face_features_exact"]=face==expected and actual_face==expected
         checks[name+"_has_armature_modifier"]=any(m.type=="ARMATURE" and m.object==rig for m in body.modifiers)
         checks[name+"_single_unified_body"]=bool(body.get("single_body_mesh"))
-        checks[name+"_all_vertices_weighted"]=int(body.get("weighted_vertex_count",0))==len(body.data.vertices)
+        checks[name+"_all_vertices_weighted"]=all(
+            len(vertex.groups)==1 and abs(vertex.groups[0].weight-1.0)<1e-5
+            for vertex in body.data.vertices
+        )
         checks[name+"_all_rig_bones_present"]=all(rig.data.bones.get(b) is not None for b in BONE_REST)
         checks[name+"_capsule_hitbox_has_collision_modifier"]=ch["hitbox"].type=="MESH" and any(m.type=="COLLISION" for m in ch["hitbox"].modifiers)
         checks[name+"_capsule_hitbox_hidden_from_render"]=bool(ch["hitbox"].hide_render)
@@ -1120,20 +1137,24 @@ def audit_scene(project):
     checks["six_character_collision_capsules"]=sum(1 for obj in bpy.data.objects if obj.get("hitbox"))==6
     checks["no_second_crew_vehicle"]=sum(1 for obj in bpy.data.objects if obj.get("vehicle_type"))==1
     checks["no_unplanned_character_rigs"]=sum(1 for obj in bpy.data.objects if obj.get("rig_type")=="BROWN_BlockHuman_v2")==6
-    # Evaluate every frame: all rig and vehicle transforms must stay finite.
+    # Evaluate every frame and every scene object, not only the character roots.
     frame_checks=0
+    object_count=len(bpy.data.objects)
     for frame in range(scene.frame_start,scene.frame_end+1):
         scene.frame_set(frame)
-        objects=[project["car"]]+[ch["rig"] for ch in chars.values()]
-        for obj in objects:
-            values=list(obj.location)+list(obj.rotation_euler)
+        for obj in bpy.data.objects:
+            values=list(obj.location)+list(obj.rotation_euler)+list(obj.scale)
             if not all(math.isfinite(float(v)) for v in values):
                 failures.append("Non-finite transform at frame %d: %s"%(frame,obj.name))
+                break
+            world_values=[value for row in obj.matrix_world for value in row]
+            if not all(math.isfinite(float(v)) for v in world_values):
+                failures.append("Non-finite world matrix at frame %d: %s"%(frame,obj.name))
                 break
         frame_checks+=1
         if failures:
             break
-    checks["all_2700_frames_transform_audited"]=(frame_checks==2700 and not failures)
+    checks["all_2700_frames_all_objects_transform_audited"]=(frame_checks==2700 and not failures)
     scene.frame_set(FRAME_START)
     for name,value in checks.items():
         if not value:
@@ -1153,6 +1174,8 @@ def audit_scene(project):
         "character_hitboxes":sum(1 for obj in bpy.data.objects if obj.get("hitbox")),
         "checks":checks,
         "frames_transform_checked":frame_checks,
+        "objects_transform_checked_per_frame":object_count,
+        "object_frame_samples_checked":frame_checks*object_count,
         "failures":failures,
         "generated_at_utc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),
     }
