@@ -1,0 +1,152 @@
+{
+  "project": {
+    "name": "BROWN | BOOK ONE",
+    "adaptation_note": "Single-vehicle corridor ambush scene from chapters 5–6, with an extended high-speed lead-in as requested for the animation.",
+    "style": "high-detail block-built cinematic realism",
+    "source_characters": [
+      "Kesh",
+      "Amel",
+      "Kaylen",
+      "Biko",
+      "Tovin",
+      "Lark"
+    ],
+    "scene_scale": "1 Blender unit = 1 cinematic block",
+    "image_generation": false
+  },
+  "render": {
+    "width": 720,
+    "height": 1280,
+    "fps": 30,
+    "duration_seconds": 90,
+    "frame_count": 2700,
+    "engine": "CYCLES",
+    "device": "CPU",
+    "cycles_samples": 128,
+    "denoising": true,
+    "resolution_percentage": 100,
+    "color_management": "AgX",
+    "video_container": "MPEG4",
+    "video_codec": "H264",
+    "constant_rate_factor": "PERC_LOSSLESS"
+  },
+  "scene": {
+    "explosion_time_seconds": 43.5,
+    "minimum_vehicle_travel_blocks": 180,
+    "final_approach_blocks": 188,
+    "vehicle_path": [
+      {
+        "seconds": 0,
+        "distance_blocks": 0
+      },
+      {
+        "seconds": 4,
+        "distance_blocks": 12
+      },
+      {
+        "seconds": 10,
+        "distance_blocks": 65
+      },
+      {
+        "seconds": 16,
+        "distance_blocks": 132
+      },
+      {
+        "seconds": 20,
+        "distance_blocks": 180
+      },
+      {
+        "seconds": 37,
+        "distance_blocks": 187
+      },
+      {
+        "seconds": 39.5,
+        "distance_blocks": 188
+      },
+      {
+        "seconds": 43.5,
+        "distance_blocks": 188
+      }
+    ],
+    "vehicle": {
+      "type": "six-seat enclosed crew vehicle",
+      "occupants": [
+        "Kesh",
+        "Amel",
+        "Kaylen",
+        "Biko",
+        "Tovin",
+        "Lark"
+      ],
+      "steering_driver": "Kesh",
+      "steering_hands": "IK-constrained to physical steering wheel",
+      "wheel_count": 4,
+      "physical_door": "rear right door opens before impact"
+    },
+    "phone": {
+      "owner": "Kaylen",
+      "prop": "physical mesh smartphone",
+      "screen_message": "YOU CAN STILL LEAVE",
+      "screen_text_is_geometry": true
+    },
+    "explosion": {
+      "style": "fireball, point-light pulse, ballistic debris, expanding dust clouds, camera impulse",
+      "character_response": "connected armature impulse and damped joint motion"
+    },
+    "character_rig": {
+      "version": "BROWN_BlockHuman_v2",
+      "body_mesh": "one unified skinned mesh per character",
+      "facial_features": {
+        "eyes": 2,
+        "pupils": 2,
+        "brows": 2,
+        "ears": 2,
+        "nose": 1,
+        "mouth": 1
+      },
+      "bones": 17,
+      "controls": [
+        "body root",
+        "pelvis",
+        "spine",
+        "neck",
+        "head",
+        "upper arms",
+        "forearms",
+        "hands",
+        "thighs",
+        "shins",
+        "feet"
+      ],
+      "facial_shape_keys": [
+        "MouthOpen",
+        "Blink",
+        "BrowRaise"
+      ]
+    },
+    "cameras": 10
+  },
+  "quality": {
+    "samples": 128,
+    "denoising": true,
+    "motion_review": "per-frame finite-transform audit",
+    "full_render": "all 2,700 frames, no frame skipping",
+    "geometry": "procedural Blender meshes, no generated image textures",
+    "lighting": "Cycles CPU area/point lighting and emissive practicals"
+  },
+  "audit": {
+    "check_frame_count": true,
+    "check_every_frame_transforms": true,
+    "check_single_vehicle": true,
+    "check_character_count": 6,
+    "check_face_feature_counts": true,
+    "check_armature_modifiers": true,
+    "check_all_vertices_weighted": true,
+    "check_exactly_four_wheels": true,
+    "check_physical_phone": true,
+    "check_steering_ik": true,
+    "check_camera_tracking": true,
+    "check_minimum_vehicle_travel": true,
+    "check_cpu_renderer": true
+  }
+}
