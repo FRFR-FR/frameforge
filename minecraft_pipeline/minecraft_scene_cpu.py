@@ -8,16 +8,21 @@ from mathutils import Vector
 
 def cli():
     args = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
-    mode = "render"
+    mode = "build"
     out = Path("output/minecraft_60s")
+    start_frame, end_frame = 1, 3600
     i = 0
     while i < len(args):
         if args[i] == "--mode" and i+1 < len(args):
             mode = args[i+1]; i += 2
         elif args[i] == "--output-dir" and i+1 < len(args):
             out = Path(args[i+1]); i += 2
+        elif args[i] == "--start-frame" and i+1 < len(args):
+            start_frame = int(args[i+1]); i += 2
+        elif args[i] == "--end-frame" and i+1 < len(args):
+            end_frame = int(args[i+1]); i += 2
         else: i += 1
-    return mode, out.resolve()
+    return mode, out.resolve(), start_frame, end_frame
 
 PROFILES = {
  "Senator":dict(skin=(238,190,158),hair=(245,195,83),hairdark=(153,101,39),eyes=(42,130,225),shirt=(238,236,220),jacket=(17,31,58),accent=(237,179,55),pants=(13,22,40),boots=(23,34,52),role="hero"),
@@ -467,36 +472,92 @@ def build_scene(out_dir):
     return scene,blend,audit
 
 def run():
-    mode,out=cli(); out.mkdir(parents=True,exist_ok=True)
-    # Explicit first step: create all real 64x64 skin files before any animation work.
+    mode,out,start_frame,end_frame=cli()
+    out.mkdir(parents=True,exist_ok=True)
+
+    # Render workers load the audited .blend and render their assigned contiguous
+    # frame range to PNG. Encoding is performed by system FFmpeg in a separate
+    # workflow job because Blender 5 no longer supports FFMPEG as an image format.
+    if mode=="render-frames":
+        scene=bpy.context.scene
+        if scene is None:
+            raise RuntimeError("No Blender scene was loaded for frame rendering.")
+        if not (1 <= start_frame <= end_frame <= 3600):
+            raise ValueError("Invalid frame range: %s-%s"%(start_frame,end_frame))
+        scene.render.engine="CYCLES"
+        scene.cycles.device="CPU"
+        scene.cycles.samples=96
+        scene.cycles.use_denoising=True
+        scene.cycles.use_adaptive_sampling=True
+        scene.cycles.adaptive_threshold=0.008
+        scene.render.resolution_x=1280
+        scene.render.resolution_y=720
+        scene.render.resolution_percentage=100
+        scene.render.fps=60
+        scene.render.fps_base=1.0
+        scene.render.image_settings.file_format="PNG"
+        scene.render.image_settings.color_mode="RGB"
+        scene.render.image_settings.color_depth="8"
+        scene.render.image_settings.compression=0
+        scene.render.use_file_extension=True
+        scene.render.use_motion_blur=True
+        scene.render.motion_blur_shutter=0.35
+        scene.render.threads_mode="AUTO"
+        frame_dir=out/"frames"
+        frame_dir.mkdir(parents=True,exist_ok=True)
+        scene.render.filepath=str(frame_dir/"frame_")
+        scene.frame_start=start_frame
+        scene.frame_end=end_frame
+        scene.frame_set(start_frame)
+        bpy.ops.render.render(animation=True)
+        rendered=list(frame_dir.glob("frame_*.png"))
+        expected=end_frame-start_frame+1
+        if len(rendered)!=expected:
+            raise RuntimeError("Chunk %d-%d produced %d PNGs; expected %d"%(start_frame,end_frame,len(rendered),expected))
+        (out/"chunk_verification.json").write_text(json.dumps({
+            "start_frame":start_frame,"end_frame":end_frame,
+            "expected_frames":expected,"rendered_frames":len(rendered),
+            "renderer":"Blender Cycles CPU","samples":96,
+            "resolution":[1280,720],"fps":60
+        },indent=2))
+        print("FRAME_CHUNK_COMPLETE",start_frame,end_frame,len(rendered))
+        return
+
+    # Character atlases are deliberately authored before the voxel scene.
     paths=build_skins(out)
     if mode=="skins":
-        print(json.dumps({"skins_created":[str(p) for p in paths.values()]},indent=2)); return
+        print(json.dumps({"skins_created":[str(p) for p in paths.values()]},indent=2))
+        return
     scene,blend,audit=build_scene(out)
-    if not all(audit["checks"].values()): raise RuntimeError("Scene audit failed: "+json.dumps(audit["checks"]))
+    if not all(audit["checks"].values()):
+        raise RuntimeError("Scene audit failed: "+json.dumps(audit["checks"]))
+    if mode=="build":
+        print("BLENDER_SCENE_READY",blend)
+        print(json.dumps(audit,indent=2))
+        return
     if mode=="audit":
-        scene.render.image_settings.file_format="PNG"; scene.render.image_settings.color_mode="RGB"
+        scene.render.image_settings.file_format="PNG"
+        scene.render.image_settings.color_mode="RGB"
         for seconds in (9,23.8,29,41,52,58):
-            scene.frame_set(int(seconds*60)+1); scene.render.filepath=str(out/("preview_%02dsec"%seconds))
+            scene.frame_set(int(seconds*60)+1)
+            scene.render.filepath=str(out/("preview_%02dsec"%seconds))
             bpy.ops.render.render(write_still=True)
-        print("Scene audit and preview renders completed."); return
-    scene.render.image_settings.file_format="FFMPEG"; scene.render.ffmpeg.format="MPEG4"
-    scene.render.ffmpeg.codec="H264"; scene.render.ffmpeg.constant_rate_factor="PERC_LOSSLESS"
-    scene.render.ffmpeg.ffmpeg_preset="BEST"; scene.render.ffmpeg.video_bitrate=80000
-    try: scene.render.ffmpeg.audio_codec="NONE"
-    except Exception: pass
-    scene.render.filepath=str(out/"minecraft_render"); scene.frame_set(1)
-    bpy.ops.render.render(animation=True)
-    raw=out/"minecraft_render.mp4"
-    candidates=list(out.glob("minecraft_render*.mp4"))
-    source=raw if raw.exists() else (max(candidates,key=lambda p:p.stat().st_size) if candidates else None)
-    if source is None: raise FileNotFoundError("Blender did not create the expected MP4.")
-    final=out/"Senator_Minecraft_BROWN_Ambush_60s_720p60.mp4"; tmp=out/"silent_remux.mp4"
-    subprocess.run(["ffmpeg","-y","-i",str(source),"-map","0:v:0","-an","-c:v","copy","-movflags","+faststart",str(tmp)],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    if final.exists(): final.unlink()
-    tmp.replace(final)
-    probe=subprocess.run(["ffprobe","-v","error","-show_entries","format=duration,size:stream=codec_name,codec_type,width,height,r_frame_rate","-of","json",str(final)],check=True,capture_output=True,text=True)
-    info=json.loads(probe.stdout); (out/"video_verification.json").write_text(json.dumps(info,indent=2))
-    print("FINAL_VIDEO",final); print(json.dumps(info,indent=2))
+        print("Scene audit and preview renders completed.")
+        return
+    if mode=="render":
+        frame_dir=out/"frames"
+        frame_dir.mkdir(parents=True,exist_ok=True)
+        scene.render.image_settings.file_format="PNG"
+        scene.render.image_settings.color_mode="RGB"
+        scene.render.image_settings.color_depth="8"
+        scene.render.image_settings.compression=0
+        scene.render.filepath=str(frame_dir/"frame_")
+        scene.render.fps=60
+        scene.frame_start=1
+        scene.frame_end=3600
+        bpy.ops.render.render(animation=True)
+        print("FULL_FRAME_SEQUENCE_COMPLETE",frame_dir)
+        return
+    raise ValueError("Unknown mode: "+mode)
 
 if __name__=="__main__": run()
