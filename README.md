@@ -180,3 +180,12 @@ const rootY = FF3D.clampFeetToGround(
 ```
 
 The painter renderer remains available for older projects. Use the z-buffer mode for opaque solid scenes that need reliable object occlusion and ground contact. Z-buffer rasterization is CPU-side and can take longer with very dense meshes, especially on mobile devices.
+
+
+## BROWN — Book One 90-second cinematic
+
+The **Load BROWN 90s scene** button in FrameForge loads the 720 × 1280, 15 FPS, 1,350-frame scene. After loading, open **Frame code** and choose **Run all frames** to render the script across the timeline. Long timelines use a sampled thumbnail strip; the timeline scrubber still addresses every frame.
+
+The matching editable project is in `examples/BROWN_Book_One_Minecraft_90s.frameforge.json`, and the standalone script is in `examples/BROWN_Book_One_Minecraft_Sequence.js`. Both use the built-in FF3D software renderer and require no external libraries or image-generation service.
+
+**Renderer note:** FrameForge 3D is a CPU-based, code-driven mesh renderer. This is a stylized, block-built Minecraft-inspired scene, not a textured game-engine render with skeletal rigs or physically based materials. FrameForge's native video export is silent WebM; use the supplied final MP4 when you need the finished sound mix.
