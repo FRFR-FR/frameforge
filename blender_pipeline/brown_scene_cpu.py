@@ -387,13 +387,27 @@ def create_character(name, spec, car_root):
     rig["face_counts"] = dict(body["face_audit"])
     rig["body_mesh_name"] = body.name
     rig["bone_count"] = len(BONE_REST)
-    # Audit capsule is a hidden wireframe control, not a visible body part.
-    hitbox = empty_obj(name+" • Capsule Hitbox", (0,0,1.2), rig, "SPHERE")
-    hitbox.empty_display_size = 0.40
+    # Hidden capsule mesh is an editable hitbox and a Blender collision surface.
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=1, location=(0,0,0))
+    hitbox = bpy.context.object
+    hitbox.name = name+" • Capsule Hitbox"
+    link_object(hitbox,"BROWN • Collision Hitboxes")
+    hitbox.parent = rig
+    hitbox.location = (0,0,1.28)
+    hitbox.scale = (.38,.34,1.24)
     hitbox.hide_render = True
+    hitbox.display_type = "WIRE"
     hitbox["hitbox"] = True
-    hitbox["radius"] = 0.34
-    hitbox["height"] = 2.55
+    hitbox["radius"] = 0.38
+    hitbox["height"] = 2.48
+    hitbox["collision_enabled"] = True
+    hitbox["collision_role"] = "hidden character capsule for cloth/soft-body/particle deflection"
+    collision = hitbox.modifiers.new("Physics • Character Hitbox","COLLISION")
+    if hasattr(collision,"settings"):
+        collision.settings.damping = .72
+        collision.settings.cloth_friction = 18.0
+    if getattr(hitbox,"collision",None):
+        hitbox.collision.use = True
     return {"name":name,"rig":rig,"body":body,"hitbox":hitbox,"features":features}
 
 def add_ik_hand(rig, bone_name, target):
@@ -807,8 +821,8 @@ def create_epilogue_set(car_root):
         leaf.rotation_euler.z=math.sin(i)*.8
     bench=cube_obj("Epilogue • Stone Seat",(0,clearing_y,.55),(2.4,.85,.65),MAT["stone"],car_root,.12,"BROWN • Epilogue")
     cube_obj("Epilogue • Seat Top",(0,clearing_y, .91),(2.55,.95,.14),MAT["concrete_light"],car_root,.06,"BROWN • Epilogue")
-    add_light("Epilogue • Warm Canopy Key","AREA",(-3,clearing_y-4,7),(1.0,.78,.52),1100,5)
-    add_light("Epilogue • Cool Rim","AREA",(5,clearing_y+2,5),(.34,.60,.68),850,4)
+    add_light("Epilogue • Warm Canopy Key","AREA",(-3,clearing_y-4,7),(1.0,.78,.52),1100,5,car_root)
+    add_light("Epilogue • Cool Rim","AREA",(5,clearing_y+2,5),(.34,.60,.68),850,4,car_root)
 
 def animate_kaylen_crawl_and_epilogue(kaylen):
     rig,body=kaylen["rig"],kaylen["body"]
@@ -844,7 +858,7 @@ def animate_kaylen_crawl_and_epilogue(kaylen):
     book["prop_role"]="physical-book"
     add_text("Epilogue Book Cover • Title","BROWN",(0,0,0),.045,MAT["eye_white"],book,rotation=(math.pi/2,0,0))
     # Facial performance (mouth shape) is keyed on the same rig at 30 fps.
-    for f in range(epilogue,FRAME_END+1,4):
+    for f in range(epilogue,FRAME_END+1):
         seconds=(f-epilogue)/FPS
         mouth=max(0.0, math.sin(seconds*9.2)) * (0.6 if seconds<12.0 else 0.0)
         set_shape(body,"MouthOpen",mouth,f)
@@ -992,6 +1006,8 @@ def audit_scene(project):
         checks[name+"_single_unified_body"]=bool(body.get("single_body_mesh"))
         checks[name+"_all_vertices_weighted"]=int(body.get("weighted_vertex_count",0))==len(body.data.vertices)
         checks[name+"_all_rig_bones_present"]=all(rig.data.bones.get(b) is not None for b in BONE_REST)
+        checks[name+"_capsule_hitbox_has_collision_modifier"]=ch["hitbox"].type=="MESH" and any(m.type=="COLLISION" for m in ch["hitbox"].modifiers)
+        checks[name+"_capsule_hitbox_hidden_from_render"]=bool(ch["hitbox"].hide_render)
         if name=="Kesh":
             checks["driver_has_steering_IK"]=any(c.type=="IK" and c.target for pb in rig.pose.bones for c in pb.constraints)
         if name=="Kaylen":
@@ -1004,6 +1020,7 @@ def audit_scene(project):
     checks["ten_camera_objects"]=sum(1 for obj in bpy.data.objects if obj.type=="CAMERA")==10
     checks["each_camera_has_tracking_constraint"]=all(any(c.type=="TRACK_TO" and c.target for c in obj.constraints) for obj in bpy.data.objects if obj.type=="CAMERA")
     checks["physical_phone_screen_exists"]=any(obj.get("prop_role")=="physical-phone-screen" for obj in bpy.data.objects)
+    checks["six_character_collision_capsules"]=sum(1 for obj in bpy.data.objects if obj.get("hitbox"))==6
     checks["no_second_crew_vehicle"]=sum(1 for obj in bpy.data.objects if obj.get("vehicle_type"))==1
     checks["no_unplanned_character_rigs"]=sum(1 for obj in bpy.data.objects if obj.get("rig_type")=="BROWN_BlockHuman_v2")==6
     # Evaluate every frame: all rig and vehicle transforms must stay finite.
@@ -1035,6 +1052,7 @@ def audit_scene(project):
         "vehicle_travel_at_blast_blocks":travelled,
         "phone_prop":project["phone"].name,
         "four_wheels":wheel_count,
+        "character_hitboxes":sum(1 for obj in bpy.data.objects if obj.get("hitbox")),
         "checks":checks,
         "frames_transform_checked":frame_checks,
         "failures":failures,
