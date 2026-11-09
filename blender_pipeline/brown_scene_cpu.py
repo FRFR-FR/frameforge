@@ -281,6 +281,13 @@ def create_armature(name, location, parent):
     rig.select_set(False)
     rig.show_in_front = True
     rig["rig_type"] = "BROWN_BlockHuman_v2"
+    rig["character_name"] = name
+    rig["appearance_note"] = "Visual interpretation; only details explicitly present in the source text are treated as fixed."
+    if name == "Kaylen":
+        rig["age_years"] = 29
+        rig["continuity_detail"] = "split lip"
+    if name == "Kesh":
+        rig["relationship_detail"] = "has a daughter"
     rig["rigged"] = True
     rig["collision_shape"] = "CAPSULE"
     rig["collision_radius"] = 0.34
@@ -345,6 +352,12 @@ def create_character(name, spec, car_root):
         box((side*.36,0,2.28),(.12,.25,.18),"skin","head",feature="ear."+suffix)
     box((0,.306,2.22),(.085,.10,.11),"skin","head",feature="nose")
     box((0,.292,2.095),(.15,.035,.035),"mouth","head",feature="mouth")
+    if name == "Kaylen":
+        # Source-text continuity: Kaylen is introduced with a split lip.
+        box((.066,.309,2.095),(.026,.014,.038),"mouth","head",feature="lip_split")
+    if name == "Biko":
+        # Small repaired-tear detail at the elbow of Biko's jacket.
+        box((-.55,.30,1.45),(.075,.025,.065),"trim","forearm.L",feature="jacket_tear")
     # Facial feature counts are stored on the mesh and checked before rendering.
     mesh = bpy.data.meshes.new(name + " • Single Skinned Body")
     mesh.from_pydata(verts, [], faces)
@@ -618,14 +631,15 @@ def add_camera_cuts(car_root, kaylen, phone):
     cam("SHOT 01 • High Rear Road Chase", (8,-13,9), target_car, 35)
     cam("SHOT 02 • Low Side Tracking", (6,-8,2.3), target_car, 52)
     cam("SHOT 03 • Cabin Through Windshield", (0,5.7,2.65), target_car, 47)
-    cam("SHOT 04 • Real Phone Close-up", (0.95,-2.0,2.10), phone, 65)
+    cam("SHOT 04 • Real Phone Close-up", (0.25,-.25,1.70), phone, 65)
     cam("SHOT 05 • Corridor Approach", (0,-10,3.2), target_car, 42)
     cam("SHOT 06 • Empty Warehouse / Door", (5.5,-6.5,2.8), target_car, 50)
     cam("SHOT 07 • Blast Handheld", (8,-8,4.2), target_car, 38)
     cam("SHOT 08 • Wreckage Ground Level", (0,-7,1.55), target_aftermath, 55)
     cam("SHOT 09 • Kaylen Crawls", (-3,-4,1.4), target_aftermath, 60)
     cam("SHOT 10 • Quiet Epilogue", (3,-5,2.7), target_epilogue, 55)
-    frames = [1,241,481,721,931,1126,1291,1501,1741,2266]
+    # Phone close-up starts exactly when Kaylen receives the message at 37.5s.
+    frames = [1,211,451,1126,931,1186,1291,1501,1741,2266]
     for c, frame in zip(cameras,frames):
         marker = bpy.context.scene.timeline_markers.new(c.name, frame=frame)
         marker.camera = c
@@ -676,9 +690,15 @@ def animate_idle_characters(chars, steering, phone):
         key_pose(rig,"spine",(0,0,0),int(6.0*FPS)+1)
     # Kesh's hands are held to IK targets parented to the physical steering wheel.
     kesh = chars["Kesh"]["rig"]
+    steering_ik = []
     for suffix, target_position in (("L",(-.22,0,0.02)),("R",(.22,0,0.02))):
         control = empty_obj("Steering IK • Hand "+suffix, target_position, steering, "SPHERE")
-        add_ik_hand(kesh,"hand."+suffix,control)
+        steering_ik.append(add_ik_hand(kesh,"hand."+suffix,control))
+    # Kesh releases the wheel when the blast hits, allowing both arms to follow the impulse.
+    for constraint in steering_ik:
+        for sec, influence in ((0,1.0),(43.45,1.0),(43.5,0.0),(90.0,0.0)):
+            constraint.influence = influence
+            constraint.keyframe_insert(data_path="influence",frame=int(sec*FPS)+1)
     for sec, angle in ((0,0),(8,.03),(15,-.04),(22,.035),(29,-.025),(36,.015),(39,0),(43,0)):
         f=int(sec*FPS)+1
         steering.rotation_euler[1]=angle
@@ -1028,6 +1048,10 @@ def audit_scene(project):
         checks[name+"_capsule_hitbox_hidden_from_render"]=bool(ch["hitbox"].hide_render)
         if name=="Kesh":
             checks["driver_has_steering_IK"]=any(c.type=="IK" and c.target for pb in rig.pose.bones for c in pb.constraints)
+            checks["driver_ik_releases_at_blast"]=all(
+                any(c.type=="IK" and abs(c.influence)<1e-4 for c in pb.constraints)
+                for pb in rig.pose.bones if any(c.type=="IK" for c in pb.constraints)
+            )
         if name=="Kaylen":
             checks["phone_parented_to_Kaylen"]=project["phone"].parent==rig
     scene.frame_set(BLAST_FRAME)
