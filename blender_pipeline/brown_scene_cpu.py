@@ -914,7 +914,7 @@ def animate_kaylen_crawl_and_epilogue(kaylen):
     start=int(58*FPS)+1
     end=int(70*FPS)+1
     # Kaylen moves by limbs and torso, not by a floating vertical bob.
-    for f in range(start,end+1,2):
+    for f in range(start,end+1):
         t=(f-start)/FPS
         progress=min(1.0,t/12.0)
         rig.location=base+Vector((.25*progress,-2.8*progress,0))
@@ -1085,6 +1085,8 @@ def audit_scene(project):
     checks["all_characters_have_exactly_two_eyes"]=all(ch["body"].get("face_audit",{}).get("eyes")==2 for ch in chars.values())
     steering_count=sum(1 for obj in bpy.data.objects if obj.get("prop_role")=="steering-wheel")
     checks["one_steering_wheel"]=steering_count==1
+    # Evaluate keyed constraints at the impact frame before checking their release.
+    scene.frame_set(BLAST_FRAME)
     for name,ch in chars.items():
         rig,body=ch["rig"],ch["body"]
         expected={"eyes":2,"pupils":2,"brows":2,"ears":2,"nose":1,"mouth":1}
@@ -1130,6 +1132,7 @@ def audit_scene(project):
         if failures:
             break
     checks["all_2700_frames_transform_audited"]=(frame_checks==2700 and not failures)
+    scene.frame_set(FRAME_START)
     for name,value in checks.items():
         if not value:
             failures.append(name)
