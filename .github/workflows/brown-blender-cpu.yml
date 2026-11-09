@@ -1,0 +1,60 @@
+name: BROWN Blender CPU Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Audit/build the editable project, or render all 2,700 frames"
+        required: true
+        type: choice
+        options:
+          - audit
+          - render
+        default: audit
+
+permissions:
+  contents: read
+
+jobs:
+  brown-cpu:
+    name: Blender CPU ${{ inputs.mode }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Install Blender and video support
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender
+          blender --version
+
+      - name: Build and audit all 2,700 frames
+        if: inputs.mode == 'audit'
+        run: |
+          mkdir -p output/brown_blender_cpu
+          blender --background --python-exit-code 1 \
+            --python blender_pipeline/brown_scene_cpu.py -- \
+            --mode audit --output-dir output/brown_blender_cpu
+
+      - name: Render the full 90-second CPU animation
+        if: inputs.mode == 'render'
+        run: |
+          mkdir -p output/brown_blender_cpu
+          blender --background --python-exit-code 1 \
+            --python blender_pipeline/brown_scene_cpu.py -- \
+            --mode render --output-dir output/brown_blender_cpu
+
+      - name: Upload project, interchange file, audit and render
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Blender-CPU-${{ inputs.mode }}
+          path: |
+            output/brown_blender_cpu/*.blend
+            output/brown_blender_cpu/*.glb
+            output/brown_blender_cpu/*.json
+            output/brown_blender_cpu/*.mp4
+          if-no-files-found: warn
+          retention-days: 14
