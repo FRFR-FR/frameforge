@@ -23,16 +23,21 @@ from pathlib import Path
 import bpy
 from mathutils import Vector, Euler, Matrix
 
-FPS = 30
-DURATION_SECONDS = 90
+SCRIPT_DIR = Path(__file__).resolve().parent
+CONFIG_PATH = SCRIPT_DIR / "brown_scene_config.json"
+CONFIG = json.loads(CONFIG_PATH.read_text(encoding="utf-8")) if CONFIG_PATH.exists() else {}
+RENDER_CONFIG = CONFIG.get("render", {})
+SCENE_CONFIG = CONFIG.get("scene", {})
+FPS = int(RENDER_CONFIG.get("fps", 30))
+DURATION_SECONDS = int(RENDER_CONFIG.get("duration_seconds", 90))
 FRAME_START = 1
 FRAME_END = FPS * DURATION_SECONDS
-BLAST_TIME = 43.5
+BLAST_TIME = float(SCENE_CONFIG.get("explosion_time_seconds", 43.5))
 BLAST_FRAME = int(BLAST_TIME * FPS) + 1
-MIN_TRAVEL_BLOCKS = 180.0
-OUTPUT_W = 720
-OUTPUT_H = 1280
-SAMPLES = 64
+MIN_TRAVEL_BLOCKS = float(SCENE_CONFIG.get("minimum_vehicle_travel_blocks", 180.0))
+OUTPUT_W = int(RENDER_CONFIG.get("width", 720))
+OUTPUT_H = int(RENDER_CONFIG.get("height", 1280))
+SAMPLES = int(RENDER_CONFIG.get("cycles_samples", 64))
 
 ROOT = Path.cwd()
 OUT_DIR = ROOT / "output" / "brown_blender_cpu"
@@ -401,23 +406,26 @@ def add_ik_hand(rig, bone_name, target):
 
 def create_phone(kaylen):
     rig = kaylen["rig"]
-    phone = cube_obj("Kaylen • Physical Smartphone", (0.52,0.73,1.42), (.16,.29,.035), MAT["phone_body"], rig, .018, "BROWN • Props")
+    # Phone is a real three-dimensional prop, oriented screen-forward in the hand.
+    phone = cube_obj("Kaylen • Physical Smartphone", (0.52,0.73,1.42), (.16,.035,.29), MAT["phone_body"], rig, .018, "BROWN • Props")
     phone["prop_role"] = "physical-phone"
     phone["screen_text"] = "YOU CAN STILL LEAVE"
-    screen = cube_obj("Smartphone • Emissive Glass Screen", (0.52,0.748,1.42), (.138,.255,.009), MAT["screen"], rig, .006, "BROWN • Props")
-    screen.parent = phone
-    screen.location = (0,0.018,0)
-    # Small speaker slot, camera lens and two side buttons make this a physical prop.
-    speaker = cube_obj("Smartphone • Earpiece", (0.52,0.76,1.54), (.045,.009,.006), MAT["chrome"], rig, .002, "BROWN • Props")
-    speaker.parent = phone
-    speaker.location = (0,0.122,0.002)
-    lens = cube_obj("Smartphone • Camera Lens", (0.59,0.75,1.55), (.014,.008,.014), MAT["chrome"], rig, .004, "BROWN • Props")
-    lens.parent = phone
-    lens.location = (.05,.12,.004)
-    message = add_text("Phone Screen • Incoming Message", "YOU CAN STILL LEAVE", (0,0,0), .020, MAT["eye_white"], phone, rotation=(math.pi/2,0,0))
-    message.location = (0,0.002,0.0)
+    phone["screen_is_geometry"] = True
+    screen = cube_obj("Smartphone • Emissive Glass Screen", (0,0,0), (.138,.008,.255), MAT["screen"], phone, .005, "BROWN • Props")
+    screen.location = (0,-.020,0)
+    screen["prop_role"] = "physical-phone-screen"
+    # Small speaker slot, camera lens and side buttons are attached to the handset.
+    speaker = cube_obj("Smartphone • Earpiece", (0,0,0), (.045,.006,.008), MAT["chrome"], phone, .002, "BROWN • Props")
+    speaker.location = (0,-.026,.116)
+    lens = cube_obj("Smartphone • Camera Lens", (0,0,0), (.014,.006,.014), MAT["chrome"], phone, .003, "BROWN • Props")
+    lens.location = (.052,-.026,.116)
+    side_button = cube_obj("Smartphone • Side Button", (0,0,0), (.008,.018,.035), MAT["chrome"], phone, .002, "BROWN • Props")
+    side_button.location = (.083,0,.04)
+    # The message is actual 3D text on the screen mesh, not a video overlay.
+    message = add_text("Phone Screen • Incoming Message", "YOU CAN STILL\nLEAVE", (0,0,0), .012, MAT["eye_white"], phone, rotation=(math.pi/2,0,0))
+    message.location = (0,-.026,0.0)
     message.data.align_x = "CENTER"
-    message.data.size = .018
+    message.data.size = .012
     message["is_physical_screen_text"] = True
     # The phone vibrates in the hand at the incoming-message moment, then drops with Kaylen.
     for sec, dx, rz in ((37.5,0,0),(37.62,.018,.10),(37.76,-.014,-.08),(37.90,0,0),(43.45,0,0)):
@@ -434,19 +442,25 @@ def create_vehicle():
     root = empty_obj("BROWN • Single Crew Vehicle Root")
     root["vehicle_type"] = "six-seat enclosed SUV"
     root["minimum_pre_blast_travel_blocks"] = MIN_TRAVEL_BLOCKS
-    # Monocoque and passenger cabin.
+    # Monocoque and passenger cabin. Roof clearance is sized for seated human rigs.
     cube_obj("Vehicle • Lower Body", (0,0,.68), (2.25,6.15,.92), MAT["metal"], root, .16, "BROWN • Vehicle")
-    cube_obj("Vehicle • Cabin Roof", (0,-.08,1.72), (2.08,3.88,.24), MAT["metal"], root, .10, "BROWN • Vehicle")
+    cube_obj("Vehicle • Cabin Roof", (0,-.08,2.92), (2.08,3.88,.22), MAT["metal"], root, .10, "BROWN • Vehicle")
     cube_obj("Vehicle • Hood", (0,2.33,1.13), (2.06,1.35,.30), MAT["metal"], root, .09, "BROWN • Vehicle")
     cube_obj("Vehicle • Front Bumper", (0,3.11,.60), (2.24,.18,.30), MAT["chrome"], root, .04, "BROWN • Vehicle")
     cube_obj("Vehicle • Rear Bumper", (0,-3.10,.60), (2.24,.18,.30), MAT["chrome"], root, .04, "BROWN • Vehicle")
     glass = make_material("Vehicle • Tinted Glass", (0.025,.065,.08), .16, .30)
+    glass.diffuse_color = (0.025,.065,.08,.20)
+    glass_bsdf = glass.node_tree.nodes.get("Principled BSDF") if glass.use_nodes else None
+    if glass_bsdf and glass_bsdf.inputs.get("Alpha"):
+        glass_bsdf.inputs["Alpha"].default_value = .18
+    if hasattr(glass, "surface_render_method"):
+        glass.surface_render_method = "DITHERED"
     # Windshield / rear glass / side windows.
-    cube_obj("Vehicle • Windshield", (0,2.02,1.75), (1.82,.055,.92), glass, root, .04, "BROWN • Vehicle")
-    cube_obj("Vehicle • Rear Glass", (0,-2.11,1.75), (1.82,.055,.85), glass, root, .04, "BROWN • Vehicle")
+    cube_obj("Vehicle • Windshield", (0,2.02,2.45), (1.82,.055,.88), glass, root, .04, "BROWN • Vehicle")
+    cube_obj("Vehicle • Rear Glass", (0,-2.11,2.42), (1.82,.055,.82), glass, root, .04, "BROWN • Vehicle")
     for side in (-1,1):
         for y in (1.00,-.22,-1.43):
-            cube_obj("Vehicle • Side Window", (side*1.035,y,1.76), (.045,1.06,.78), glass, root, .025, "BROWN • Vehicle")
+            cube_obj("Vehicle • Side Window", (side*1.035,y,2.43), (.045,1.06,.76), glass, root, .025, "BROWN • Vehicle")
         for y in (-1.92,1.93):
             wheel = torus_obj("Vehicle • Tyre", (side*1.13,y,.47), .38,.16,MAT["rubber"],root,(0,math.pi/2,0))
             wheel["wheel_radius"] = .38
@@ -634,12 +648,23 @@ def animate_idle_characters(chars, steering, phone):
         f=int(sec*FPS)+1
         steering.rotation_euler[1]=angle
         steering.keyframe_insert(data_path="rotation_euler",frame=f)
-    # Passenger reactions to the real phone; the phone stays in Kaylen's hand.
+    # Passenger reactions are performed through face shape keys; the phone stays in hand.
     kaylen=chars["Kaylen"]
     for sec, amount in ((36.9,0),(37.5,.8),(38.3,.35),(39.6,0),(42.9,.75),(43.5,1)):
         f=int(sec*FPS)+1
         set_shape(kaylen["body"],"BrowRaise",amount,f)
         set_shape(kaylen["body"],"MouthOpen",.16*amount,f)
+    # Every occupant reacts to the flash with one controlled, readable expression.
+    for name,ch in chars.items():
+        for sec, mouth, brow in ((42.9,0.08,.25),(43.5,.50,.9),(44.2,.36,.65),(46.0,.18,.25),(49.0,0,0)):
+            f=int(sec*FPS)+1
+            set_shape(ch["body"],"MouthOpen",mouth,f)
+            set_shape(ch["body"],"BrowRaise",brow,f)
+    # Lark reaches for the door before the blast; the opened door is a scene prop.
+    key_pose(chars["Lark"]["rig"],"spine",(math.radians(-7),0,math.radians(-6)),int(40.0*FPS)+1)
+    key_pose(chars["Lark"]["rig"],"upper_arm.R",(math.radians(18),0,math.radians(-36)),int(40.2*FPS)+1)
+    key_pose(chars["Lark"]["rig"],"forearm.R",(math.radians(-28),0,math.radians(-14)),int(40.7*FPS)+1)
+    key_pose(chars["Lark"]["rig"],"upper_arm.R",(math.radians(8),0,math.radians(-22)),int(42.8*FPS)+1)
     # Biko leans forward between the seats; Tovin reacts to him; Lark turns to the bay.
     key_pose(chars["Biko"]["rig"],"spine",(math.radians(-4),0,0),int(21*FPS)+1)
     key_pose(chars["Biko"]["rig"],"head",(0,0,math.radians(-8)),int(22*FPS)+1)
@@ -697,10 +722,10 @@ def simulate_ragdoll(chars, car_root):
         key_pose(rig,"upper_arm.R",(math.radians(-15),0,math.radians(24)),settled)
     # Car receives a short blast jolt but remains a single connected vehicle.
     for f,loc,rot in (
-        (BLAST_FRAME,(0,180,0),(0,0,0)),
-        (BLAST_FRAME+3,(0,179.72,.16),(math.radians(-3),math.radians(1.5),math.radians(-1.2))),
-        (BLAST_FRAME+12,(0,179.85,.03),(math.radians(1),0,math.radians(.4))),
-        (BLAST_FRAME+30,(0,179.85,0),(0,0,0))
+        (BLAST_FRAME,(0,188,0),(0,0,0)),
+        (BLAST_FRAME+3,(0,187.72,.16),(math.radians(-3),math.radians(1.5),math.radians(-1.2))),
+        (BLAST_FRAME+12,(0,187.85,.03),(math.radians(1),0,math.radians(.4))),
+        (BLAST_FRAME+30,(0,187.85,0),(0,0,0))
     ):
         car_root.location=loc
         car_root.rotation_euler=rot
@@ -714,7 +739,7 @@ def create_explosion_and_rubble(car_root):
     fire.name = "Explosion • Fireball"
     link_object(fire,"BROWN • Effects")
     fire.parent=car_root
-    fire.location=(0,9.3,2.3)
+    fire.location=(0,4.35,2.3)
     fire.data.materials.append(flash_mat)
     fire.scale=(.05,.05,.05)
     fire.keyframe_insert(data_path="scale",frame=BLAST_FRAME-1)
@@ -725,7 +750,7 @@ def create_explosion_and_rubble(car_root):
     fire.scale=(.1,.1,.1)
     fire.keyframe_insert(data_path="scale",frame=BLAST_FRAME+72)
     fire["effect_role"]="explosion fireball"
-    blast_light=add_light("Explosion • Core Light","POINT",(0,9.0,3.0),(1.0,.20,.045),0,3.0,car_root)
+    blast_light=add_light("Explosion • Core Light","POINT",(0,4.3,3.0),(1.0,.20,.045),0,3.0,car_root)
     for f,energy in ((BLAST_FRAME-1,0),(BLAST_FRAME,80000),(BLAST_FRAME+5,45000),(BLAST_FRAME+18,7000),(BLAST_FRAME+50,0)):
         blast_light.data.energy=energy
         blast_light.data.keyframe_insert(data_path="energy",frame=f)
@@ -733,7 +758,7 @@ def create_explosion_and_rubble(car_root):
     for i in range(46):
         angle=i*2.399963
         speed=1.1+(i%7)*.34
-        origin=(math.cos(angle)*.35,8.0+math.sin(angle)*.35,1.2+(i%5)*.42)
+        origin=(math.cos(angle)*.35,4.25+math.sin(angle)*.35,1.2+(i%5)*.42)
         size=.10+(i%4)*.07
         obj=cube_obj("Explosion Debris • %02d"%i,origin,(size,size,size),MAT["concrete_light"] if i%3 else MAT["metal"],car_root,.012,"BROWN • Effects")
         obj.rotation_euler=(angle,angle*.4,angle*.2)
@@ -749,7 +774,7 @@ def create_explosion_and_rubble(car_root):
         obj.name="Explosion Dust Cloud • %02d"%i
         link_object(obj,"BROWN • Effects")
         obj.parent=car_root
-        obj.location=(math.sin(i*3.1)*1.7,8.4+math.cos(i*2.3)*1.5,1.4+(i%6)*.45)
+        obj.location=(math.sin(i*3.1)*1.7,4.35+math.cos(i*2.3)*1.5,1.4+(i%6)*.45)
         obj.data.materials.append(MAT["smoke"])
         obj.scale=(.1,.1,.1)
         obj.keyframe_insert(data_path="scale",frame=BLAST_FRAME)
@@ -825,27 +850,36 @@ def animate_kaylen_crawl_and_epilogue(kaylen):
             set_shape(body,"Blink",0.0,min(FRAME_END,f+3))
 
 def animate_vehicle(root,wheels):
-    # Actual forward translation: 180 world blocks by 34 seconds, then braking.
-    drive_end=int(34*FPS)+1
+    # Fast 180-block run, then a controlled final approach and brake.
+    # The high-speed lead-in is an explicit adaptation requested for the film.
+    drive_keys = (
+        (1, 0.0),
+        (int(4*FPS)+1, 12.0),
+        (int(10*FPS)+1, 65.0),
+        (int(16*FPS)+1, 132.0),
+        (int(20*FPS)+1, MIN_TRAVEL_BLOCKS),
+        (int(37*FPS)+1, MIN_TRAVEL_BLOCKS+7.0),
+        (int(39.5*FPS)+1, 188.0),
+        (BLAST_FRAME, 188.0),
+    )
     root.location=(0,0,0)
-    root.keyframe_insert(data_path="location",frame=1)
-    root.location=(0,MIN_TRAVEL_BLOCKS,0)
-    root.keyframe_insert(data_path="location",frame=drive_end)
-    root.keyframe_insert(data_path="location",frame=int(39.5*FPS)+1)
-    # Distance-based wheel rotation: circumference = 2*pi*0.38.
-    turns=MIN_TRAVEL_BLOCKS/.38
+    for frame, distance in drive_keys:
+        root.location=(0,distance,0)
+        root.keyframe_insert(data_path="location",frame=frame)
+    # Wheel rotation is distance-driven: radians = distance / wheel radius.
     for wheel in wheels:
-        wheel.rotation_euler[0]=0
-        wheel.keyframe_insert(data_path="rotation_euler",frame=1)
-        wheel.rotation_euler[0]=turns
-        wheel.keyframe_insert(data_path="rotation_euler",frame=drive_end)
-        wheel.keyframe_insert(data_path="rotation_euler",frame=int(39.5*FPS)+1)
+        for frame, distance in drive_keys:
+            wheel.rotation_euler[0]=distance/.38
+            wheel.keyframe_insert(data_path="rotation_euler",frame=frame)
     # Smooth drive-in, then braking suspension; no stationary fake travel.
     for obj in (root,)+tuple(wheels):
         if obj.animation_data and obj.animation_data.action:
-            for fc in obj.animation_data.action.fcurves:
+            action=obj.animation_data.action
+            for fc in getattr(action,"fcurves",[]):
                 for point in fc.keyframe_points:
                     point.interpolation="BEZIER"
+            # Blender 4.4+ layered Actions retain the generated keys; when a
+            # legacy FCurve view is available it is handled above.
 
 def setup_render(output_dir, threads):
     scene=bpy.context.scene
@@ -886,6 +920,12 @@ def setup_render(output_dir, threads):
     scene["frame_count"]=FRAME_END
     scene["world_units"]="1 Blender unit = 1 cinematic block / metre"
     scene["quality_samples"]=SAMPLES
+    scene["scene_unit_scale"]="1 Blender unit = 1 cinematic block"
+    scene["vehicle_minimum_travel_blocks"]=MIN_TRAVEL_BLOCKS
+    scene["blast_frame"]=BLAST_FRAME
+    scene["active_characters"]=6
+    scene["character_rig"]="BROWN_BlockHuman_v2"
+    scene["project_config_json"]=json.dumps(CONFIG,sort_keys=True)
 
 def create_scene():
     bpy.ops.object.select_all(action="SELECT")
@@ -936,6 +976,8 @@ def audit_scene(project):
     checks["phone_has_message_screen"]=project["phone"].get("screen_text")=="YOU CAN STILL LEAVE"
     wheel_count=sum(1 for obj in bpy.data.objects if obj.name=="Vehicle • Tyre")
     checks["four_vehicle_wheels"]=wheel_count==4
+    checks["all_characters_have_exactly_two_ears"]=all(ch["body"].get("face_audit",{}).get("ears")==2 for ch in chars.values())
+    checks["all_characters_have_exactly_two_eyes"]=all(ch["body"].get("face_audit",{}).get("eyes")==2 for ch in chars.values())
     steering_count=sum(1 for obj in bpy.data.objects if obj.get("prop_role")=="steering-wheel")
     checks["one_steering_wheel"]=steering_count==1
     for name,ch in chars.items():
@@ -956,6 +998,11 @@ def audit_scene(project):
     checks["vehicle_travels_at_least_150_blocks_before_blast"]=travelled>=150.0
     checks["vehicle_travels_180_blocks_before_blast"]=travelled>=MIN_TRAVEL_BLOCKS-0.5
     checks["no_gpu_renderer"]=scene.cycles.device=="CPU" and scene.render.engine=="CYCLES"
+    checks["ten_camera_objects"]=sum(1 for obj in bpy.data.objects if obj.type=="CAMERA")==10
+    checks["each_camera_has_tracking_constraint"]=all(any(c.type=="TRACK_TO" and c.target for c in obj.constraints) for obj in bpy.data.objects if obj.type=="CAMERA")
+    checks["physical_phone_screen_exists"]=any(obj.get("prop_role")=="physical-phone-screen" for obj in bpy.data.objects)
+    checks["no_second_crew_vehicle"]=sum(1 for obj in bpy.data.objects if obj.get("vehicle_type"))==1
+    checks["no_unplanned_character_rigs"]=sum(1 for obj in bpy.data.objects if obj.get("rig_type")=="BROWN_BlockHuman_v2")==6
     # Evaluate every frame: all rig and vehicle transforms must stay finite.
     frame_checks=0
     for frame in range(scene.frame_start,scene.frame_end+1):
