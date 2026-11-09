@@ -254,11 +254,12 @@ def build_bridge(edge, index, bridge_mat, gold_emission, pier_mat):
     angle = math.atan2(span.y, span.x)
     middle = (start + finish) * 0.5
     rig = empty("BRIDGE RIG " + label, (middle.x, middle.y, 0.58))
+    rig.rotation_euler[2] = angle
     rig["connects_landmasses"] = [a, b]
     rig["bridge_id"] = label
     rig["is_rigid_assembly"] = True
     deck = cube(label + " stone deck", (0, 0, 0), (bridge_length, 0.52, 0.16),
-                bridge_mat, parent=rig, bevel=0.055, rotation_z=angle)
+                bridge_mat, parent=rig, bevel=0.055, rotation_z=0)
     deck["connected_to"] = [a, b]
     # Raised edge rails, transverse planks and two structural piers.
     for side in (-1, 1):
@@ -565,11 +566,13 @@ def build_scene(output_dir):
     add_lighting(mats)
     bridge_objects = []
     for idx, edge in enumerate(BRIDGES):
-        rig, glow = build_bridge(edge, idx, mats["bridge"], gold_em, mats["pier"])
+        bridge_glow_mat = bpy.data.materials.new("Bridge route live gold " + edge[3])
+        bridge_glow_node = set_emission(bridge_glow_mat, (1.0, 0.46, 0.06), 0.0)
+        rig, glow = build_bridge(edge, idx, mats["bridge"], bridge_glow_mat, mats["pier"])
         bridge_objects.append((rig, glow))
         start = int((4.8 + idx * 0.44) * FPS)
-        animate_emission(gold_em, [(max(1, start - 10), 0.12), (start, 2.2),
-                                   (start + 28, 2.2), (start + 40, 0.5)])
+        animate_emission(bridge_glow_node, [(max(1, start - 10), 0.12), (start, 2.2),
+                                            (start + 28, 2.2), (start + 40, 0.5)])
     # A second, elevated representation of the same seven edges.
     graph_root = empty("GRAPH RIG | four vertices / seven edges", (0, 0, 2.4))
     graph_root["representation"] = "one node per landmass; one edge per bridge"
