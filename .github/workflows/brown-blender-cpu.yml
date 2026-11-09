@@ -1,6 +1,10 @@
 name: BROWN Blender CPU Production
 
 on:
+  push:
+    paths:
+      - 'blender_pipeline/**'
+      - '.github/workflows/brown-blender-cpu.yml'
   workflow_dispatch:
     inputs:
       mode:
@@ -17,7 +21,7 @@ permissions:
 
 jobs:
   brown-cpu:
-    name: Blender CPU ${{ inputs.mode }}
+    name: Blender CPU ${{ inputs.mode || 'audit' }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -31,7 +35,7 @@ jobs:
           blender --version
 
       - name: Build and audit all 2,700 frames
-        if: inputs.mode == 'audit'
+        if: github.event_name == 'push' || inputs.mode == 'audit'
         run: |
           mkdir -p output/brown_blender_cpu
           blender --background --python-exit-code 1 \
@@ -39,7 +43,7 @@ jobs:
             --mode audit --output-dir output/brown_blender_cpu
 
       - name: Render the full 90-second CPU animation
-        if: inputs.mode == 'render'
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'render'
         run: |
           mkdir -p output/brown_blender_cpu
           blender --background --python-exit-code 1 \
@@ -50,7 +54,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: BROWN-Blender-CPU-${{ inputs.mode }}
+          name: BROWN-Blender-CPU-${{ inputs.mode || 'audit' }}
           path: |
             output/brown_blender_cpu/*.blend
             output/brown_blender_cpu/*.glb
