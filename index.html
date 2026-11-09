@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1018" />
-  <meta name="description" content="FrameForge — frame-by-frame drawing, code-driven 2D animation and dependency-free 3D scenes." />
+  <meta name="description" content="FrameForge — frame-by-frame animation and a Blender-powered CPU production pipeline for rigged 3D scenes." />
   <title>FrameForge — Draw. Code. Animate.</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -75,7 +75,7 @@
       <div class="panel-tabs"><button class="panel-tab active" data-panel="scriptPanel">Frame code</button><button class="panel-tab" data-panel="projectPanel">Project</button></div>
       <section id="scriptPanel" class="panel-content active">
         <div class="panel-heading"><div><h2>Frame drawing script</h2><p>Use the Canvas 2D API to draw detailed artwork.</p></div><span class="code-pill">JS</span></div>
-        <div class="script-note">Your code runs locally. Use FF3D to build real 3D meshes, lights and cameras in JavaScript. Select Front, Back, Left, Right, Top, Bottom, Isometric or Free above. No image-generation model, API or cloud render is involved.</div>
+        <div class="script-note">Your code runs locally. Use FF3D for lightweight mesh previews and camera tests. For production scenes with armature rigs, IK constraints, object properties, tracked cameras, full animation and CPU Cycles rendering, use the Blender production pipeline linked below. No generated images are required.</div>
         <textarea id="frameScript" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="JavaScript frame drawing code" placeholder="// Write Canvas 2D drawing code here...\n// Available: ctx, frame, width, height, time"></textarea>
         <div class="script-actions"><button id="runScriptBtn" class="button primary">Run on frame</button><button id="runAllScriptsBtn" class="button">Run all frames</button></div>
         <button id="clearScriptBtn" class="button full-width quiet">Clear code artwork</button>
@@ -91,7 +91,7 @@ ctx.bezierCurveTo(220, 80, 420, 340, 640, 150);
 ctx.stroke();</pre>
           <p>Use Bézier curves, gradients, clipping, paths, and procedural texture for complex scenes. Only run code you trust.</p>
         </details>
-        <div class="starter-code"><button id="loadStarterBtn" class="button small">Load 2D city example</button><button id="load3DStarterBtn" class="button small">Load 3D penguin example</button><button id="loadBrownSceneBtn" class="button small">Load BROWN 90s scene</button></div><p class="small-note">Loads the 90-second Minecraft-inspired BROWN sequence as a 1,350-frame, 15 FPS project. Then use Run all frames to render the timeline.</p>
+        <div class="starter-code"><button id="loadStarterBtn" class="button small">Load 2D city example</button><button id="load3DStarterBtn" class="button small">Load 3D penguin preview</button><a class="button small" href="https://github.com/FRFR-FR/frameforge/blob/main/blender_pipeline/README.md" target="_blank" rel="noopener">BROWN Blender pipeline</a><a class="button small" href="https://github.com/FRFR-FR/frameforge/actions/workflows/brown-blender-cpu.yml" target="_blank" rel="noopener">Build / audit / render</a></div><p class="small-note">BROWN production uses Blender: 720 × 1280, 30 FPS, 2,700 frames, six rigged characters, a physical phone and CPU Cycles rendering. The browser 3D renderer remains a lightweight preview only.</p>
       </section>
       <section id="projectPanel" class="panel-content">
         <div class="panel-heading"><div><h2>Project settings</h2><p>Set the film canvas and playback speed.</p></div></div>
@@ -110,9 +110,9 @@ ctx.stroke();</pre>
         <h3 class="subheading">Project information</h3>
         <div class="info-row"><span>Frames</span><strong id="projectFrameCount">1</strong></div>
         <div class="info-row"><span>Duration</span><strong id="projectDuration">0.03 sec</strong></div>
-        <div class="info-row"><span>Renderer</span><strong>3D software → Canvas 2D</strong></div>
+        <div class="info-row"><span>Renderer</span><strong>Browser Canvas 2D preview</strong></div>
         <div class="info-row"><span>External services</span><strong>None</strong></div>
-        <div class="info-callout">The editor uses browser Canvas 2D, not WebGL or WebGPU. It needs no dedicated graphics card, although browser performance depends on your device and artwork complexity.</div>
+        <div class="info-callout">This editor uses browser Canvas 2D for drawing and quick previews. The BROWN production pipeline uses native Blender Cycles on CPU; a static GitHub Pages site cannot launch Blender on your device.</div>
       </section>
     </aside>
   </main>
@@ -143,7 +143,7 @@ ctx.stroke();</pre>
     <div class="modal-card">
       <button id="closeExportModal" class="modal-close" aria-label="Close">×</button>
       <h2 id="exportTitle">Export your film</h2>
-      <p>FrameForge records the finished timeline in real time from the browser canvas. A long film takes as long to record as its playback duration.</p>
+      <p>FrameForge browser export records a silent WebM from the canvas in real time. For the BROWN production scene, use the Blender CPU workflow to render the full 30 FPS H.264 MP4.</p>
       <div class="export-details"><span>Format</span><strong>WebM · silent</strong><span>Frame rate</span><strong id="exportFpsLabel">30 FPS</strong><span>Canvas</span><strong id="exportSizeLabel">720 × 1280</strong></div>
       <div id="exportProgress" class="export-progress hidden"><div id="exportProgressFill"></div></div>
       <div class="modal-actions"><button id="startExportBtn" class="button primary">Start export</button><button id="cancelExportBtn" class="button quiet">Cancel</button></div>
