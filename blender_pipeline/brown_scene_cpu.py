@@ -45,6 +45,7 @@ OUT_DIR = ROOT / "output" / "brown_blender_cpu"
 BLEND_PATH = OUT_DIR / "BROWN_Book_One_Blender_CPU.blend"
 VIDEO_PATH = OUT_DIR / "BROWN_Book_One_Blender_CPU_90s.mp4"
 AUDIT_PATH = OUT_DIR / "BROWN_Blender_CPU_Audit.json"
+GLB_PATH = OUT_DIR / "BROWN_Book_One_Blender_CPU.glb"
 
 CHARACTER_SPECS = {
     "Kesh":  {"seat": (-0.58, 1.22, 0.12), "skin": (0.34, 0.19, 0.13), "hair": (0.035, 0.028, 0.025), "coat": (0.18, 0.23, 0.17), "pants": (0.12, 0.13, 0.12), "style": "short"},
@@ -1050,6 +1051,7 @@ def main():
     BLEND_PATH=output_dir/"BROWN_Book_One_Blender_CPU.blend"
     VIDEO_PATH=output_dir/"BROWN_Book_One_Blender_CPU_90s.mp4"
     AUDIT_PATH=output_dir/"BROWN_Blender_CPU_Audit.json"
+    GLB_PATH=output_dir/"BROWN_Book_One_Blender_CPU.glb"
     project=create_scene()
     setup_render(output_dir,args.threads)
     report=audit_scene(project)
@@ -1059,6 +1061,17 @@ def main():
         raise RuntimeError("BROWN scene audit failed; see "+str(AUDIT_PATH))
     bpy.ops.wm.save_as_mainfile(filepath=str(BLEND_PATH))
     print("Saved editable Blender project:",BLEND_PATH)
+    # Exchange copy: rigged geometry, camera objects, PBR materials and keyed motion.
+    bpy.ops.export_scene.gltf(
+        filepath=str(GLB_PATH),
+        export_format="GLB",
+        export_animations=True,
+        export_skins=True,
+        export_cameras=True,
+        export_lights=True,
+        export_materials="EXPORT"
+    )
+    print("Exported rigged glTF interchange:",GLB_PATH)
     if args.mode=="render":
         bpy.context.scene.render.filepath=str(VIDEO_PATH.with_suffix(""))
         bpy.ops.render.render(animation=True)
