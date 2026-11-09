@@ -998,6 +998,8 @@ def setup_render(output_dir, threads):
     scene.render.fps_base=1.0
     scene.frame_start=FRAME_START
     scene.frame_end=FRAME_END
+    # Blender 5.0+ requires choosing the media type before the FFMPEG container.
+    scene.render.image_settings.media_type="VIDEO"
     scene.render.image_settings.file_format="FFMPEG"
     scene.render.ffmpeg.format="MPEG4"
     scene.render.ffmpeg.codec="H264"
