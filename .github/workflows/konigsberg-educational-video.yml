@@ -1,0 +1,64 @@
+name: FrameForge — Königsberg 20s Educational 3D
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "blender_pipeline/konigsberg_scene_cpu.py"
+      - ".github/workflows/konigsberg-educational-video.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Validate the editable Blender scene or render the 20-second MP4"
+        required: true
+        type: choice
+        options:
+          - audit
+          - render
+        default: render
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: Build and render 20-second educational scene
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Install Blender CPU renderer and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender ffmpeg
+          blender --version
+          ffmpeg -version | head -n 1
+
+      - name: Build and structurally audit the 3D scene
+        if: github.event_name == 'push' || inputs.mode == 'audit' || inputs.mode == 'render'
+        run: |
+          mkdir -p output/konigsberg_20s
+          blender --background --python-exit-code 1 \
+            --python blender_pipeline/konigsberg_scene_cpu.py -- \
+            --mode audit --output-dir output/konigsberg_20s
+
+      - name: Render the silent 720p vertical MP4
+        if: github.event_name == 'push' || inputs.mode == 'render'
+        run: |
+          blender --background --python-exit-code 1 \
+            --python blender_pipeline/konigsberg_scene_cpu.py -- \
+            --mode render --output-dir output/konigsberg_20s
+
+      - name: Upload editable Blender project, audit report and MP4
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-Koenigsberg-20s
+          path: |
+            output/konigsberg_20s/*.blend
+            output/konigsberg_20s/*.json
+            output/konigsberg_20s/*.mp4
+          if-no-files-found: warn
+          retention-days: 14
