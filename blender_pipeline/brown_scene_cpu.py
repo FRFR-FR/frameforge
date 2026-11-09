@@ -482,6 +482,52 @@ def create_phone(kaylen):
     kaylen["phone_screen"] = screen
     return phone
 
+def create_story_props(chars):
+    """Build physical story props used by the actual scene, not overlay captions."""
+    props = {}
+
+    # Amel's municipal-feed device: a small tablet with a lit, physical screen.
+    amel = chars["Amel"]["rig"]
+    tablet = cube_obj("Amel • Municipal Feed Tablet", (0,0,0), (.30,.035,.22), MAT["phone_body"], amel, .014, "BROWN • Props")
+    tablet.location = (-.44,.72,1.42)
+    tablet["prop_role"] = "municipal-feed-tablet"
+    tablet_screen = cube_obj("Amel • Tablet Screen", (0,0,0), (.282,.008,.202), MAT["screen"], tablet, .004, "BROWN • Props")
+    tablet_screen.location = (0,-.020,0)
+    tablet_text = add_text("Tablet Screen • Municipal Feed", "MUNICIPAL FEED", (0,0,0), .018, MAT["eye_white"], tablet, rotation=(math.pi/2,0,0))
+    tablet_text.location = (0,-.026,.025)
+    tablet_text["is_physical_screen_text"] = True
+    props["amel_tablet"] = tablet
+
+    # Tovin's school application remains a tangible sheet in his hand until the blast.
+    tovin = chars["Tovin"]["rig"]
+    application = cube_obj("Tovin • Physical School Application", (.46,.72,1.20), (.27,.012,.36), MAT["paper"], tovin, .004, "BROWN • Props")
+    application["prop_role"] = "school-application"
+    application["printed_fragment"] = "I WANT TO STUDY BECAUSE—"
+    application_text = add_text("School Application • Printed Sentence", "I WANT TO STUDY\nBECAUSE—", (0,0,0), .015, MAT["eye_dark"], application, rotation=(math.pi/2,0,0))
+    application_text.location = (0,-.008,0)
+    application_text.data.size = .015
+    for obj in (application,application_text):
+        obj.hide_render = False
+        obj.keyframe_insert(data_path="hide_render",frame=1)
+        obj.hide_render = True
+        obj.keyframe_insert(data_path="hide_render",frame=BLAST_FRAME+2)
+    props["tovin_application"] = application
+
+    # The surviving torn piece transfers to Kaylen's hand during the crawl.
+    kaylen = chars["Kaylen"]["rig"]
+    fragment = cube_obj("Kaylen • Torn Application Fragment", (-.48,.72,.98), (.19,.010,.13), MAT["paper"], kaylen, .003, "BROWN • Props")
+    fragment["prop_role"] = "school-application-fragment"
+    fragment_text = add_text("Application Fragment • Ink", "I WANT TO\nSTUDY...", (0,0,0), .010, MAT["eye_dark"], fragment, rotation=(math.pi/2,0,0))
+    fragment_text.location = (0,-.008,0)
+    for obj in (fragment,fragment_text):
+        obj.hide_render = True
+        obj.keyframe_insert(data_path="hide_render",frame=1)
+        obj.hide_render = False
+        obj.keyframe_insert(data_path="hide_render",frame=int(58*FPS)+1)
+    props["kaylen_application_fragment"] = fragment
+    return props
+
+
 def create_vehicle():
     root = empty_obj("BROWN • Single Crew Vehicle Root")
     root["vehicle_type"] = "six-seat enclosed SUV"
@@ -640,7 +686,7 @@ def add_camera_cuts(car_root, kaylen, phone):
     cam("SHOT 10 • Quiet Epilogue", (3,-5,2.7), target_epilogue, 55)
     # Phone close-up starts exactly when Kaylen receives the message at 37.5s.
     frames = [1,211,451,1126,931,1186,1291,1501,1741,2266]
-    for c, frame in zip(cameras,frames):
+    for c, frame in sorted(zip(cameras,frames),key=lambda item:item[1]):
         marker = bpy.context.scene.timeline_markers.new(c.name, frame=frame)
         marker.camera = c
     bpy.context.scene.camera = cameras[0]
@@ -1004,6 +1050,7 @@ def create_scene():
     car_root,steering,door_hinge,door,wheels=create_vehicle()
     chars={name:create_character(name,spec,car_root) for name,spec in CHARACTER_SPECS.items()}
     phone=create_phone(chars["Kaylen"])
+    story_props=create_story_props(chars)
     animate_vehicle(car_root,wheels)
     animate_idle_characters(chars,steering,phone)
     simulate_ragdoll(chars,car_root)
@@ -1016,7 +1063,7 @@ def create_scene():
     add_light("Night • Amber Rim","AREA",(-6,178,8),(1.0,.45,.19),1900,10)
     add_light("Cabin • Soft Fill","AREA",(0,180,4),(.45,.62,.72),500,5)
     scene.frame_set(1)
-    return {"scene":scene,"car":car_root,"steering":steering,"door":door_hinge,"wheels":wheels,"characters":chars,"phone":phone}
+    return {"scene":scene,"car":car_root,"steering":steering,"door":door_hinge,"wheels":wheels,"characters":chars,"phone":phone,"story_props":story_props}
 
 def audit_scene(project):
     scene=project["scene"]
@@ -1029,6 +1076,9 @@ def audit_scene(project):
     checks["single_vehicle"]=project["car"].get("vehicle_type")=="six-seat enclosed SUV"
     checks["phone_is_physical_object"]=project["phone"].get("prop_role")=="physical-phone"
     checks["phone_has_message_screen"]=project["phone"].get("screen_text")=="YOU CAN STILL LEAVE"
+    checks["physical_tovin_application"]=project["story_props"]["tovin_application"].get("prop_role")=="school-application"
+    checks["physical_kaylen_paper_fragment"]=project["story_props"]["kaylen_application_fragment"].get("prop_role")=="school-application-fragment"
+    checks["physical_amel_tablet"]=project["story_props"]["amel_tablet"].get("prop_role")=="municipal-feed-tablet"
     wheel_count=sum(1 for obj in bpy.data.objects if obj.name=="Vehicle • Tyre")
     checks["four_vehicle_wheels"]=wheel_count==4
     checks["all_characters_have_exactly_two_ears"]=all(ch["body"].get("face_audit",{}).get("ears")==2 for ch in chars.values())
