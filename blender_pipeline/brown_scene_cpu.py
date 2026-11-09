@@ -995,7 +995,7 @@ def setup_render(output_dir, threads):
     scene.render.resolution_x=OUTPUT_W
     scene.render.resolution_y=OUTPUT_H
     scene.render.resolution_percentage=100
-    scene.use_camera_switching=True
+    # TimelineMarker.camera drives camera cuts directly in Blender.
     scene.render.use_motion_blur=True
     scene.render.motion_blur_shutter=.28
     scene.render.fps=FPS
@@ -1131,6 +1131,10 @@ def audit_scene(project):
     checks["vehicle_travels_180_blocks_before_blast"]=travelled>=MIN_TRAVEL_BLOCKS-0.5
     checks["no_gpu_renderer"]=scene.cycles.device=="CPU" and scene.render.engine=="CYCLES"
     checks["ten_camera_objects"]=sum(1 for obj in bpy.data.objects if obj.type=="CAMERA")==10
+    camera_markers=[marker for marker in scene.timeline_markers if marker.camera is not None]
+    checks["ten_camera_cut_markers"]=len(camera_markers)==10
+    checks["camera_cut_markers_have_camera_refs"]=all(marker.camera.type=="CAMERA" for marker in camera_markers)
+    checks["camera_cut_markers_sorted"]=len(camera_markers)==10 and [m.frame for m in sorted(camera_markers,key=lambda m:m.frame)]==sorted(m.frame for m in camera_markers)
     checks["one_capsule_hitbox_per_character"]=sum(1 for obj in bpy.data.objects if obj.get("hitbox"))==len(chars)
     checks["each_camera_has_tracking_constraint"]=all(any(c.type=="TRACK_TO" and c.target for c in obj.constraints) for obj in bpy.data.objects if obj.type=="CAMERA")
     checks["physical_phone_screen_exists"]=any(obj.get("prop_role")=="physical-phone-screen" for obj in bpy.data.objects)
