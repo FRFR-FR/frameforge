@@ -235,7 +235,8 @@ def add_segment(verts, faces, mat_ids, group_indices, feature_indices, start, en
     a, b = Vector(start), Vector(end)
     direction = b-a
     rot = Vector((0,0,1)).rotation_difference(direction.normalized()).to_matrix()
-    add_character_box(verts, faces, mat_ids, group_indices, feature_indices, (a+b)*0.5, (width,depth,direction.length), mat_index, bone, rot, feature)
+    # Slight overlap at every joint prevents visible gaps when the connected rig bends.
+    add_character_box(verts, faces, mat_ids, group_indices, feature_indices, (a+b)*0.5, (width,depth,direction.length+0.12), mat_index, bone, rot, feature)
 
 BONE_REST = {
     "root": ((0,0,0),(0,0,0.85),None),
@@ -263,6 +264,7 @@ def create_armature(name, location, parent):
     ensure_collection("BROWN • Character Rigs").objects.link(rig)
     rig.location = location
     rig.parent = parent
+    bpy.ops.object.select_all(action="DESELECT")
     bpy.context.view_layer.objects.active = rig
     rig.select_set(True)
     bpy.ops.object.mode_set(mode="EDIT")
@@ -301,7 +303,7 @@ def create_character(name, spec, car_root):
     # Core body: overlapping, bevelled block anatomy. Each vertex is rigid-weighted
     # to one named bone, so no limb can drift away from the character.
     box((0,0,0.91),(.62,.43,.32),"pants","pelvis")
-    box((0,0,1.48),(.75,.46,.88),"coat","spine")
+    box((0,0,1.48),(.88,.46,.88),"coat","spine")
     box((0,.235,1.49),(.40,.035,.62),"trim","spine")
     box((0,0,1.94),(.22,.25,.24),"skin","neck")
     box((0,0,2.30),(.61,.52,.62),"skin","head")
@@ -327,8 +329,8 @@ def create_character(name, spec, car_root):
     style = spec["style"]
     box((0,0,2.60),(.64,.54,.12),"hair","head")
     if style in ("short","long"):
-        box((-.29,-.005,2.32),(.09,.49,.38),"hair","head")
-        box((.29,-.005,2.32),(.09,.49,.38),"hair","head")
+        box((-.27,-.005,2.32),(.07,.45,.34),"hair","head")
+        box((.27,-.005,2.32),(.07,.45,.34),"hair","head")
     if style == "bun":
         box((0,-.23,2.68),(.24,.25,.22),"hair","head")
     if style == "curl":
@@ -340,7 +342,7 @@ def create_character(name, spec, car_root):
         box((side*.135,.270,2.34),(.095,.045,.075),"eye_white","head",feature="eye."+suffix)
         box((side*.135,.298,2.34),(.043,.025,.048),"eye_dark","head",feature="pupil."+suffix)
         box((side*.135,.267,2.435),(.12,.055,.035),"hair","head",feature="brow."+suffix)
-        box((side*.315,0,2.28),(.10,.25,.20),"skin","head",feature="ear."+suffix)
+        box((side*.36,0,2.28),(.12,.25,.18),"skin","head",feature="ear."+suffix)
     box((0,.306,2.22),(.085,.10,.11),"skin","head",feature="nose")
     box((0,.292,2.095),(.15,.035,.035),"mouth","head",feature="mouth")
     # Facial feature counts are stored on the mesh and checked before rendering.
@@ -388,18 +390,31 @@ def create_character(name, spec, car_root):
     rig["body_mesh_name"] = body.name
     rig["bone_count"] = len(BONE_REST)
     # Hidden capsule mesh is an editable hitbox and a Blender collision surface.
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=1, location=(0,0,0))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.38, depth=1.72, location=(0,0,0))
+    hitbox = bpy.context.object
+    hitbox.name = name+" • Capsule Hitbox"
+    # Join two spherical ends to the centre cylinder into one capsule collision mesh.
+    capsule_parts = [hitbox]
+    for cap_z in (-.86,.86):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=.38, location=(0,0,cap_z))
+        capsule_parts.append(bpy.context.object)
+    bpy.ops.object.select_all(action="DESELECT")
+    for part in capsule_parts:
+        part.select_set(True)
+    bpy.context.view_layer.objects.active = hitbox
+    bpy.ops.object.join()
     hitbox = bpy.context.object
     hitbox.name = name+" • Capsule Hitbox"
     link_object(hitbox,"BROWN • Collision Hitboxes")
     hitbox.parent = rig
     hitbox.location = (0,0,1.28)
-    hitbox.scale = (.38,.34,1.24)
+    hitbox.scale = (1,1,1)
     hitbox.hide_render = True
     hitbox.display_type = "WIRE"
     hitbox["hitbox"] = True
     hitbox["radius"] = 0.38
     hitbox["height"] = 2.48
+    hitbox["geometry"] = "cylinder with spherical end caps"
     hitbox["collision_enabled"] = True
     hitbox["collision_role"] = "hidden character capsule for cloth/soft-body/particle deflection"
     collision = hitbox.modifiers.new("Physics • Character Hitbox","COLLISION")
@@ -476,6 +491,8 @@ def create_vehicle():
     cube_obj("Vehicle • Rear Glass", (0,-2.11,2.42), (1.82,.055,.82), glass, root, .04, "BROWN • Vehicle")
     for side in (-1,1):
         for y in (1.00,-.22,-1.43):
+            if side == 1 and y == -1.43:
+                continue  # The right-rear window belongs to the hinged Lark door.
             cube_obj("Vehicle • Side Window", (side*1.035,y,2.43), (.045,1.06,.76), glass, root, .025, "BROWN • Vehicle")
         for y in (-1.92,1.93):
             wheel = torus_obj("Vehicle • Tyre", (side*1.13,y,.47), .38,.16,MAT["rubber"],root,(0,math.pi/2,0))
@@ -500,9 +517,10 @@ def create_vehicle():
         cube_obj("Vehicle • Tail Lamp", (side*.78,-3.12,.94), (.30,.06,.34), MAT["fire"], root, .025, "BROWN • Vehicle")
     # Lark opens a real rear passenger door around the approach.
     hinge = empty_obj("Vehicle • Rear Right Door Hinge", (1.10,-1.45,1.07), root, "CIRCLE")
-    door = cube_obj("Vehicle • Rear Right Door", (0,-.48,0), (.12,1.10,1.10), MAT["metal"], hinge, .06, "BROWN • Vehicle")
+    door = cube_obj("Vehicle • Rear Right Door", (0,-.48,.45), (.12,1.10,1.50), MAT["metal"], hinge, .06, "BROWN • Vehicle")
     door["door_role"] = "Lark exit door"
-    cube_obj("Vehicle • Door Window", (0,-.47,.74), (.055,.98,.50), glass, hinge, .025, "BROWN • Vehicle")
+    door["collision_enabled"] = True
+    cube_obj("Vehicle • Door Window", (0,-.47,.86), (.055,.98,.70), glass, hinge, .025, "BROWN • Vehicle")
     for sec, angle in ((0,0),(40.1,0),(41.0,math.radians(34)),(43.4,math.radians(34)),(44.0,math.radians(42))):
         hinge.rotation_euler.z = angle
         hinge.keyframe_insert(data_path="rotation_euler",frame=int(sec*FPS)+1)
@@ -1018,6 +1036,7 @@ def audit_scene(project):
     checks["vehicle_travels_180_blocks_before_blast"]=travelled>=MIN_TRAVEL_BLOCKS-0.5
     checks["no_gpu_renderer"]=scene.cycles.device=="CPU" and scene.render.engine=="CYCLES"
     checks["ten_camera_objects"]=sum(1 for obj in bpy.data.objects if obj.type=="CAMERA")==10
+    checks["one_capsule_hitbox_per_character"]=sum(1 for obj in bpy.data.objects if obj.get("hitbox"))==len(chars)
     checks["each_camera_has_tracking_constraint"]=all(any(c.type=="TRACK_TO" and c.target for c in obj.constraints) for obj in bpy.data.objects if obj.type=="CAMERA")
     checks["physical_phone_screen_exists"]=any(obj.get("prop_role")=="physical-phone-screen" for obj in bpy.data.objects)
     checks["six_character_collision_capsules"]=sum(1 for obj in bpy.data.objects if obj.get("hitbox"))==6
