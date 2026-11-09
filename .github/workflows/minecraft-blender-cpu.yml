@@ -1,0 +1,66 @@
+name: Senator Minecraft 60s Blender Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'minecraft_pipeline/**'
+      - '.github/workflows/minecraft-blender-cpu.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  minecraft-production:
+    name: Build skins, audit and render 60s Minecraft film
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender ffmpeg
+          blender --version
+          ffmpeg -version | head -n 2
+
+      - name: Create the Minecraft character skins first
+        run: |
+          mkdir -p output/minecraft_60s
+          blender --background --python-exit-code 1 \
+            --python minecraft_pipeline/minecraft_scene_cpu.py -- \
+            --mode skins --output-dir output/minecraft_60s
+
+      - name: Build the block world and audit the scene
+        run: |
+          blender --background --python-exit-code 1 \
+            --python minecraft_pipeline/minecraft_scene_cpu.py -- \
+            --mode audit --output-dir output/minecraft_60s
+
+      - name: Render the complete silent 60-second film
+        run: |
+          blender --background --python-exit-code 1 \
+            --python minecraft_pipeline/minecraft_scene_cpu.py -- \
+            --mode render --output-dir output/minecraft_60s
+
+      - name: Verify duration, dimensions, frame rate and audio
+        run: |
+          ffprobe -v error -show_entries format=duration:stream=codec_type,width,height,r_frame_rate \
+            -of json output/minecraft_60s/Senator_Minecraft_BROWN_Ambush_60s_720p60.mp4
+          if ffprobe -v error -select_streams a -show_entries stream=codec_type \
+            -of csv=p=0 output/minecraft_60s/Senator_Minecraft_BROWN_Ambush_60s_720p60.mp4 | grep -q audio; then
+            echo "Audio stream found; expected silent video."
+            exit 1
+          fi
+
+      - name: Upload final film and editable production assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Senator-Minecraft-BROWN-Ambush-60s-720p60
+          path: output/minecraft_60s/**
+          if-no-files-found: warn
+          retention-days: 14
