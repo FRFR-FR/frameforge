@@ -317,10 +317,11 @@ def build_scene(out_dir):
     for i in range(170):
         rain_blocks.append(((rr.uniform(-22,24),rr.uniform(-9,9),rr.uniform(1,12)),(0.018,0.025,rr.uniform(0.25,0.55))))
     rain_obj=block_batch("Voxel_Rain_Streaks",rain_blocks,mats["blue"]); rain_obj.parent=rain_root
-    key(rain_root,1,loc=(0,0,8)); key(rain_root,121,loc=(0,0,-8))
-    for fc in rain_root.animation_data.action.fcurves:
-        for kp in fc.keyframe_points: kp.interpolation="LINEAR"
-        fc.modifiers.new("CYCLES")
+    for cycle in range(31):
+        start=1+cycle*120
+        key(rain_root,start,loc=(0,0,8))
+        key(rain_root,start+60,loc=(0,0,0))
+        key(rain_root,start+119,loc=(0,0,-8))
 
     # Crew van — solid blocks, transparent-looking glass, open roof rails.
     vehicle=empty("Grave_Choir_Vehicle_ROOT")
