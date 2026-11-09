@@ -218,7 +218,8 @@ def build_scene(out_dir):
     skin_paths=build_skins(out_dir)
     scene=bpy.context.scene; scene.render.engine="CYCLES"; scene.cycles.device="CPU"
     scene.cycles.samples=96; scene.cycles.use_denoising=True; scene.cycles.use_adaptive_sampling=True; scene.cycles.adaptive_threshold=0.008
-    scene.cycles.use_persistent_data=True; scene.render.threads_mode="AUTO"
+    if hasattr(scene.render,"use_persistent_data"): scene.render.use_persistent_data=True
+    scene.render.threads_mode="AUTO"
     scene.render.resolution_x=1280; scene.render.resolution_y=720; scene.render.resolution_percentage=100
     scene.render.fps=60; scene.render.fps_base=1.0; scene.frame_start=1; scene.frame_end=3600
     scene.render.use_motion_blur=True; scene.render.motion_blur_shutter=0.35
@@ -450,10 +451,6 @@ def build_scene(out_dir):
     key(cameras[0],1,loc=(0,-24,17)); key(cameras[0],540,loc=(2,-22,15))
     key(cameras[-1],3301,loc=(5,-26,19)); key(cameras[-1],3600,loc=(7,-23,17))
 
-    for obj in scene.objects:
-        if obj.animation_data and obj.animation_data.action:
-            for fc in obj.animation_data.action.fcurves:
-                for kp in fc.keyframe_points: kp.interpolation="BEZIER"
     scene.frame_set(1)
     blend=out_dir/"Senator_Minecraft_BROWN_Ambush.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
     audit={
