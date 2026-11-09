@@ -35,6 +35,7 @@ FRAME_END = FPS * DURATION_SECONDS
 BLAST_TIME = float(SCENE_CONFIG.get("explosion_time_seconds", 43.5))
 BLAST_FRAME = int(BLAST_TIME * FPS) + 1
 MIN_TRAVEL_BLOCKS = float(SCENE_CONFIG.get("minimum_vehicle_travel_blocks", 180.0))
+FINAL_APPROACH_BLOCKS = float(SCENE_CONFIG.get("final_approach_blocks", 188.0))
 OUTPUT_W = int(RENDER_CONFIG.get("width", 720))
 OUTPUT_H = int(RENDER_CONFIG.get("height", 1280))
 SAMPLES = int(RENDER_CONFIG.get("cycles_samples", 64))
@@ -575,6 +576,7 @@ def make_camera(name, car_root, position, target, lens=40, parent_target=None):
 def add_camera_cuts(car_root, kaylen, phone):
     target_car = make_target("Camera Aim • Vehicle", car_root, (0,0,1.0))
     target_aftermath = make_target("Camera Aim • Aftermath", car_root, (0,-1.0,1.0))
+    target_epilogue = make_target("Camera Aim • Epilogue Kaylen", car_root, (0,-6.8,2.0))
     cameras = []
     def cam(name,pos,target_obj,lens):
         c = make_camera(name,car_root,pos,(0,0,1.0),lens,target_obj)
@@ -589,7 +591,7 @@ def add_camera_cuts(car_root, kaylen, phone):
     cam("SHOT 07 • Blast Handheld", (8,-8,4.2), target_car, 38)
     cam("SHOT 08 • Wreckage Ground Level", (0,-7,1.55), target_aftermath, 55)
     cam("SHOT 09 • Kaylen Crawls", (-3,-4,1.4), target_aftermath, 60)
-    cam("SHOT 10 • Quiet Epilogue", (3,-5,2.7), target_aftermath, 55)
+    cam("SHOT 10 • Quiet Epilogue", (3,-5,2.7), target_epilogue, 55)
     frames = [1,241,481,721,931,1126,1291,1501,1741,2266]
     for c, frame in zip(cameras,frames):
         marker = bpy.context.scene.timeline_markers.new(c.name, frame=frame)
@@ -858,9 +860,9 @@ def animate_vehicle(root,wheels):
         (int(10*FPS)+1, 65.0),
         (int(16*FPS)+1, 132.0),
         (int(20*FPS)+1, MIN_TRAVEL_BLOCKS),
-        (int(37*FPS)+1, MIN_TRAVEL_BLOCKS+7.0),
-        (int(39.5*FPS)+1, 188.0),
-        (BLAST_FRAME, 188.0),
+        (int(37*FPS)+1, FINAL_APPROACH_BLOCKS-1.0),
+        (int(39.5*FPS)+1, FINAL_APPROACH_BLOCKS),
+        (BLAST_FRAME, FINAL_APPROACH_BLOCKS),
     )
     root.location=(0,0,0)
     for frame, distance in drive_keys:
