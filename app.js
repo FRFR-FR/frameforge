@@ -285,11 +285,14 @@
   function renderFrameStrip() {
     const strip = $('frameStrip');
     strip.innerHTML = '';
+    const sampleStep = state.frames.length > 240 ? Math.ceil(state.frames.length / 90) : 1;
     state.frames.forEach((frame, index) => {
+      if (index % sampleStep !== 0 && index !== state.current && index !== state.frames.length - 1) return;
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = `frame-card${index === state.current ? ' active' : ''}`;
-      card.setAttribute('aria-label', `Go to frame ${index + 1}`);
+      card.dataset.frameIndex = String(index);
+      card.className = 'frame-card' + (index === state.current ? ' active' : '');
+      card.setAttribute('aria-label', 'Go to frame ' + (index + 1));
       const thumbnail = document.createElement('canvas');
       thumbnail.width = 72;
       thumbnail.height = 96;
@@ -328,10 +331,9 @@
       });
       strip.append(card);
     });
-    const active = strip.children[state.current];
+    const active = strip.querySelector('[data-frame-index="' + state.current + '"]');
     if (active && state.playing) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
-
   function updateUndoButtons() {
     const frame = currentFrame();
     $('undoBtn').disabled = !frame?.undoStack.length;
@@ -547,7 +549,7 @@
         const execute = new Function('ctx', 'frame', 'width', 'height', 'time', 'FF3D', `"use strict";\n${source}`);
         execute(context, index + 1, state.width, state.height, index / state.fps, window.FF3D);
         state.frames[index].script = source;
-        state.frames[index].scriptData = scratch.toDataURL('image/png');
+        state.frames[index].scriptData = scratch.toDataURL('image/webp', 0.9);
         if (index % 2 === 1) await new Promise((resolve) => setTimeout(resolve, 0));
       }
       await activateFrame(originalIndex, { save: false });
@@ -1103,6 +1105,45 @@ ctx.globalAlpha=1;
       currentFrame().script = $('frameScript').value;
       scheduleAutosave();
       showToast('3D penguin example loaded. Choose a camera view and press Run on frame.');
+    });
+    $('loadBrownSceneBtn').addEventListener('click', async () => {
+      const button = $('loadBrownSceneBtn');
+      const hasWork = state.frames.some((frame) => frame.paintData || frame.scriptData || frame.script);
+      if (hasWork && !confirm('Load the BROWN 90-second scene? This replaces the current FrameForge project.')) return;
+      button.disabled = true;
+      button.textContent = 'Loading scene…';
+      try {
+        const response = await fetch('./examples/BROWN_Book_One_Minecraft_Sequence.js', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Could not load the BROWN scene source (' + response.status + ').');
+        const source = await response.text();
+        if (!source.includes('FF3D.render')) throw new Error('The scene script is incomplete.');
+        stopPlayback();
+        setCanvasSize(720, 1280);
+        state.fps = 15;
+        state.loop = false;
+        state.frames = Array.from({ length: 1350 }, (_, index) => makeFrame({ script: index === 0 ? source : '' }));
+        state.current = 0;
+        $('projectName').value = 'BROWN — Book One | 90s Minecraft Cinematic';
+        $('fpsInput').value = '15';
+        $('canvasPreset').value = 'portrait';
+        $('loopPlayback').checked = false;
+        $('frameScript').value = source;
+        paintCtx.clearRect(0, 0, state.width, state.height);
+        scriptCtx.clearRect(0, 0, state.width, state.height);
+        onionCtx.clearRect(0, 0, state.width, state.height);
+        await activateFrame(0, { save: false, autosave: false });
+        updateTimelineUi();
+        updateUndoButtons();
+        renderOutput();
+        setActivePanel('scriptPanel');
+        scheduleAutosave();
+        showToast('BROWN timeline loaded: 1,350 frames at 15 FPS. Press Run all frames to render it.');
+      } catch (error) {
+        showToast('Could not load BROWN scene: ' + error.message, 5000);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Load BROWN 90s scene';
+      }
     });
     $('onionBtn').addEventListener('click', () => {
       state.onion = !state.onion;
