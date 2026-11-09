@@ -233,6 +233,12 @@
 
     const ambient = scene.lights.filter((l) => l.type === 'ambient').reduce((sum, l) => sum + (Number(l.intensity) || 0), 0);
     const directions = scene.lights.filter((l) => l.type === 'directional').map((l) => ({ direction: V.norm(vec3(l.direction, [-0.5, 1, 0.5])), intensity: Number(l.intensity) || 0.7 }));
+    const points = scene.lights.filter((l) => l.type === 'point').map((l) => ({
+      position: vec3(l.position, [0, 1, 0]),
+      color: colorRGB(l.color || '#ffffff'),
+      intensity: Math.max(0, Number(l.intensity) || 0),
+      radius: Math.max(0.1, Number(l.radius) || 10)
+    }));
     const triangles = [];
     for (const mesh of scene.objects) {
       if (!mesh.visible) continue;
@@ -249,9 +255,28 @@
         if (mesh.material.side !== 'double' && facing <= -0.035) continue;
         let light = ambient;
         for (const lamp of directions) light += Math.max(0, V.dot(normal, lamp.direction)) * lamp.intensity;
-        light = Math.max(0.16, Math.min(1.32, light));
+        let tintWeight = 0;
+        const tintEnergy = [0, 0, 0];
+        for (const lamp of points) {
+          const delta = V.sub(lamp.position, center);
+          const distance = V.length(delta);
+          if (distance <= 1e-5 || distance >= lamp.radius) continue;
+          const facingLight = Math.max(0, V.dot(normal, V.mul(delta, 1 / distance)));
+          const falloff = Math.max(0, 1 - distance / lamp.radius);
+          const strength = lamp.intensity * facingLight * falloff * falloff;
+          light += strength * 0.62;
+          tintWeight += strength * 0.30;
+          for (let channel = 0; channel < 3; channel++) tintEnergy[channel] += lamp.color[channel] * strength;
+        }
+        light = Math.max(0.16, Math.min(1.50, light));
         const base = colorRGB(mesh.material.color);
-        const pixelColor = base.map((value) => Math.max(0, Math.min(255, Math.round(value * light))));
+        const tintTotal = tintEnergy[0] + tintEnergy[1] + tintEnergy[2];
+        const tintColor = tintTotal > 0 ? tintEnergy.map((value) => value / tintTotal * 255) : [255, 255, 255];
+        const tintMix = Math.max(0, Math.min(0.32, tintWeight));
+        const pixelColor = base.map((value, channel) => {
+          const lit = value * light;
+          return Math.max(0, Math.min(255, Math.round(lit * (1 - tintMix) + tintColor[channel] * tintMix)));
+        });
         const rgb = `rgb(${pixelColor[0]},${pixelColor[1]},${pixelColor[2]})`;
         const opacity = mesh.material.opacity === undefined ? 1 : Math.max(0, Math.min(1, Number(mesh.material.opacity)));
         triangles.push({ points: [pa, pb, pc], depth: (pa.z + pb.z + pc.z) / 3, color: rgb, pixelColor, opacity, solid: mesh.material.solid !== false, depthTest: mesh.material.depthTest !== false, depthWrite: mesh.material.depthWrite !== false, wireframe: mesh.material.wireframe, wireColor: mesh.material.wireColor || '#172336' });
@@ -348,6 +373,7 @@
     views: ['front', 'back', 'left', 'right', 'top', 'bottom', 'three-quarter', 'isometric', 'free'],
     vec3: (x, y, z) => [Number(x) || 0, Number(y) || 0, Number(z) || 0],
     directionalLight: (direction, intensity, color) => ({ type: 'directional', direction: vec3(direction, [-0.5, 1, 0.5]), intensity: intensity === undefined ? 0.8 : Number(intensity), color: color || '#ffffff' }),
+    pointLight: (position, intensity, color, radius) => ({ type: 'point', position: vec3(position, [0, 1, 0]), intensity: intensity === undefined ? 0.8 : Number(intensity), color: color || '#ffffff', radius: radius === undefined ? 10 : Number(radius) }),
     ambientLight: (intensity, color) => ({ type: 'ambient', intensity: intensity === undefined ? 0.35 : Number(intensity), color: color || '#ffffff' })
   };
   root.FF3D = api;
