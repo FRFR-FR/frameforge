@@ -451,7 +451,7 @@ def add_ik_hand(rig, bone_name, target):
 def create_phone(kaylen):
     rig = kaylen["rig"]
     # Phone is a real three-dimensional prop, oriented screen-forward in the hand.
-    phone = cube_obj("Kaylen • Physical Smartphone", (0.52,0.73,1.42), (.16,.035,.29), MAT["phone_body"], rig, .018, "BROWN • Props")
+    phone = cube_obj("Kaylen • Physical Smartphone", (0.52,0.66,1.32), (.16,.035,.29), MAT["phone_body"], rig, .018, "BROWN • Props")
     phone["prop_role"] = "physical-phone"
     phone["screen_text"] = "YOU CAN STILL LEAVE"
     phone["screen_is_geometry"] = True
@@ -774,9 +774,9 @@ def animate_idle_characters(chars, steering, phone):
     key_pose(chars["Lark"]["rig"],"head",(0,0,math.radians(15)),int(39.5*FPS)+1)
     # Phone close-up action: Kaylen raises it into his sightline, then lowers it.
     key_object(kaylen["rig"],"location",(-.58,-.18,.12),1)
-    key_object(phone,"location",(.52,.73,1.42),int(36.9*FPS)+1)
+    key_object(phone,"location",(.52,.66,1.32),int(36.9*FPS)+1)
     key_object(phone,"location",(.50,.76,1.57),int(38.0*FPS)+1)
-    key_object(phone,"location",(.52,.73,1.42),int(40.1*FPS)+1)
+    key_object(phone,"location",(.52,.66,1.32),int(40.1*FPS)+1)
 
 def simulate_ragdoll(chars, car_root):
     # Deterministic 30-FPS ballistic integration with damped joint inertia. The
