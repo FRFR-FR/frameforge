@@ -12,6 +12,7 @@ import json
 import argparse
 import shutil
 import subprocess
+from bpy_extras import anim_utils
 from mathutils import Vector
 
 FPS = 24
@@ -428,9 +429,14 @@ def animate_camera(cam):
     for frame, loc, target in shots:
         point_camera(cam, frame, loc, target)
     if cam.animation_data and cam.animation_data.action:
-        for fcurve in cam.animation_data.action.fcurves:
-            for kp in fcurve.keyframe_points:
-                kp.interpolation = "BEZIER"
+        # Blender 5.0 removed Action.fcurves; curves now live in the slot's channelbag.
+        action = cam.animation_data.action
+        slot = cam.animation_data.action_slot
+        channelbag = anim_utils.action_get_channelbag_for_slot(action, slot)
+        if channelbag:
+            for fcurve in channelbag.fcurves:
+                for kp in fcurve.keyframe_points:
+                    kp.interpolation = "BEZIER"
 
 def add_overlay_titles(cam, mats):
     animated_text(cam, "Hook headline", "SEVEN BRIDGES. ONE ROUTE?", 1.78, 0.255,
