@@ -10,7 +10,7 @@ def cli():
     args = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
     mode = "build"
     out = Path("output/minecraft_60s")
-    start_frame, end_frame = 1, 3600
+    start_frame, end_frame = 1, 10800
     i = 0
     while i < len(args):
         if args[i] == "--mode" and i+1 < len(args):
@@ -222,16 +222,16 @@ def build_scene(out_dir):
     out_dir.mkdir(parents=True,exist_ok=True)
     skin_paths=build_skins(out_dir)
     scene=bpy.context.scene; scene.render.engine="CYCLES"; scene.cycles.device="CPU"
-    scene.cycles.samples=96; scene.cycles.use_denoising=True; scene.cycles.use_adaptive_sampling=True; scene.cycles.adaptive_threshold=0.008
+    scene.cycles.samples=32; scene.cycles.use_denoising=True; scene.cycles.use_adaptive_sampling=True; scene.cycles.adaptive_threshold=0.015
     if hasattr(scene.render,"use_persistent_data"): scene.render.use_persistent_data=True
     scene.render.threads_mode="AUTO"
     scene.render.resolution_x=1280; scene.render.resolution_y=720; scene.render.resolution_percentage=100
-    scene.render.fps=60; scene.render.fps_base=1.0; scene.frame_start=1; scene.frame_end=3600
+    scene.render.fps=60; scene.render.fps_base=1.0; scene.frame_start=1; scene.frame_end=10800
     scene.render.use_motion_blur=True; scene.render.motion_blur_shutter=0.35
-    scene.view_settings.view_transform="AgX"
+    scene.view_settings.view_transform="AgX"; scene.view_settings.exposure=1.25; scene.view_settings.gamma=1.0
     scene.render.image_settings.color_mode="RGB"
     scene.world=bpy.data.worlds.new("Vesper_Night_World"); scene.world.use_nodes=True
-    bg=scene.world.node_tree.nodes.get("Background"); bg.inputs[0].default_value=(0.006,0.012,0.032,1); bg.inputs[1].default_value=0.22
+    bg=scene.world.node_tree.nodes.get("Background"); bg.inputs[0].default_value=(0.16,0.19,0.24,1); bg.inputs[1].default_value=0.75
 
     mats={
      "road":pixel_material("Wet_Charcoal_Asphalt",(34,42,52),1,"road",0.38),
@@ -309,9 +309,14 @@ def build_scene(out_dir):
         data=bpy.data.lights.new(name,"AREA"); data.energy=power; data.color=color; data.shape="DISK"; data.size=size
         ob=bpy.data.objects.new(name,data); scene.collection.objects.link(ob); ob.location=loc
         ob.rotation_euler=(Vector(target)-ob.location).to_track_quat("-Z","Y").to_euler(); return ob
-    area_light("Moon_Key",(0,-12,17),3200,(0.39,0.56,1.0),12,(0,0,0))
-    area_light("Warehouse_Rim",(15,7,12),2600,(1.0,0.42,0.22),8,(5,0,1))
-    area_light("City_Fill",(-12,10,10),1700,(0.15,0.36,0.8),10,(-2,0,0))
+    area_light("Moon_Key",(0,-12,17),7600,(0.52,0.68,1.0),14,(0,0,0))
+    area_light("Warehouse_Rim",(15,7,12),5200,(1.0,0.55,0.30),10,(5,0,1))
+    area_light("City_Fill",(-12,10,10),3900,(0.32,0.52,0.95),12,(-2,0,0))
+    sun_data=bpy.data.lights.new("Broad_Soft_Fill","SUN"); sun_data.energy=2.2; sun_data.angle=math.radians(22)
+    sun_obj=bpy.data.objects.new("Broad_Soft_Fill",sun_data); scene.collection.objects.link(sun_obj)
+    sun_obj.rotation_euler=(math.radians(24),math.radians(-18),math.radians(-28))
+    area_light("Camera_Fill",(3,-18,15),5200,(0.72,0.82,1.0),18,(2,0,1))
+    area_light("Warm_Front_Fill",(18,-10,10),3800,(1.0,0.72,0.48),12,(12,0,1))
     for x in (-18,-10,-2,6,14,22):
         for side in (-1,1):
             data=bpy.data.lights.new("Street_Pool","POINT"); data.energy=170; data.color=(1.0,0.55,0.24); data.shadow_soft_size=1.6
@@ -322,7 +327,7 @@ def build_scene(out_dir):
     for i in range(170):
         rain_blocks.append(((rr.uniform(-22,24),rr.uniform(-9,9),rr.uniform(1,12)),(0.018,0.025,rr.uniform(0.25,0.55))))
     rain_obj=block_batch("Voxel_Rain_Streaks",rain_blocks,mats["blue"]); rain_obj.parent=rain_root
-    for cycle in range(31):
+    for cycle in range(91):
         start=1+cycle*120
         key(rain_root,start,loc=(0,0,8))
         key(rain_root,start+60,loc=(0,0,0))
@@ -437,6 +442,44 @@ def build_scene(out_dir):
     key(rescuer["root"],3300,loc=(9.2,-3.65,0),rot=(0,0,0.35)); key(rescuer["root"],3600,loc=(9.0,-3.55,0),rot=(0,0,0.35))
     key(rescuer["armR"],2700,rot=(0,0,0)); key(rescuer["armR"],3300,rot=(-1.0,0,0)); key(rescuer["armR"],3600,rot=(-1.0,0,0))
 
+    # Extended acts: pursuing drones, a second blast, escape and the Senator's camera address.
+    for f,loc in ((3600,(6,0,.18)),(4200,(7,0,.18)),(5100,(11,0,.18)),(6000,(16,0,.18)),(6900,(21,0,.18)),(7800,(25,0,.18)),(8700,(27,0,.18)),(9600,(27,0,.18)),(10800,(27,0,.18))):
+        key(vehicle,f,loc=loc,rot=(0,1.18,.12))
+    for f,loc in ((3600,(8.45,-2.55,0)),(5100,(10,-2.55,0)),(6900,(16,-2.55,0)),(8100,(21,-2.55,0)),(9600,(24,-2.55,0)),(10800,(24,-2.55,0))):
+        key(senator["root"],f,loc=loc,rot=(0,0,0))
+    for f,loc in ((3600,(9,-3.55,0)),(5400,(12,-3.4,0)),(7200,(18,-3.2,0)),(8700,(22,-3,0)),(9600,(25,-2.9,0)),(10800,(25,-2.9,0))):
+        key(rescuer["root"],f,loc=loc,rot=(0,0,.15))
+    # Two block-built pursuit drones bank across the road.
+    for idx,base_loc in enumerate(((14,-2.5,8),(19,3,9))):
+        dr=empty("Pursuit_Drone_%02d_ROOT"%idx,None,base_loc)
+        cube("Pursuit_Drone_%02d_Core"%idx,(1.35,.82,.38),(0,0,0),mats["metal"],dr)
+        cube("Pursuit_Drone_%02d_Canopy"%idx,(.72,.68,.26),(0,0,.30),mats["glass"],dr)
+        for side in (-1,1):
+            cube("Pursuit_Drone_%02d_Lamp"%idx,(.16,.16,.16),(side*.52,0,.04),mats["blue"],dr)
+            cube("Pursuit_Drone_%02d_Boom"%idx,(.72,.12,.12),(side*.85,0,0),mats["metal"],dr)
+        for f,loc,rot in ((3601,base_loc,(0,0,0)),(4500,(base_loc[0]+2,-1,7.6),(.12,0,.18)),(5700,(base_loc[0]+5,0,6.8),(.2,0,-.2)),(6900,(base_loc[0]+1,-2,6),(0,0,.35)),(8100,(base_loc[0]-2,-1,7),(.1,0,0)),(9300,(base_loc[0]-4,0,8),(0,0,-.25)),(10800,(base_loc[0]-6,0,8),(0,0,0))):
+            key(dr,f,loc=loc,rot=rot)
+    blast2_center=(19,0,1.45)
+    flash2=cube("Second_Blast_Flash",(.2,.2,.2),blast2_center,flashmat)
+    key(flash2,6570,scale=(.001,.001,.001)); key(flash2,6600,scale=(8,6,4)); key(flash2,6630,scale=(.001,.001,.001))
+    for i in range(22):
+        loc=(blast2_center[0]+rr.uniform(-.9,.9),rr.uniform(-.9,.9),blast2_center[2]+rr.uniform(-.7,.7))
+        obj=cube("Second_Blast_Fire_%02d"%i,(rr.uniform(.25,.62),rr.uniform(.25,.62),rr.uniform(.25,.62)),loc,mats["fire"] if i%2 else mats["fire2"])
+        dx,dy,dz=rr.uniform(-3,3),rr.uniform(-3,3),rr.uniform(.6,4)
+        key(obj,6570,loc=loc,scale=(.01,.01,.01)); key(obj,6600,loc=(loc[0]+dx*.3,loc[1]+dy*.3,loc[2]+dz*.3),scale=(1,1,1))
+        key(obj,6900,loc=(loc[0]+dx,loc[1]+dy,loc[2]+dz),scale=(.25,.25,.25)); key(obj,7200,loc=(loc[0]+dx,loc[1]+dy,loc[2]+dz+.7),scale=(.01,.01,.01))
+    light2_data=bpy.data.lights.new("Second_Blast_Pulse","POINT"); light2_data.color=(1,.34,.12); light2_data.energy=0; light2_data.shadow_soft_size=5
+    light2=bpy.data.objects.new("Second_Blast_Pulse",light2_data); scene.collection.objects.link(light2); light2.location=blast2_center
+    for f,v in ((1,0),(6570,0),(6600,5200),(6630,2100),(6900,420),(7200,80),(10800,30)):
+        light2_data.energy=v; light2_data.keyframe_insert(data_path="energy",frame=f)
+    for f in (9900,10200,10800): key(senator["root"],f,loc=(24,-2.55,0),rot=(0,0,0))
+    for f,r in ((9600,(0,0,0)),(9900,(.12,0,0)),(10200,(.04,0,0)),(10800,(0,0,0))): key(senator["head"],f,rot=r)
+    for f,r in ((9600,(0,0,0)),(9900,(-.55,0,0)),(10200,(-1.25,0,0)),(10400,(-.55,0,0)),(10600,(-1.1,0,0)),(10800,(0,0,0))):
+        key(senator["armL"],f,rot=r)
+    cta_mouth=cube("Senator_CTA_Mouth",(.12,.02,.035),(0,-.255,-.09),mats["rubber"],senator["head"])
+    for j,f in enumerate(range(10200,10801,12)): key(cta_mouth,f,scale=(1,.25 if j%2==0 else 1,1))
+
+
     # Eight deliberate camera angles and hard cuts.
     cameras=[
       make_camera("CAM_01_Aerial_Establish",(0,-24,17),(0,0,0.6),42),
@@ -457,16 +500,29 @@ def build_scene(out_dir):
     key(cameras[0],1,loc=(0,-24,17)); key(cameras[0],540,loc=(2,-22,15))
     key(cameras[-1],3301,loc=(5,-26,19)); key(cameras[-1],3600,loc=(7,-23,17))
 
+    extra_camera_specs=[
+      ("CAM_09_Regroup",(10,-10,5),(8,-1,1),48,3601),("CAM_10_Drones_Overhead",(15,-12,9),(17,0,6),46,4201),
+      ("CAM_11_Van_Escape",(2,-12,4),(14,0,1),50,4801),("CAM_12_Aerial_Chase",(19,-20,14),(19,0,1),42,5401),
+      ("CAM_13_Second_Blast",(20,-9,5),(19,0,1.2),48,6301),("CAM_14_Crew_Rush",(23,-8,4),(24,-2,1),52,6901),
+      ("CAM_15_Road_Escape",(15,-25,16),(22,0,1),40,7801),("CAM_16_Safehouse",(27,-13,7),(25,-2,1),48,8701),
+      ("CAM_17_Senator_Address",(24,-7,2.8),(24,-2.55,1.25),62,9601),("CAM_18_CTA_Closeup",(24,-6,2.65),(24,-2.55,1.3),68,10201)
+    ]
+    extension_cut_frames=[]
+    for name,loc,target,lens,frame in extra_camera_specs:
+        cam=make_camera(name,loc,target,lens); marker=scene.timeline_markers.new(name,frame=frame); marker.camera=cam
+        extension_cut_frames.append(frame)
+
     scene.frame_set(1)
     blend=out_dir/"Senator_Minecraft_BROWN_Ambush.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
     audit={
-      "project":"Senator Minecraft — BROWN Chapters 5-6","duration_seconds":60,"fps":60,"frames":3600,"resolution":[1280,720],
+      "project":"Senator Minecraft — BROWN Chapters 5-6","duration_seconds":180,"fps":60,"frames":10800,"resolution":[1280,720],
       "engine":"Cycles CPU","samples":96,"denoising":True,"audio":"none","skin_format":"Minecraft Java 64x64",
       "skin_files":[p.name for p in skin_paths.values()],
-      "characters":["Senator","Kesh","Lark","Juno","Biko","Tovin","Rescuer"],"camera_cuts":list(cut_frames),
-      "checks":{"frame_count":scene.frame_end-scene.frame_start+1==3600,"60_fps":scene.render.fps==60,
+      "characters":["Senator","Kesh","Lark","Juno","Biko","Tovin","Rescuer"],"camera_cuts":list(cut_frames)+list(extension_cut_frames),
+      "cta_dialogue":"Hey! If you enjoyed this adventure, tap Like and Subscribe for more Minecraft stories. I will see you in the next one!",
+      "checks":{"frame_count":scene.frame_end-scene.frame_start+1==10800,"60_fps":scene.render.fps==60,
        "landscape":scene.render.resolution_x>scene.render.resolution_y,"cpu_cycles":scene.render.engine=="CYCLES" and scene.cycles.device=="CPU",
-       "seven_skin_files":len(skin_paths)==7,"senator_main_character":True,"eight_cameras":len(cameras)==8}
+       "seven_skin_files":len(skin_paths)==7,"senator_main_character":True,"eight_cameras":len(cameras)==8,"three_minute_timeline":scene.frame_end==10800,"eighteen_camera_angles":len(cameras)+len(extra_camera_specs)==18}
     }
     (out_dir/"production_audit.json").write_text(json.dumps(audit,indent=2))
     return scene,blend,audit
@@ -475,6 +531,18 @@ def run():
     mode,out,start_frame,end_frame=cli()
     out.mkdir(parents=True,exist_ok=True)
 
+
+    if mode=="qa-preview":
+        scene=bpy.context.scene; scene.render.engine="CYCLES"; scene.cycles.device="CPU"; scene.cycles.samples=12
+        scene.cycles.use_denoising=True; scene.cycles.use_adaptive_sampling=True
+        scene.render.resolution_x=640; scene.render.resolution_y=360; scene.render.resolution_percentage=100
+        scene.render.image_settings.file_format="PNG"; scene.render.image_settings.color_mode="RGB"; scene.render.use_file_extension=True
+        qa_dir=out/"qa_preview"; qa_dir.mkdir(parents=True,exist_ok=True)
+        qa_frames=(300,1200,2400,3300,3900,5100,6300,6900,7800,8700,9600,10200,10740)
+        for frame in qa_frames:
+            scene.frame_set(frame); scene.render.filepath=str(qa_dir/("qa_frame_%05d"%frame)); bpy.ops.render.render(write_still=True)
+        print("VISUAL_QA_PREVIEW_COMPLETE",json.dumps({"frames":list(qa_frames)})); return
+
     # Render workers load the audited .blend and render their assigned contiguous
     # frame range to PNG. Encoding is performed by system FFmpeg in a separate
     # workflow job because Blender 5 no longer supports FFMPEG as an image format.
@@ -482,14 +550,14 @@ def run():
         scene=bpy.context.scene
         if scene is None:
             raise RuntimeError("No Blender scene was loaded for frame rendering.")
-        if not (1 <= start_frame <= end_frame <= 3600):
+        if not (1 <= start_frame <= end_frame <= 10800):
             raise ValueError("Invalid frame range: %s-%s"%(start_frame,end_frame))
         scene.render.engine="CYCLES"
         scene.cycles.device="CPU"
-        scene.cycles.samples=96
+        scene.cycles.samples=32
         scene.cycles.use_denoising=True
         scene.cycles.use_adaptive_sampling=True
-        scene.cycles.adaptive_threshold=0.008
+        scene.cycles.adaptive_threshold=0.015
         scene.render.resolution_x=1280
         scene.render.resolution_y=720
         scene.render.resolution_percentage=100
@@ -554,7 +622,7 @@ def run():
         scene.render.filepath=str(frame_dir/"frame_")
         scene.render.fps=60
         scene.frame_start=1
-        scene.frame_end=3600
+        scene.frame_end=10800
         bpy.ops.render.render(animation=True)
         print("FULL_FRAME_SEQUENCE_COMPLETE",frame_dir)
         return
