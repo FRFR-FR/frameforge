@@ -64,7 +64,14 @@ def set_emission(mat, color, strength):
     em.inputs["Color"].default_value = (*color[:3], 1.0)
     em.inputs["Strength"].default_value = strength
     nt.links.new(em.outputs["Emission"], out.inputs["Surface"])
-    return em
+    return mat
+
+def emission_node(material):
+    """Return the emission shader node from a material created by set_emission."""
+    node = next((node for node in material.node_tree.nodes if node.type == "EMISSION"), None)
+    if node is None:
+        raise ValueError("Material has no emission shader: " + material.name)
+    return node
 
 def make_material(name, color, metallic=0.0, roughness=0.72, emission=None):
     mat = bpy.data.materials.new(name)
@@ -161,15 +168,15 @@ def text_object(name, body, location, size, material, parent=None, align="CENTER
         ob.location = location
     return ob
 
-def animate_emission(em_node, keys):
-    strength = em_node.inputs["Strength"]
+def animate_emission(em_material, keys):
+    strength = emission_node(em_material).inputs["Strength"]
     for frame, value in keys:
         strength.default_value = value
         strength.keyframe_insert(data_path="default_value", frame=frame)
 
 def animated_text(camera, name, body, y, size, color, start_s, end_s, subtitle=False):
     mat = bpy.data.materials.new(name + " emission")
-    em = set_emission(mat, color, 0.0)
+    em = emission_node(set_emission(mat, color, 0.0))
     ob = text_object(name, body, (0, y, -15.2), size, mat, parent=camera)
     start = max(1, int(start_s * FPS))
     peak = min(FRAME_END, start + 8)
