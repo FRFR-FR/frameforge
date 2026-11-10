@@ -67,8 +67,8 @@ jobs:
           from PIL import Image, ImageStat
           import json, sys
           files=sorted(Path("output/qa/qa_preview").glob("qa_frame_*.png"))
-          if len(files)!=13:
-              sys.exit(f"Expected 13 visual samples, got {len(files)}")
+          if len(files)!=18:
+              sys.exit(f"Expected 18 camera-angle samples, got {len(files)}")
           rows=[]
           for p in files:
               im=Image.open(p).convert("RGB")

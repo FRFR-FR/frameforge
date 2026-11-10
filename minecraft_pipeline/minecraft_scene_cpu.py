@@ -501,9 +501,9 @@ def build_scene(out_dir):
     key(cameras[-1],3301,loc=(5,-26,19)); key(cameras[-1],3600,loc=(7,-23,17))
 
     extra_camera_specs=[
-      ("CAM_09_Regroup",(10,-10,5),(8,-1,1),48,3601),("CAM_10_Drones_Overhead",(15,-12,9),(17,0,6),46,4201),
-      ("CAM_11_Van_Escape",(2,-12,4),(14,0,1),50,4801),("CAM_12_Aerial_Chase",(19,-20,14),(19,0,1),42,5401),
-      ("CAM_13_Second_Blast",(20,-9,5),(19,0,1.2),48,6301),("CAM_14_Crew_Rush",(23,-8,4),(24,-2,1),52,6901),
+      ("CAM_09_Regroup",(10,-7.2,5),(8,-1,1),48,3601),("CAM_10_Drones_Overhead",(15,-7.2,9),(17,0,6),46,4201),
+      ("CAM_11_Van_Escape",(2,-7.2,4),(14,0,1),50,4801),("CAM_12_Aerial_Chase",(19,-20,14),(19,0,1),42,5401),
+      ("CAM_13_Second_Blast",(20,-7.2,5),(19,0,1.2),48,6301),("CAM_14_Crew_Rush",(23,-7.2,4),(24,-2,1),52,6901),
       ("CAM_15_Road_Escape",(15,-25,16),(22,0,1),40,7801),("CAM_16_Safehouse",(27,-13,7),(25,-2,1),48,8701),
       ("CAM_17_Senator_Address",(24,-7,2.8),(24,-2.55,1.25),62,9601),("CAM_18_CTA_Closeup",(24,-6,2.65),(24,-2.55,1.3),68,10201)
     ]
@@ -538,7 +538,7 @@ def run():
         scene.render.resolution_x=640; scene.render.resolution_y=360; scene.render.resolution_percentage=100
         scene.render.image_settings.file_format="PNG"; scene.render.image_settings.color_mode="RGB"; scene.render.use_file_extension=True
         qa_dir=out/"qa_preview"; qa_dir.mkdir(parents=True,exist_ok=True)
-        qa_frames=(300,1200,2400,3300,3900,5100,6300,6900,7800,8700,9600,10200,10740)
+        qa_frames=(300,800,1300,1550,1800,2400,3000,3450,3900,4500,5100,5700,6600,7200,8100,9000,9900,10500)
         for frame in qa_frames:
             scene.frame_set(frame); scene.render.filepath=str(qa_dir/("qa_frame_%05d"%frame)); bpy.ops.render.render(write_still=True)
         print("VISUAL_QA_PREVIEW_COMPLETE",json.dumps({"frames":list(qa_frames)})); return
