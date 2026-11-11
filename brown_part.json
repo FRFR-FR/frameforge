@@ -1,0 +1,72 @@
+{
+  "part": 17,
+  "title": "The False Flag Season / The Refugee Rail / The Delegates' Last Joke",
+  "chapters": "49-51",
+  "location": "border",
+  "props": [
+    "aircraft",
+    "papers"
+  ],
+  "support": [
+    "Sanna",
+    "Priya Raman",
+    "Gennet"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The False Flag Season — shot 1",
+      "camera": "wide",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The False Flag Season — shot 2",
+      "camera": "profile",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Refugee Rail — shot 3",
+      "camera": "medium",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Refugee Rail — shot 4",
+      "camera": "close",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Delegates' Last Joke — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Delegates' Last Joke — shot 6",
+      "camera": "low",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
