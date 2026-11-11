@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate schemas and runtime template
+    name: Validate schemas and Godot runtime
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,21 +28,21 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install validators
+      - name: Install schema validator
         run: python -m pip install --disable-pip-version-check jsonschema
 
-      - name: Validate JSON schemas
+      - name: Validate JSON schemas and defaults
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           from jsonschema import Draft202012Validator
 
-          schema_paths = [
+          schemas = [
               Path("gameforge/schemas/game-spec.schema.json"),
               Path("gameforge/integrations/frameforge/manifest.schema.json"),
           ]
-          for path in schema_paths:
+          for path in schemas:
               schema = json.loads(path.read_text(encoding="utf-8"))
               Draft202012Validator.check_schema(schema)
               print(f"VALID schema: {path}")
@@ -55,17 +55,25 @@ jobs:
           print("VALID defaults: full autopilot + adaptive quality")
           PY
 
-      - name: Check runtime template files
+      - name: Check runtime template structure
         run: |
           test -f gameforge/runtime/godot_template/project.godot
           test -f gameforge/runtime/godot_template/scenes/main.tscn
-          test -f gameforge/runtime/godot_template/scripts/main.gd
-          test -f gameforge/runtime/godot_template/scripts/player_controller.gd
-          test -f gameforge/runtime/godot_template/scripts/dialogue_timeline.gd
-          test -f gameforge/runtime/godot_template/scripts/narrative_state.gd
-          echo "Godot template structure is present."
+          for script in main player_controller gameforge_profile adaptive_resolution dialogue_timeline narrative_state audio_event_bus vfx_event_bus; do
+            test -f "gameforge/runtime/godot_template/scripts/$script.gd"
+          done
 
-      - name: Check no secrets are committed in GAMEFORGE
+      - name: Set up pinned Godot editor
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: false
+
+      - name: Import and parse Godot template headlessly
+        run: godot --headless --path gameforge/runtime/godot_template --editor --quit
+
+      - name: Check no obvious credentials are committed
         run: |
           if grep -RniE '(api[_-]?key|secret|password)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']{12,}' gameforge --exclude='*.md'; then
             echo "Potential credential found. Review before merging."
