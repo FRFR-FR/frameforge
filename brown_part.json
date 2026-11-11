@@ -1,0 +1,71 @@
+{
+  "part": 3,
+  "title": "The Weight After / Names on the Dead / The First Ledger",
+  "chapters": "7-9",
+  "location": "court",
+  "props": [
+    "papers",
+    "registry"
+  ],
+  "support": [
+    "Leona Saye",
+    "Darius Quell"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Weight After — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Weight After — shot 2",
+      "camera": "medium",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Names on the Dead — shot 3",
+      "camera": "close",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Names on the Dead — shot 4",
+      "camera": "profile",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The First Ledger — shot 5",
+      "camera": "overhead",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The First Ledger — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
