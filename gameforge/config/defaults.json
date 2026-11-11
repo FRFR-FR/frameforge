@@ -1,0 +1,41 @@
+{
+  "generation_mode": "full_autopilot",
+  "quality_strategy": "adaptive",
+  "runtime": {
+    "engine": "godot",
+    "version": "4.4.1",
+    "renderer_android_default": "gl_compatibility",
+    "renderer_pc_default": "gl_compatibility"
+  },
+  "campaign": {
+    "minimum_hours": 5,
+    "maximum_hours": 10,
+    "side_content": "story_relevant_only",
+    "require_vertical_slice": true
+  },
+  "quality_gates": {
+    "require_static_validation": true,
+    "require_unit_tests": true,
+    "require_scene_import": true,
+    "require_android_export": false,
+    "require_windows_export": false,
+    "require_device_profile_report": true
+  },
+  "performance": {
+    "android_low_target_fps": 30,
+    "android_balanced_target_fps": 45,
+    "pc_low_target_fps": 30,
+    "pc_high_target_fps": 60,
+    "adaptive_resolution": true
+  },
+  "market_research": {
+    "enabled": true,
+    "require_source_dates": true,
+    "require_confidence_scores": true,
+    "never_claim_sales_or_virality_guarantees": true
+  },
+  "frameforge": {
+    "enabled": true,
+    "integration_mode": "versioned_manifest_adapter"
+  }
+}
