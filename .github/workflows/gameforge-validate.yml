@@ -89,6 +89,14 @@ jobs:
           godot --headless --path gameforge/runtime/godot_template --editor --quit
           godot --headless --path gameforge/runtime/godot_template --quit-after 3
 
+      - name: Run Godot runtime smoke test
+        run: godot --headless --path gameforge/runtime/godot_template --script res://tests/runtime_smoke.gd
+
+      - name: Validate runtime contracts and FrameForge adapter
+        run: |
+          python gameforge/tests/validate_runtime.py
+          PYTHONPATH=gameforge/integrations/frameforge python -m unittest discover -s gameforge/integrations/frameforge -p 'test_*.py' -v
+
       - name: Check for accidentally committed credentials
         run: |
           python - <<'PY'
