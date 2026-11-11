@@ -6,7 +6,9 @@ RUNTIME=ROOT/"runtime"/"godot_template"
 REQUIRED=[
  "scripts/world_generator.gd","scripts/third_person_camera.gd","scripts/interaction_component.gd",
  "scripts/quest_director.gd","scripts/combat_component.gd","scripts/npc_brain.gd",
- "scripts/frameforge_player.gd","scripts/quality_manager.gd","export_presets.cfg",
+ "scripts/frameforge_player.gd","scripts/quality_manager.gd","scripts/dialogue_director.gd",
+ "scripts/inventory_component.gd","scripts/save_manager.gd","scripts/interactable_base.gd",
+ "scripts/accessibility_settings.gd","export_presets.cfg",
  "tests/runtime_smoke.gd"
 ]
 for relative in REQUIRED:
