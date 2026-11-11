@@ -33,7 +33,8 @@ func _run() -> void:
     var dialogue = dialogue_script.new()
     assert(dialogue.register_dialogue({"id":"test","lines":[{"speaker":"A","text":"Hello"}]}), "Dialogue should register")
     assert(dialogue.start("test"), "Dialogue should start")
-    assert(dialogue.active_id.is_empty(), "Single-line dialogue should finish after dispatch")
+    dialogue.continue_dialogue()
+    assert(dialogue.active_id.is_empty(), "Dialogue should finish after the final line is continued")
 
     root_node.queue_free()
     print("GAMEFORGE runtime smoke tests passed.")
