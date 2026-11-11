@@ -1,0 +1,106 @@
+name: BROWN Final Film Assembly
+
+on:
+  workflow_run:
+    workflows: ["BROWN 5-Minute Part Render"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  assemble:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Locate the latest successful render for every part
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p parts
+          : > parts/concat.txt
+          : > parts/manifest.tsv
+          missing=0
+          for n in $(seq -w 1 24); do
+            branch="brown-film/part-${n}"
+            artifact="brown-part-${n}"
+            runs=$(gh api --paginate "repos/$GH_REPO/actions/workflows/brown-part-render.yml/runs?branch=$branch&status=success&per_page=100" --jq '.workflow_runs[] | [.id,.run_number] | @tsv' | head -n 1 || true)
+            if [ -z "$runs" ]; then
+              echo "MISSING successful run for $branch"
+              missing=1
+              continue
+            fi
+            run_id=$(printf '%s' "$runs" | cut -f1)
+            artifact_id=$(gh api "repos/$GH_REPO/actions/runs/$run_id/artifacts" --jq ".artifacts[] | select(.name==\"$artifact\" and .expired==false) | .id" | head -n 1 || true)
+            if [ -z "$artifact_id" ]; then
+              echo "MISSING artifact $artifact in run $run_id"
+              missing=1
+              continue
+            fi
+            mkdir -p "parts/$n"
+            gh api "repos/$GH_REPO/actions/artifacts/$artifact_id/zip" > "parts/$n/artifact.zip"
+            unzip -oq "parts/$n/artifact.zip" -d "parts/$n"
+            video=$(find "parts/$n" -type f -name '*.mp4' -print -quit)
+            if [ -z "$video" ]; then
+              echo "MISSING MP4 inside $artifact"
+              missing=1
+              continue
+            fi
+            mv "$video" "parts/part-$n.mp4"
+            printf "file 'part-%s.mp4'\n" "$n" >> parts/concat.txt
+            printf "%s\t%s\t%s\n" "$n" "$run_id" "$artifact_id" >> parts/manifest.tsv
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "All 24 successful part artifacts are not available yet; assembly will not run."
+            exit 1
+          fi
+          echo "All 24 rendered part artifacts located."
+
+      - name: Validate every five-minute part
+        run: |
+          set -euo pipefail
+          for n in $(seq -w 1 24); do
+            f="parts/part-$n.mp4"
+            test -s "$f"
+            ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=width,height,r_frame_rate,nb_read_frames -show_entries format=duration -of json "$f" > "parts/probe-$n.json"
+            python3 - "$f" "parts/probe-$n.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[2]))
+          s=d["streams"][0]
+          assert (s["width"],s["height"],s["r_frame_rate"],int(s["nb_read_frames"])) == (1280,720,"20/1",6000), (sys.argv[1],s)
+          assert 299.9 <= float(d["format"]["duration"]) <= 300.1, (sys.argv[1],d["format"])
+          print("VALID",sys.argv[1])
+          PY
+          done
+
+      - name: Assemble the 24 parts in order
+        run: |
+          ffmpeg -y -hide_banner -f concat -safe 0 -i parts/concat.txt -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p -r 20 -an -movflags +faststart BROWN_Book_One_Complete_2h_720p20.mp4
+
+      - name: Verify the final two-hour movie
+        run: |
+          ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=width,height,r_frame_rate,nb_read_frames -show_entries format=duration,size -of json BROWN_Book_One_Complete_2h_720p20.mp4 > final_verification.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open("final_verification.json"))
+          s=d["streams"][0]
+          assert (s["width"],s["height"],s["r_frame_rate"],int(s["nb_read_frames"])) == (1280,720,"20/1",144000), s
+          assert 7199.0 <= float(d["format"]["duration"]) <= 7201.0, d["format"]
+          print("VERIFIED 2-hour movie:",d["format"])
+          PY
+
+      - name: Upload final movie and verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Book-One-Complete-2h-720p20
+          path: |
+            BROWN_Book_One_Complete_2h_720p20.mp4
+            final_verification.json
+            parts/manifest.tsv
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
