@@ -106,8 +106,8 @@ for i,sh in enumerate(C["shots"]):
   root.keyframe_insert(data_path="location",frame=a);root.location.x+=sh.get("move_x",.6);root.keyframe_insert(data_path="location",frame=b)
 S.render.engine="BLENDER_EEVEE";S.eevee.taa_render_samples=64
 S.render.resolution_x=1280;S.render.resolution_y=720;S.render.resolution_percentage=100
-S.render.image_settings.file_format="FFMPEG";S.render.ffmpeg.format="MPEG4";S.render.ffmpeg.codec="H264";S.render.ffmpeg.constant_rate_factor="HIGH";S.render.ffmpeg.ffmpeg_preset="GOOD";S.render.ffmpeg.gopsize=40
-S.render.filepath=os.path.abspath(OUT);S.view_settings.view_transform="AgX";S.view_settings.look="AgX - Medium High Contrast"
-S.render.use_motion_blur=True;S.render.motion_blur_shutter=.35
+S.render.image_settings.file_format="PNG";S.render.image_settings.color_mode="RGB"
+S.render.filepath=os.path.abspath("render/frame_");S.view_settings.view_transform="AgX";S.view_settings.look="AgX - Medium High Contrast"
+
 S["film"]="BROWN Book One";S["part"]=P;S["chapters"]=C["chapters"];S["camera_note"]="Unobstructed action lane, full character silhouettes, six cinematic angles."
-print("BROWN_RENDER_BEGIN",P,C["title"],"6000 frames",flush=True);bpy.ops.render.render(animation=True);print("BROWN_RENDER_COMPLETE",P,OUT,flush=True)
+print("BROWN_RENDER_BEGIN",P,C["title"],"6000 frames",flush=True);bpy.ops.render.render(animation=True);print("BROWN_RENDER_COMPLETE",P,"PNG sequence",flush=True)
