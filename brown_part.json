@@ -1,0 +1,72 @@
+{
+  "part": 16,
+  "title": "The War That Would Not Stay on Maps / Civilians in the Arithmetic / The Winter of Bread",
+  "chapters": "46-48",
+  "location": "war",
+  "props": [
+    "armoured",
+    "papers"
+  ],
+  "support": [
+    "Tigist",
+    "Aster",
+    "Binyam Tola"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The War That Would Not Stay on Maps — shot 1",
+      "camera": "wide",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The War That Would Not Stay on Maps — shot 2",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Civilians in the Arithmetic — shot 3",
+      "camera": "profile",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Civilians in the Arithmetic — shot 4",
+      "camera": "medium",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Winter of Bread — shot 5",
+      "camera": "low",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Winter of Bread — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
