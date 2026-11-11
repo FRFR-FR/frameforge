@@ -1,0 +1,38 @@
+{
+  "project": {
+    "name": "FrameForge | Sci-Fi Outpost",
+    "style": "stylized realistic game cinematic",
+    "description": "A lone armored scout walks through a rain-darkened futuristic outpost at dusk while the camera tracks forward.",
+    "image_generation": false,
+    "external_image_textures": false
+  },
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "duration_seconds": 8,
+    "engine": "CYCLES",
+    "device": "CPU",
+    "samples": 32,
+    "denoising": true
+  },
+  "environment": {
+    "ground_color": [0.025, 0.045, 0.065, 1.0],
+    "sky_color": [0.012, 0.022, 0.045, 1.0],
+    "tower_color": [0.055, 0.085, 0.12, 1.0],
+    "accent_color": [0.02, 0.55, 0.72, 1.0],
+    "warm_light_color": [1.0, 0.32, 0.09, 1.0]
+  },
+  "hero": {
+    "name": "Outpost Scout",
+    "armor_color": [0.12, 0.19, 0.25, 1.0],
+    "accent_color": [0.05, 0.75, 0.9, 1.0],
+    "start_x": -2.2,
+    "end_x": 1.2
+  },
+  "quality": {
+    "no_generated_images": true,
+    "native_3d_geometry": true,
+    "cycles_cpu": true
+  }
+}

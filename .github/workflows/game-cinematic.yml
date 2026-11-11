@@ -1,0 +1,123 @@
+name: FrameForge AI Game Cinematic
+
+on:
+  push:
+    branches:
+      - feature/ai-game-cinematic-engine
+    paths:
+      - "game_cinematic_pipeline/**"
+      - ".github/workflows/game-cinematic.yml"
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: "Number of parallel CPU frame-render jobs"
+        required: true
+        type: choice
+        options: ["2", "4", "6", "8"]
+        default: "4"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frameforge-game-cinematic-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Build editable Blender scene and audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender ffmpeg
+          blender --version
+          ffmpeg -version | head -n 1
+      - name: Build and audit scene
+        run: |
+          mkdir -p output/game_cinematic
+          blender --background --python-exit-code 1 \
+            --python game_cinematic_pipeline/build_scene.py -- \
+            --mode audit --output-dir output/game_cinematic
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-cinematic-project
+          path: |
+            output/game_cinematic/*.blend
+            output/game_cinematic/*.glb
+            output/game_cinematic/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+  render-frames:
+    name: Render frame shard ${{ matrix.shard }}
+    needs: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender
+          blender --version
+      - name: Render assigned frame range
+        run: |
+          mkdir -p output/game_cinematic
+          blender --background --python-exit-code 1 \
+            --python game_cinematic_pipeline/build_scene.py -- \
+            --mode render --output-dir output/game_cinematic \
+            --shard-index ${{ matrix.shard }} --shard-count 4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-cinematic-frames-${{ matrix.shard }}
+          path: output/game_cinematic/frames/frame_*.png
+          if-no-files-found: error
+          retention-days: 2
+
+  assemble:
+    name: Assemble MP4 and package deliverables
+    needs: [audit, render-frames]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: game-cinematic-frames-*
+          path: output/game_cinematic/frames
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-cinematic-project
+          path: output/game_cinematic
+      - name: Assemble H.264 MP4
+        run: |
+          FPS=$(python3 -c "import json; print(json.load(open('game_cinematic_pipeline/scene_spec.json'))['render']['fps'])")
+          ffmpeg -y -framerate "$FPS" -start_number 1 \
+            -i output/game_cinematic/frames/frame_%04d.png \
+            -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p \
+            -movflags +faststart output/game_cinematic/FrameForge_Game_Cinematic.mp4
+          ffprobe -v error -show_entries format=duration,size \
+            -of default=noprint_wrappers=1 output/game_cinematic/FrameForge_Game_Cinematic.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-AI-Game-Cinematic-Deliverables
+          path: |
+            output/game_cinematic/FrameForge_Game_Cinematic.mp4
+            output/game_cinematic/FrameForge_Game_Cinematic.blend
+            output/game_cinematic/FrameForge_Game_Cinematic.glb
+            output/game_cinematic/FrameForge_Game_Cinematic_Audit.json
+          if-no-files-found: error
+          retention-days: 14
