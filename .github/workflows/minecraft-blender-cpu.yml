@@ -1,8 +1,7 @@
 name: Senator Minecraft 3-minute Blender Production
 on:
-  push:
-    branches: [main]
-    paths: ['minecraft_pipeline/**', '.github/workflows/minecraft-blender-cpu.yml']
+  # This is the legacy Blender-based 3-minute pipeline. Keep it manual so
+  # edits to the repository never launch an unwanted Blender render.
   workflow_dispatch:
 permissions:
   contents: read
@@ -171,6 +170,13 @@ jobs:
           pattern: minecraft-180s-frames-*
           path: output/minecraft_180s/chunks
           merge-multiple: true
+      - name: Install FFmpeg before validating rendered clips
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          command -v ffmpeg
+          command -v ffprobe
+          ffprobe -version
       - name: Verify all 90 clips and create ordered concat list
         run: |
           python3 - <<'PY'
@@ -190,10 +196,10 @@ jobs:
           (Path("output/minecraft_180s")/"concat.txt").write_text("\n".join(lines)+"\n")
           print("All 90 clips validated: 120 frames each, 720p60.")
           PY
-      - name: Install FFmpeg and neural voice dependencies
+      - name: Install neural voice dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ffmpeg python3-venv fonts-dejavu-core
+          sudo apt-get install --yes python3-venv fonts-dejavu-core
           python3 -m venv .venv
           .venv/bin/pip install --quiet edge-tts
           .venv/bin/edge-tts --voice en-US-GuyNeural --rate=+3% --text "Hey! If you enjoyed this adventure, tap Like and Subscribe for more Minecraft stories. I will see you in the next one!" --write-media output/minecraft_180s/senator_cta.mp3
