@@ -1,0 +1,73 @@
+{
+  "part": 15,
+  "title": "The Unwanted Allies / The Siege of Marrow Plain / The Last Hospital",
+  "chapters": "43-45",
+  "location": "marrow",
+  "props": [
+    "armoured",
+    "fire",
+    "water"
+  ],
+  "support": [
+    "Meron",
+    "Kaylen",
+    "Priya Raman"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Unwanted Allies — shot 1",
+      "camera": "wide",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Unwanted Allies — shot 2",
+      "camera": "profile",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Siege of Marrow Plain — shot 3",
+      "camera": "low",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Siege of Marrow Plain — shot 4",
+      "camera": "medium",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Last Hospital — shot 5",
+      "camera": "overhead",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Last Hospital — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
