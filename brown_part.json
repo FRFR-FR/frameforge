@@ -1,0 +1,72 @@
+{
+  "part": 14,
+  "title": "Children of the Checkpoint / The Broadcast of Names / The Great Mobilisation",
+  "chapters": "40-42",
+  "location": "war",
+  "props": [
+    "armoured",
+    "flag"
+  ],
+  "support": [
+    "Leona",
+    "Tigist",
+    "Aster"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "Children of the Checkpoint — shot 1",
+      "camera": "wide",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Children of the Checkpoint — shot 2",
+      "camera": "profile",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Broadcast of Names — shot 3",
+      "camera": "medium",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Broadcast of Names — shot 4",
+      "camera": "low",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Great Mobilisation — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Great Mobilisation — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
