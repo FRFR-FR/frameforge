@@ -4,38 +4,33 @@ GAMEFORGE is a code-first 3D game production system designed to generate tightly
 
 ## Operating mode
 
-- **Generation:** Full Autopilot — the system makes creative and technical decisions without requiring approval for every step.
-- **Quality:** Adaptive — each target device receives the highest quality profile it can sustain within measured performance budgets.
-- **Campaign:** 5–10 hours, story-relevant optional content only, with a required vertical-slice gate.
+- **Generation:** Full Autopilot.
+- **Quality:** Adaptive to measured device performance.
+- **Campaign:** 5–10 hours, story-relevant optional content, with a required vertical-slice gate.
 
 ## Implemented foundation
 
-- [x] Architecture and production blueprint
-- [x] GameSpec JSON schema and example project brief
-- [x] Full-autopilot/adaptive defaults
-- [x] Godot 4.4.1 project template and boot scene
-- [x] Playable third-person capsule controller smoke arena
-- [x] Conservative Android/desktop quality profiles
-- [x] Dynamic 3D resolution scaler foundation
-- [x] Narrative state store and dialogue cue timeline
-- [x] Audio and VFX event dispatch foundations
+- [x] GameSpec schema, sample brief and deterministic workspace compiler
+- [x] Godot 4.4.1 runtime template, boot scene and third-person capsule smoke arena
+- [x] Adaptive quality profile and dynamic 3D resolution scaler foundations
+- [x] Narrative state store, dialogue cue timeline, audio and VFX event buses
 - [x] FrameForge cinematic manifest schema
-- [x] Deterministic GameSpec validation/workspace compiler
-- [x] Offline natural-language brief-to-GameSpec provider
-- [x] First-pass story bible and chapter outline generation
-- [x] Mechanic review plans with explicit prior-art/prototype gates
-- [x] Unit tests and GitHub Actions validation for the autopilot pipeline
+- [x] Free offline natural-language brief-to-GameSpec provider
+- [x] First-pass story bible, character arcs and chapter outline
+- [x] Scene-card planner with convergent choices and persistent state keys
+- [x] Narrative continuity validator for scene IDs, chapter bounds and choice-state references
+- [x] Mechanic review plans with explicit prior-art and prototype gates
+- [x] Unit tests and GitHub Actions validation, including Godot headless boot
 
 ## Still to build
 
-- [ ] Stronger semantic generation and iterative creative critique
+- [ ] Richer semantic generation and iterative creative critique
+- [ ] Full authored scenes, dialogue, character knowledge tracking and localisation
 - [ ] Live market research with dated sources and confidence scoring
-- [ ] Narrative scene/dialogue generation and deeper continuity validation
 - [ ] Mechanic prior-art research and playable prototype scoring
 - [ ] Original asset creation/import and scene-generation pipeline
 - [ ] Full third-person camera, animation, interaction and combat systems
 - [ ] FrameForge adapter implementation and cinematic round-trip tests
-- [ ] Dialogue voice/viseme timing and localisation pipeline
 - [ ] Android APK and Windows EXE export workflows
 - [ ] Physical low-end device benchmark suite and measured performance gates
 
@@ -50,14 +45,10 @@ python gameforge/generator/autopilot/run.py \
   --out build/lighthouse
 ~~~
 
-It produces GAME_SPEC.json, STORY_BIBLE.json, MECHANIC_REVIEW.json, PIPELINE_REPORT.json and NEXT_STEPS.md. This is a structured design workspace, not a playable or release-ready game.
+It produces GAME_SPEC.json, STORY_BIBLE.json, SCENE_PLAN.json, MECHANIC_REVIEW.json, PIPELINE_REPORT.json and NEXT_STEPS.md. These are structured design artifacts, not a playable or release-ready game.
 
-An optional OpenAI-compatible provider can be configured with GAMEFORGE_API_BASE, GAMEFORGE_MODEL and GAMEFORGE_API_KEY, then selected with --provider openai-compatible. This may incur provider charges and is not needed by CI.
+An optional OpenAI-compatible provider can be configured with GAMEFORGE_API_BASE, GAMEFORGE_MODEL and GAMEFORGE_API_KEY and selected with --provider openai-compatible. It may incur provider charges and is not required by CI.
 
-## Runtime decision
+## Runtime and cost reality
 
-The first production runtime uses Godot 4.4.1 (GDScript-only template) as the open-source runtime. GAMEFORGE supplies the generator, narrative/mechanics systems, project compiler, validation, optimisation policy and build automation. FrameForge remains the dedicated cutscene subsystem and is integrated through a versioned manifest adapter.
-
-## Build and cost reality
-
-GitHub hosts the source and offers limited free CI capacity; it is not unlimited free rendering or compute. Build workflows must be quota-aware and support local builds. Android signing keys must be stored as GitHub Actions Secrets or locally, never committed. No system can guarantee virality, sales or search placement.
+The first runtime uses open-source Godot 4.4.1; FrameForge remains the cutscene subsystem through a versioned manifest adapter. GitHub Actions has limited free CI capacity, not unlimited compute or free general-purpose AI inference. Android signing keys must be stored as local secrets or GitHub Actions Secrets, never committed. No system can guarantee virality or sales.
