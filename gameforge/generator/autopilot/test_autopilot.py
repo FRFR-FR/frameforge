@@ -3,6 +3,7 @@ import json, tempfile, unittest
 from pathlib import Path
 from run import make_mechanic_review, make_story_bible, run_pipeline
 from providers import OfflineCreativeProvider
+from narrative_planner import build_scene_plan
 
 class AutopilotTests(unittest.TestCase):
     def setUp(self):
@@ -16,6 +17,12 @@ class AutopilotTests(unittest.TestCase):
         story=make_story_bible(self.spec,self.brief)
         self.assertEqual(len(story["chapter_outline"]),self.spec["campaign"]["chapters"])
         self.assertEqual(story["status"],"outline_generated_not_scripted_or_playtested")
+    def test_scene_plan_has_unique_ids_and_valid_choice_state(self):
+        story=make_story_bible(self.spec,self.brief)
+        plan=build_scene_plan(self.spec,story)
+        self.assertTrue(plan["continuity_validation"]["passed"])
+        self.assertEqual(plan["scene_count"],self.spec["campaign"]["chapters"]*3)
+        self.assertEqual(plan["status"],"scene_cards_generated_not_scripted_or_playtested")
     def test_mechanics_do_not_claim_novelty(self):
         review=make_mechanic_review(self.spec)
         self.assertEqual(review["status"],"ideas_only_no_playable_prototypes")
@@ -23,7 +30,7 @@ class AutopilotTests(unittest.TestCase):
     def test_pipeline_writes_artifacts_and_keeps_release_false(self):
         with tempfile.TemporaryDirectory() as directory:
             out=run_pipeline(self.brief,Path(directory)/"game","offline")
-            expected={"GAME_SPEC.json","STORY_BIBLE.json","MECHANIC_REVIEW.json","PIPELINE_REPORT.json","NEXT_STEPS.md"}
+            expected={"GAME_SPEC.json","STORY_BIBLE.json","SCENE_PLAN.json","MECHANIC_REVIEW.json","PIPELINE_REPORT.json","NEXT_STEPS.md"}
             self.assertTrue(expected.issubset({p.name for p in out.iterdir()}))
             report=json.loads((out/"PIPELINE_REPORT.json").read_text())
             self.assertFalse(report["release_ready"])
