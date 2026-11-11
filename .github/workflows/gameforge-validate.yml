@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate schemas, compiler and Godot runtime
+    name: Validate schemas, compiler, autopilot and Godot runtime
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,6 +54,20 @@ jobs:
           print("VALID defaults: full autopilot + adaptive quality")
           PY
           python gameforge/generator/brief_compiler/compile.py --spec gameforge/examples/sample-game-spec.json --out "$RUNNER_TEMP/gameforge-sample"
+
+      - name: Test offline natural-language autopilot
+        run: |
+          PYTHONPATH=gameforge/generator/autopilot python -m unittest discover -s gameforge/generator/autopilot -p 'test_*.py' -v
+          python gameforge/generator/autopilot/run.py --brief "Create a painterly mystery adventure called 'CI Test Game' about memory and family, 7 hours." --out "$RUNNER_TEMP/gameforge-autopilot"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path(__import__("os").environ["RUNNER_TEMP"]) / "gameforge-autopilot"
+          assert json.loads((root / "GAME_SPEC.json").read_text())["title"] == "CI Test Game"
+          report = json.loads((root / "PIPELINE_REPORT.json").read_text())
+          assert report["release_ready"] is False
+          print("Autopilot artifacts generated and release gate remains closed.")
+          PY
 
       - name: Check runtime template structure
         run: |
