@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from jsonschema import Draft202012Validator
 from providers import get_provider
+from narrative_planner import build_scene_plan
 
 ROOT=Path(__file__).resolve().parents[2]
 SCHEMA_PATH=ROOT/"schemas"/"game-spec.schema.json"
@@ -52,13 +53,18 @@ def run_pipeline(brief: str, output: Path, provider_name: str) -> Path:
     if not brief.strip(): raise ValueError("The game brief cannot be empty.")
     provider=get_provider(provider_name); spec=provider.generate_spec(brief); validate_spec(spec)
     output.mkdir(parents=True,exist_ok=True)
-    story=make_story_bible(spec,brief); mechanics=make_mechanic_review(spec)
-    report={"pipeline":"gameforge-autopilot","version":"0.1.0","provider":provider.name,"quality_strategy":"adaptive","generation_mode":"full_autopilot",
-      "completed":["natural_language_brief_received","gamespec_generated","gamespec_schema_validated","story_bible_outline_generated","mechanic_review_plan_generated"],
-      "not_completed":["market_research","original_asset_generation","playable_mechanic_prototypes","vertical_slice_playtest","device_benchmarking","android_apk_export","windows_exe_export"],"release_ready":False}
-    for name,value in {"GAME_SPEC.json":spec,"STORY_BIBLE.json":story,"MECHANIC_REVIEW.json":mechanics,"PIPELINE_REPORT.json":report}.items():
+    story=make_story_bible(spec,brief)
+    scene_plan=build_scene_plan(spec,story)
+    if not scene_plan["continuity_validation"]["passed"]:
+        raise ValueError("Narrative continuity validation failed: "+str(scene_plan["continuity_validation"]["errors"]))
+    mechanics=make_mechanic_review(spec)
+    report={"pipeline":"gameforge-autopilot","version":"0.2.0","provider":provider.name,"quality_strategy":"adaptive","generation_mode":"full_autopilot",
+      "completed":["natural_language_brief_received","gamespec_generated","gamespec_schema_validated","story_bible_outline_generated","scene_cards_generated","narrative_state_continuity_validated","mechanic_review_plan_generated"],
+      "not_completed":["full_dialogue_and_scene_script_generation","market_research","original_asset_generation","playable_mechanic_prototypes","vertical_slice_playtest","device_benchmarking","android_apk_export","windows_exe_export"],"release_ready":False}
+    artifacts={"GAME_SPEC.json":spec,"STORY_BIBLE.json":story,"SCENE_PLAN.json":scene_plan,"MECHANIC_REVIEW.json":mechanics,"PIPELINE_REPORT.json":report}
+    for name,value in artifacts.items():
         (output/name).write_text(json.dumps(value,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
-    (output/"NEXT_STEPS.md").write_text(f"# {spec['title']} — GAMEFORGE workspace\n\nThis brief was converted into a validated GameSpec and first-pass story/mechanics plans. This is not a playable or release-ready game.\n\n## Next production gates\n1. Expand chapter beats into scenes and dialogue.\n2. Research prior art and record sources.\n3. Build greybox prototypes and run usability/performance tests.\n4. Generate/import assets and assemble a playable vertical slice.\n5. Benchmark target devices before APK/EXE packaging.\n",encoding="utf-8")
+    (output/"NEXT_STEPS.md").write_text(f"# {spec['title']} — GAMEFORGE workspace\n\nThe brief was converted into a validated GameSpec, first-pass story outline, scene cards and continuity-checked choice-state plan. This is not a playable or release-ready game.\n\n## Next production gates\n1. Expand scene cards into authored scenes and dialogue.\n2. Research prior art and record sources.\n3. Build greybox prototypes and run usability/performance tests.\n4. Generate/import assets and assemble a playable vertical slice.\n5. Benchmark target devices before APK/EXE packaging.\n",encoding="utf-8")
     return output
 
 def main() -> int:
