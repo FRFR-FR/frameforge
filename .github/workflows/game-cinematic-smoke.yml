@@ -1,0 +1,49 @@
+name: FrameForge Cinematic Smoke Test
+
+on:
+  push:
+    branches:
+      - feature/ai-game-cinematic-engine
+    paths:
+      - "tests/game_cinematic_smoke.py"
+      - ".github/workflows/game-cinematic-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: Render three visual samples and validate them
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender
+          blender --version
+      - name: Build editable scene
+        run: |
+          mkdir -p output/game_cinematic
+          blender --background --python-exit-code 1 \
+            --python game_cinematic_pipeline/build_scene.py -- \
+            --mode audit --output-dir output/game_cinematic
+      - name: Render and inspect three sample frames
+        run: |
+          blender --background --python-exit-code 1 \
+            --python tests/game_cinematic_smoke.py -- \
+            output/game_cinematic/FrameForge_Game_Cinematic.blend \
+            output/game_cinematic/smoke_samples
+      - name: Upload sample frames and smoke report
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-Visual-Smoke-Samples
+          path: |
+            output/game_cinematic/smoke_samples/*.png
+            output/game_cinematic/smoke_samples/*.json
+            output/game_cinematic/FrameForge_Game_Cinematic.blend
+            output/game_cinematic/FrameForge_Game_Cinematic_Audit.json
+          if-no-files-found: error
+          retention-days: 14
