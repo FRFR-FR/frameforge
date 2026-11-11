@@ -1,42 +1,41 @@
 extends Node
 class_name GameForgeProfile
 
-## Applies a conservative quality profile at startup.
-## Profile selection is based on available runtime hints and can be overridden
-## by the generated game's settings menu. Always profile on physical devices.
+## Adaptive runtime policy. Hardware detection is deliberately conservative:
+## Android starts on Low; desktop starts Balanced. Device benchmark profiles
+## and player settings can raise/lower this after real hardware validation.
 
 enum Tier { LOW, BALANCED, HIGH }
+
+@export var android_default_tier: Tier = Tier.LOW
+@export var desktop_default_tier: Tier = Tier.BALANCED
+@export var allow_high_tier_on_mobile := false
 
 var tier: Tier = Tier.BALANCED
 var target_fps: int = 30
 
 func _ready() -> void:
-    _select_profile()
+    tier = android_default_tier if OS.has_feature("mobile") else desktop_default_tier
+    if OS.has_feature("mobile") and not allow_high_tier_on_mobile:
+        tier = mini(tier, Tier.BALANCED) as Tier
+    target_fps = 30 if tier == Tier.LOW else 60
     Engine.max_fps = target_fps
     _apply_profile()
 
-func _select_profile() -> void:
-    var processor := OS.get_processor_name().to_lower()
-    var low_memory := OS.get_memory_info().get("physical", 0) < 3_000_000_000
-    var mobile := OS.has_feature("mobile")
-    if mobile and (low_memory or processor.contains("cortex-a") or processor.contains("mediatek") and low_memory):
-        tier = Tier.LOW
-        target_fps = 30
-    elif mobile:
-        tier = Tier.BALANCED
-        target_fps = 30
-    else:
-        tier = Tier.HIGH
-        target_fps = 60
-
 func _apply_profile() -> void:
+    var viewport := get_viewport()
     match tier:
         Tier.LOW:
-            ProjectSettings.set_setting("rendering/anti_aliasing/quality/msaa_3d", 0)
-            ProjectSettings.set_setting("rendering/scaling_3d/scale", 0.75)
+            viewport.scaling_3d_scale = 0.75
         Tier.BALANCED:
-            ProjectSettings.set_setting("rendering/anti_aliasing/quality/msaa_3d", 2)
-            ProjectSettings.set_setting("rendering/scaling_3d/scale", 0.9)
+            viewport.scaling_3d_scale = 0.9
         Tier.HIGH:
-            ProjectSettings.set_setting("rendering/anti_aliasing/quality/msaa_3d", 4)
-            ProjectSettings.set_setting("rendering/scaling_3d/scale", 1.0)
+            viewport.scaling_3d_scale = 1.0
+
+func set_quality_tier(new_tier: Tier) -> void:
+    if OS.has_feature("mobile") and not allow_high_tier_on_mobile:
+        new_tier = mini(new_tier, Tier.BALANCED) as Tier
+    tier = new_tier
+    target_fps = 30 if tier == Tier.LOW else 60
+    Engine.max_fps = target_fps
+    _apply_profile()
