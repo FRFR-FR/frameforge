@@ -15,22 +15,24 @@ jobs:
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
+      - name: Read part number
+        id: meta
+        run: echo "part=$(python3 -c 'import json;print(json.load(open("brown_part.json"))["part"])')" >> "$GITHUB_OUTPUT"
       - name: Install Blender and FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y blender ffmpeg
-      - name: Render the five-minute Minecraft 3D part
+      - name: Render five-minute 3D animation
         run: |
           set -euo pipefail
-          PART=$(python3 -c 'import json;print(json.load(open("brown_part.json"))["part"])')
           mkdir -p render
           blender -b -noaudio --python brown_film/render_part.py -- --config brown_part.json 2>&1 | tee render.log
-          FILE=$(printf "render/part-%02d.mp4" "$PART")
+          FILE=$(printf "render/part-%02d.mp4" "${{ steps.meta.outputs.part }}")
           test -s "$FILE"
           ffprobe -v error -show_entries stream=width,height,r_frame_rate -show_entries format=duration -of json "$FILE" | tee render/verification.json
       - uses: actions/upload-artifact@v4
         with:
-          name: brown-part-${{ github.ref_name }}
+          name: brown-part-${{ steps.meta.outputs.part }}
           path: |
             render/part-*.mp4
             render/verification.json
