@@ -1,0 +1,72 @@
+{
+  "part": 13,
+  "title": "The New President / The Clean Hands Doctrine / The Purge of the Patient",
+  "chapters": "37-39",
+  "location": "broadcast",
+  "props": [
+    "broadcast",
+    "papers"
+  ],
+  "support": [
+    "Meron",
+    "Kaylen",
+    "Leona"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The New President — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The New President — shot 2",
+      "camera": "medium",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Clean Hands Doctrine — shot 3",
+      "camera": "close",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Clean Hands Doctrine — shot 4",
+      "camera": "profile",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Purge of the Patient — shot 5",
+      "camera": "low",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Purge of the Patient — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
