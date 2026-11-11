@@ -104,10 +104,6 @@ for i,sh in enumerate(C["shots"]):
   animate(arm,"brace" if style=="observe" else style,a,b,j*.7+i*.35)
   root.location.x=(-2+sh.get("hero_x",0)) if j==0 else 2+j*1.5;root.location.y=-1 if j==0 else 0
   root.keyframe_insert(data_path="location",frame=a);root.location.x+=sh.get("move_x",.6);root.keyframe_insert(data_path="location",frame=b)
-for ob in bpy.data.objects:
- if ob.animation_data and ob.animation_data.action:
-  for fc in ob.animation_data.action.fcurves:
-   for k in fc.keyframe_points:k.interpolation="BEZIER"
 S.render.engine="BLENDER_EEVEE_NEXT";S.eevee.taa_render_samples=64
 S.render.resolution_x=1280;S.render.resolution_y=720;S.render.resolution_percentage=100
 S.render.image_settings.file_format="FFMPEG";S.render.ffmpeg.format="MPEG4";S.render.ffmpeg.codec="H264";S.render.ffmpeg.constant_rate_factor="HIGH";S.render.ffmpeg.ffmpeg_preset="GOOD";S.render.ffmpeg.gopsize=40
