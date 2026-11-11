@@ -1,0 +1,72 @@
+{
+  "part": 10,
+  "title": "The Council of Seven / Testimony of the Missing / How to Break a Peaceful State",
+  "chapters": "28-30",
+  "location": "council",
+  "props": [
+    "registry",
+    "papers"
+  ],
+  "support": [
+    "Samira",
+    "Fikru",
+    "Dawit"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Council of Seven — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Council of Seven — shot 2",
+      "camera": "medium",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Testimony of the Missing — shot 3",
+      "camera": "profile",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Testimony of the Missing — shot 4",
+      "camera": "close",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "How to Break a Peaceful State — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "How to Break a Peaceful State — shot 6",
+      "camera": "low",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
