@@ -1,0 +1,71 @@
+{
+  "part": 11,
+  "title": "The School of Memory / The Enemy in the Mirror / The Glass Delegation",
+  "chapters": "31-33",
+  "location": "council",
+  "props": [
+    "papers"
+  ],
+  "support": [
+    "Samira",
+    "Kaylen",
+    "Gennet"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The School of Memory — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The School of Memory — shot 2",
+      "camera": "medium",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Enemy in the Mirror — shot 3",
+      "camera": "close",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Enemy in the Mirror — shot 4",
+      "camera": "profile",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Glass Delegation — shot 5",
+      "camera": "low",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Glass Delegation — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
