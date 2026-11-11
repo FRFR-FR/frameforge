@@ -1,6 +1,5 @@
 """Fast visual smoke test: render start, midpoint and end frames from the saved scene."""
 import json
-import math
 import os
 import sys
 
@@ -35,9 +34,19 @@ for frame in frames:
     path = os.path.abspath(os.path.join(out_dir, "frame_%04d.png" % frame))
     scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
-    image = bpy.data.images.get("Render Result")
+
+    # Re-open the written PNG: Render Result may not expose a stable pixel buffer
+    # across background-mode Blender versions.
+    image = bpy.data.images.load(path, check_existing=False)
     pixels = image.pixels
-    sample = [float(pixels[i]) for i in range(0, len(pixels), max(4, (len(pixels) // 12000 // 4) * 4))]
+    pixel_count = len(pixels) // 4
+    if pixel_count < 1000:
+        raise RuntimeError("Frame %d has no readable pixel buffer" % frame)
+    stride = max(1, pixel_count // 12000)
+    sample = []
+    for p in range(0, pixel_count, stride):
+        i = p * 4
+        sample.append((float(pixels[i]) + float(pixels[i + 1]) + float(pixels[i + 2])) / 3.0)
     low = min(sample)
     high = max(sample)
     mean = sum(sample) / len(sample)
@@ -56,6 +65,7 @@ for frame in frames:
         "sample_variance": round(variance, 8),
         "status": "passed"
     })
+    bpy.data.images.remove(image)
 
 scene.render.resolution_x = original_x
 scene.render.resolution_y = original_y
