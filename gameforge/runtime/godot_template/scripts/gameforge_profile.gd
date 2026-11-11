@@ -17,7 +17,7 @@ var target_fps: int = 30
 func _ready() -> void:
     tier = android_default_tier if OS.has_feature("mobile") else desktop_default_tier
     if OS.has_feature("mobile") and not allow_high_tier_on_mobile:
-        tier = mini(tier, Tier.BALANCED) as Tier
+        if tier > Tier.BALANCED:\n            tier = Tier.BALANCED
     target_fps = 30 if tier == Tier.LOW else 60
     Engine.max_fps = target_fps
     _apply_profile()
@@ -34,7 +34,7 @@ func _apply_profile() -> void:
 
 func set_quality_tier(new_tier: Tier) -> void:
     if OS.has_feature("mobile") and not allow_high_tier_on_mobile:
-        new_tier = mini(new_tier, Tier.BALANCED) as Tier
+        if new_tier > Tier.BALANCED:\n            new_tier = Tier.BALANCED
     tier = new_tier
     target_fps = 30 if tier == Tier.LOW else 60
     Engine.max_fps = target_fps
