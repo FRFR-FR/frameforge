@@ -1,0 +1,71 @@
+{
+  "part": 1,
+  "title": "The City That Counted Us / House of Brass / Choir Practice",
+  "chapters": "1-3",
+  "location": "vesper",
+  "props": [
+    "registry",
+    "papers"
+  ],
+  "support": [
+    "Leona Saye",
+    "Juno Saye"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The City That Counted Us — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The City That Counted Us — shot 2",
+      "camera": "medium",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "House of Brass — shot 3",
+      "camera": "profile",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "House of Brass — shot 4",
+      "camera": "low",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Choir Practice — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Choir Practice — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
