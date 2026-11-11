@@ -8,13 +8,6 @@ on:
       - "game_cinematic_pipeline/**"
       - ".github/workflows/game-cinematic.yml"
   workflow_dispatch:
-    inputs:
-      shards:
-        description: "Number of parallel CPU frame-render jobs"
-        required: true
-        type: choice
-        options: ["2", "4", "6", "8"]
-        default: "4"
 
 permissions:
   contents: read

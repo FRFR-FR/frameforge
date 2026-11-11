@@ -173,11 +173,6 @@ def build(spec):
     root.keyframe_insert(data_path="location", frame=frames)
     for obj, axis, sign in ((left_arm, 0, 1), (right_arm, 0, -1), (left_leg, 0, -1), (right_leg, 0, 1)):
         animate_rotation(obj, axis, (0.28 * sign, -0.28 * sign, 0.28 * sign), (1, max(2, frames // 2), frames))
-    for obj in parts:
-        if obj.animation_data and obj.animation_data.action:
-            for fc in obj.animation_data.action.fcurves:
-                for key in fc.keyframe_points:
-                    key.interpolation = "BEZIER"
 
     # A foreground drone gives the shot an additional depth layer.
     drone = add_box("Patrol drone body", (4.5, -1.5, 3.6), (1.15, 0.48, 0.28), tower, 0.1)
