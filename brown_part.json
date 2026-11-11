@@ -1,0 +1,71 @@
+{
+  "part": 20,
+  "title": "The Children Who Carried Water / The Quiet Camps / The Doctor's Count",
+  "chapters": "58-60",
+  "location": "camp",
+  "props": [
+    "water"
+  ],
+  "support": [
+    "Priya Raman",
+    "Tomasz",
+    "Ines"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Children Who Carried Water — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Children Who Carried Water — shot 2",
+      "camera": "medium",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Quiet Camps — shot 3",
+      "camera": "profile",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Quiet Camps — shot 4",
+      "camera": "close",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Doctor's Count — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Doctor's Count — shot 6",
+      "camera": "low",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
