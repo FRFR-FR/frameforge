@@ -1,0 +1,72 @@
+{
+  "part": 2,
+  "title": "The People in the Box / The Battle Banner / Under the Living",
+  "chapters": "4-6",
+  "location": "vesper",
+  "props": [
+    "papers",
+    "fire"
+  ],
+  "support": [
+    "Juno Saye",
+    "Kesh Ayo",
+    "Biko Nare"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The People in the Box — shot 1",
+      "camera": "wide",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The People in the Box — shot 2",
+      "camera": "profile",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Battle Banner — shot 3",
+      "camera": "low",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Battle Banner — shot 4",
+      "camera": "medium",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Under the Living — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Under the Living — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
