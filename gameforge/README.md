@@ -20,6 +20,9 @@ GAMEFORGE is a code-first 3D game production system designed to generate tightly
 - [x] Seeded procedural 3D blockout world generator
 - [x] Third-person spring-arm camera foundation
 - [x] Character controller, interaction raycast, quest director and combat health component
+- [x] Dialogue director with gated lines and branching choice callbacks
+- [x] Inventory component, save/load manager and accessibility settings
+- [x] Basic interactable base and NPC state-machine foundation
 - [x] Basic NPC state-machine foundation (idle, patrol, chase, return)
 - [x] Adaptive 3D resolution manager
 - [x] FrameForge manifest validator/adapter and runtime cinematic cue dispatcher
@@ -29,6 +32,7 @@ GAMEFORGE is a code-first 3D game production system designed to generate tightly
 ## Remaining production work
 
 - [ ] Full authored dialogue, character knowledge model, voice generation and lip-sync
+- [ ] Mobile touch UI, controller remapping and complete in-game HUD/menu flows
 - [ ] Advanced original asset generation, rigging, animation and art direction pipeline
 - [ ] Production-grade procedural level generation, navigation and streaming
 - [ ] Complete combat, enemy tactics, inventory, save/load, UI and accessibility systems
