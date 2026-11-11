@@ -1,0 +1,73 @@
+name: GAMEFORGE validation
+
+on:
+  push:
+    branches: [gameforge-engine-foundation]
+    paths:
+      - "gameforge/**"
+      - ".github/workflows/gameforge-validate.yml"
+  pull_request:
+    paths:
+      - "gameforge/**"
+      - ".github/workflows/gameforge-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate schemas and runtime template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validators
+        run: python -m pip install --disable-pip-version-check jsonschema
+
+      - name: Validate JSON schemas
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema_paths = [
+              Path("gameforge/schemas/game-spec.schema.json"),
+              Path("gameforge/integrations/frameforge/manifest.schema.json"),
+          ]
+          for path in schema_paths:
+              schema = json.loads(path.read_text(encoding="utf-8"))
+              Draft202012Validator.check_schema(schema)
+              print(f"VALID schema: {path}")
+
+          defaults = json.loads(Path("gameforge/config/defaults.json").read_text(encoding="utf-8"))
+          assert defaults["generation_mode"] == "full_autopilot"
+          assert defaults["quality_strategy"] == "adaptive"
+          assert defaults["campaign"]["minimum_hours"] == 5
+          assert defaults["campaign"]["maximum_hours"] == 10
+          print("VALID defaults: full autopilot + adaptive quality")
+          PY
+
+      - name: Check runtime template files
+        run: |
+          test -f gameforge/runtime/godot_template/project.godot
+          test -f gameforge/runtime/godot_template/scenes/main.tscn
+          test -f gameforge/runtime/godot_template/scripts/main.gd
+          test -f gameforge/runtime/godot_template/scripts/player_controller.gd
+          test -f gameforge/runtime/godot_template/scripts/dialogue_timeline.gd
+          test -f gameforge/runtime/godot_template/scripts/narrative_state.gd
+          echo "Godot template structure is present."
+
+      - name: Check no secrets are committed in GAMEFORGE
+        run: |
+          if grep -RniE '(api[_-]?key|secret|password)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']{12,}' gameforge --exclude='*.md'; then
+            echo "Potential credential found. Review before merging."
+            exit 1
+          fi
