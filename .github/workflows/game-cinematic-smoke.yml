@@ -14,33 +14,43 @@ permissions:
 
 jobs:
   smoke-test:
-    name: Render three visual samples and validate them
+    name: Render visual samples and moving preview
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Install Blender
+      - name: Install Blender and FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender
+          sudo apt-get install --yes blender ffmpeg
           blender --version
+          ffmpeg -version | head -n 1
       - name: Build editable scene
         run: |
           mkdir -p output/game_cinematic
           blender --background --python-exit-code 1 \
             --python game_cinematic_pipeline/build_scene.py -- \
             --mode audit --output-dir output/game_cinematic
-      - name: Render and inspect three sample frames
+      - name: Render diagnostic stills and one-second motion preview
         run: |
           blender --background --python-exit-code 1 \
             --python tests/game_cinematic_smoke.py -- \
             output/game_cinematic/FrameForge_Game_Cinematic.blend \
             output/game_cinematic/smoke_samples
-      - name: Upload sample frames and smoke report
+      - name: Assemble smoke-test MP4
+        run: |
+          ffmpeg -y -framerate 24 \
+            -i output/game_cinematic/smoke_samples/video_frames/smoke_%04d.png \
+            -c:v libx264 -preset veryfast -crf 24 -pix_fmt yuv420p \
+            -movflags +faststart output/game_cinematic/FrameForge_Smoke_Test.mp4
+          ffprobe -v error -show_entries format=duration,size \
+            -of default=noprint_wrappers=1 output/game_cinematic/FrameForge_Smoke_Test.mp4
+      - name: Upload smoke-test video, stills and report
         uses: actions/upload-artifact@v4
         with:
-          name: FrameForge-Visual-Smoke-Samples
+          name: FrameForge-Smoke-Test-Video
           path: |
+            output/game_cinematic/FrameForge_Smoke_Test.mp4
             output/game_cinematic/smoke_samples/*.png
             output/game_cinematic/smoke_samples/*.json
             output/game_cinematic/FrameForge_Game_Cinematic.blend
