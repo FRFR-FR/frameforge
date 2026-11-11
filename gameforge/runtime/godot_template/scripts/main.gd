@@ -5,6 +5,11 @@ const WorldGenerator = preload("res://scripts/world_generator.gd")
 const CameraRig = preload("res://scripts/third_person_camera.gd")
 const QualityManager = preload("res://scripts/quality_manager.gd")
 const QuestDirector = preload("res://scripts/quest_director.gd")
+const DialogueDirector = preload("res://scripts/dialogue_director.gd")
+const SaveManager = preload("res://scripts/save_manager.gd")
+const Inventory = preload("res://scripts/inventory_component.gd")
+const Interaction = preload("res://scripts/interaction_component.gd")
+const Accessibility = preload("res://scripts/accessibility_settings.gd")
 
 func _ready() -> void:
     _configure_input()
@@ -14,7 +19,17 @@ func _ready() -> void:
     add_child(QualityManager.new())
     var quests := QuestDirector.new()
     quests.name = "QuestDirector"
+    quests.add_to_group("quest_director")
     add_child(quests)
+    var dialogue := DialogueDirector.new()
+    dialogue.name = "DialogueDirector"
+    add_child(dialogue)
+    var save_manager := SaveManager.new()
+    save_manager.name = "SaveManager"
+    add_child(save_manager)
+    var accessibility := Accessibility.new()
+    accessibility.name = "AccessibilitySettings"
+    add_child(accessibility)
 
 func _configure_input() -> void:
     _bind_key("move_forward", KEY_W)
@@ -80,6 +95,13 @@ func _create_player() -> void:
     camera_pivot.name = "CameraPivot"
     camera_pivot.position = Vector3(0.0, 1.35, 0.0)
     player.add_child(camera_pivot)
+    var inventory := Inventory.new()
+    inventory.name = "Inventory"
+    player.add_child(inventory)
+    var interaction := Interaction.new()
+    interaction.name = "Interaction"
+    interaction.actor = player
+    player.add_child(interaction)
     var camera_arm := SpringArm3D.new()
     camera_arm.name = "ThirdPersonCamera"
     camera_arm.set_script(CameraRig)
