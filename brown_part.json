@@ -1,0 +1,70 @@
+{
+  "part": 7,
+  "title": "Serekh / A Nation of Unfinished Walls / Samira's Peace",
+  "chapters": "19-21",
+  "location": "city",
+  "props": [
+    "flag"
+  ],
+  "support": [
+    "Samira",
+    "Nardos"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "Serekh — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Serekh — shot 2",
+      "camera": "medium",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "A Nation of Unfinished Walls — shot 3",
+      "camera": "profile",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "A Nation of Unfinished Walls — shot 4",
+      "camera": "low",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Samira's Peace — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Samira's Peace — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
