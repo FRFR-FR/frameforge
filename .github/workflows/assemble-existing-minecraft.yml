@@ -1,0 +1,103 @@
+name: Assemble Existing Senator Minecraft Render
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/assemble-existing-minecraft.yml']
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Original render run ID containing the 90 completed clips
+        required: true
+        default: '42804896422'
+jobs:
+  assemble:
+    name: Assemble existing 90 clips into verified 3-minute MP4
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Install FFmpeg and required tools before validation
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg python3-venv fonts-dejavu-core
+          ffmpeg -version
+          ffprobe -version
+      - name: Download original scene and skin pack
+        uses: actions/download-artifact@v4
+        with:
+          name: minecraft-180s-scene-assets
+          path: output/minecraft_180s
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.inputs.source_run_id || '42804896422' }}
+      - name: Download all 90 already-rendered clips
+        uses: actions/download-artifact@v4
+        with:
+          pattern: minecraft-180s-frames-*
+          path: output/minecraft_180s/chunks
+          merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.inputs.source_run_id || '42804896422' }}
+      - name: Verify all clips and create ordered concat list
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess, sys, json
+          folder=Path("output/minecraft_180s/chunks")
+          lines=[]
+          for i in range(90):
+              p=folder/f"clip_{i}.mp4"
+              if not p.is_file():
+                  sys.exit(f"Missing clip {i}: {p}")
+              probe=subprocess.check_output(["ffprobe","-v","error","-count_frames","-show_entries","format=duration:stream=codec_type,nb_read_frames,r_frame_rate,width,height","-of","json",str(p)],text=True)
+              d=json.loads(probe)
+              v=[s for s in d["streams"] if s.get("codec_type")=="video"]
+              if len(v)!=1 or int(v[0].get("nb_read_frames",0))!=120 or v[0].get("r_frame_rate")!="60/1" or v[0].get("width")!=1280 or v[0].get("height")!=720:
+                  sys.exit(f"Clip validation failed: {p.name} {probe}")
+              lines.append(f"file 'chunks/clip_{i}.mp4'")
+          (Path("output/minecraft_180s")/"concat.txt").write_text("\n".join(lines)+"\n")
+          print("All 90 clips validated: 120 frames each, 720p60.")
+          PY
+      - name: Generate closing CTA voice
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet edge-tts
+          mkdir -p output/minecraft_180s
+          .venv/bin/edge-tts --voice en-US-GuyNeural --rate=+3% --text "Hey! If you enjoyed this adventure, tap Like and Subscribe for more Minecraft stories. I will see you in the next one!" --write-media output/minecraft_180s/senator_cta.mp3
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 output/minecraft_180s/senator_cta.mp3
+      - name: Join clips and add closing CTA caption
+        run: |
+          ffmpeg -y -hide_banner -f concat -safe 0 -i output/minecraft_180s/concat.txt -c copy output/minecraft_180s/sequence.mp4
+          ffmpeg -y -hide_banner -i output/minecraft_180s/sequence.mp4 -vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='LIKE AND SUBSCRIBE':fontcolor=white:fontsize=44:borderw=3:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,171,180)',drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text='More Minecraft adventures coming soon':fontcolor=white:fontsize=24:borderw=2:bordercolor=black:x=(w-text_w)/2:y=h-58:enable='between(t,171,180)' " -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p -an -movflags +faststart output/minecraft_180s/video_silent_captioned.mp4
+          ffmpeg -y -hide_banner -i output/minecraft_180s/video_silent_captioned.mp4 -i output/minecraft_180s/senator_cta.mp3 -filter_complex "[1:a]adelay=171000|171000,apad,atrim=duration=180[a]" -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 160k -t 180 -movflags +faststart output/minecraft_180s/Senator_Minecraft_BROWN_Ambush_180s_720p60.mp4
+      - name: Verify final film duration, frames, resolution, FPS and audio
+        run: |
+          ffprobe -v error -count_frames -show_entries format=duration,size:stream=codec_name,codec_type,width,height,r_frame_rate,nb_read_frames -of json output/minecraft_180s/Senator_Minecraft_BROWN_Ambush_180s_720p60.mp4 > output/minecraft_180s/video_verification.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("output/minecraft_180s/video_verification.json").read_text())
+          v=[s for s in d.get("streams",[]) if s.get("codec_type")=="video"]
+          a=[s for s in d.get("streams",[]) if s.get("codec_type")=="audio"]
+          assert len(v)==1 and len(a)==1,d
+          x=v[0]; dur=float(d.get("format",{}).get("duration",0))
+          assert x.get("width")==1280 and x.get("height")==720,x
+          assert x.get("r_frame_rate")=="60/1" and int(x.get("nb_read_frames",0))==10800,x
+          assert 179.99<=dur<=180.05,dur
+          print("VERIFIED: 180 seconds, 10,800 frames, 1280x720, 60 FPS, CTA audio.")
+          print("Output bytes:",d.get("format",{}).get("size"))
+          PY
+      - name: Upload final film and editable production assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: Senator-Minecraft-BROWN-Ambush-180s-720p60
+          path: |
+            output/minecraft_180s/Senator_Minecraft_BROWN_Ambush_180s_720p60.mp4
+            output/minecraft_180s/Senator_Minecraft_BROWN_Ambush.blend
+            output/minecraft_180s/production_audit.json
+            output/minecraft_180s/video_verification.json
+            output/minecraft_180s/senator_cta.mp3
+            output/minecraft_180s/skins/**
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
