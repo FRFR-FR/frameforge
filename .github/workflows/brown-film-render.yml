@@ -28,8 +28,9 @@ jobs:
           mkdir -p render
           blender -b -noaudio --python brown_film/render_part.py -- --config brown_part.json 2>&1 | tee render.log
           FILE=$(printf "render/part-%02d.mp4" "${{ steps.meta.outputs.part }}")
+          ffmpeg -y -framerate 20 -start_number 1 -i render/frame_%04d.png -frames:v 6000 -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p -r 20 -an -movflags +faststart "$FILE"
           test -s "$FILE"
-          ffprobe -v error -show_entries stream=width,height,r_frame_rate -show_entries format=duration -of json "$FILE" | tee render/verification.json
+          ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=width,height,r_frame_rate,nb_read_frames -show_entries format=duration -of json "$FILE" | tee render/verification.json
       - uses: actions/upload-artifact@v4
         with:
           name: brown-part-${{ steps.meta.outputs.part }}
