@@ -1,0 +1,71 @@
+{
+  "part": 8,
+  "title": "The Dead Leaders Archive / The Language of Welcome / The Price of Asylum",
+  "chapters": "22-24",
+  "location": "archive",
+  "props": [
+    "papers",
+    "registry"
+  ],
+  "support": [
+    "Samira",
+    "Meron"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Dead Leaders Archive — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Dead Leaders Archive — shot 2",
+      "camera": "medium",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Language of Welcome — shot 3",
+      "camera": "close",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Language of Welcome — shot 4",
+      "camera": "profile",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Price of Asylum — shot 5",
+      "camera": "overhead",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Price of Asylum — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
