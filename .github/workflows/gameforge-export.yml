@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p build/android
           godot --headless --path gameforge/runtime/godot_template --editor --quit
-          godot --headless --path gameforge/runtime/godot_template --export-release "Android" build/android/gameforge.apk
+          godot --headless --path gameforge/runtime/godot_template --export-debug "Android" build/android/gameforge.apk
           test -s build/android/gameforge.apk
       - name: Export Windows EXE
         if: inputs.export_windows
