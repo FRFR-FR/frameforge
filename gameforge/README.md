@@ -7,32 +7,37 @@ GAMEFORGE is a code-first 3D game production system designed to generate tightly
 - **Generation:** Full Autopilot.
 - **Quality:** Adaptive to measured device performance.
 - **Campaign:** 5–10 hours, story-relevant optional content, with a required vertical-slice gate.
+- **Runtime:** Godot 4.4.1 (GDScript) with FrameForge cinematic manifests and runtime cue dispatch.
 
 ## Implemented foundation
 
 - [x] GameSpec schema, sample brief and deterministic workspace compiler
-- [x] Godot 4.4.1 runtime template, boot scene and third-person capsule smoke arena
-- [x] Adaptive quality profile and dynamic 3D resolution scaler foundations
-- [x] Narrative state store, dialogue cue timeline, audio and VFX event buses
-- [x] FrameForge cinematic manifest schema
-- [x] Free offline natural-language brief-to-GameSpec provider
-- [x] First-pass story bible, character arcs and chapter outline
-- [x] Scene-card planner with convergent choices and persistent state keys
-- [x] Narrative continuity validator for scene IDs, chapter bounds and choice-state references
-- [x] Mechanic review plans with explicit prior-art and prototype gates
-- [x] Unit tests and GitHub Actions validation, including Godot headless boot
+- [x] Full-autopilot offline brief provider and optional OpenAI-compatible provider
+- [x] Story bible, chapter outline, scene cards and convergent persistent choices
+- [x] Scene continuity validation and mechanic prior-art/prototype gates
+- [x] Production director with milestone gates and project risk register
+- [x] Godot 4.4.1 runtime template and playable capsule smoke arena
+- [x] Seeded procedural 3D blockout world generator
+- [x] Third-person spring-arm camera foundation
+- [x] Character controller, interaction raycast, quest director and combat health component
+- [x] Basic NPC state-machine foundation (idle, patrol, chase, return)
+- [x] Adaptive 3D resolution manager
+- [x] FrameForge manifest validator/adapter and runtime cinematic cue dispatcher
+- [x] Android and Windows export presets and manual GitHub Actions export workflow
+- [x] Runtime smoke test, static integration checks and CI validation
 
-## Still to build
+## Remaining production work
 
-- [ ] Richer semantic generation and iterative creative critique
-- [ ] Full authored scenes, dialogue, character knowledge tracking and localisation
-- [ ] Live market research with dated sources and confidence scoring
+- [ ] Full authored dialogue, character knowledge model, voice generation and lip-sync
+- [ ] Advanced original asset generation, rigging, animation and art direction pipeline
+- [ ] Production-grade procedural level generation, navigation and streaming
+- [ ] Complete combat, enemy tactics, inventory, save/load, UI and accessibility systems
+- [ ] FrameForge live project/API round-trip and cinematic camera/actor animation binding
+- [ ] Market research connectors with dated, sourced evidence and confidence scoring
 - [ ] Mechanic prior-art research and playable prototype scoring
-- [ ] Original asset creation/import and scene-generation pipeline
-- [ ] Full third-person camera, animation, interaction and combat systems
-- [ ] FrameForge adapter implementation and cinematic round-trip tests
-- [ ] Android APK and Windows EXE export workflows
-- [ ] Physical low-end device benchmark suite and measured performance gates
+- [ ] Physical low-end Android device benchmark matrix and performance budgets
+- [ ] Release signing, crash reporting, packaging validation and store-ready release process
+- [ ] Full automated playtesting, visual regression and gameplay blocker detection
 
 ## Run the offline autopilot
 
@@ -45,10 +50,16 @@ python gameforge/generator/autopilot/run.py \
   --out build/lighthouse
 ~~~
 
-It produces GAME_SPEC.json, STORY_BIBLE.json, SCENE_PLAN.json, MECHANIC_REVIEW.json, PIPELINE_REPORT.json and NEXT_STEPS.md. These are structured design artifacts, not a playable or release-ready game.
+It produces GAME_SPEC.json, STORY_BIBLE.json, SCENE_PLAN.json, MECHANIC_REVIEW.json, PRODUCTION_PLAN.json, PIPELINE_REPORT.json and NEXT_STEPS.md. These are structured design artifacts, not a playable or release-ready game.
 
-An optional OpenAI-compatible provider can be configured with GAMEFORGE_API_BASE, GAMEFORGE_MODEL and GAMEFORGE_API_KEY and selected with --provider openai-compatible. It may incur provider charges and is not required by CI.
+## Run the runtime
 
-## Runtime and cost reality
+Open `gameforge/runtime/godot_template/project.godot` in Godot 4.4.1. The demo boots a seeded procedural blockout arena, player capsule, third-person camera, quest director and adaptive quality manager. It is a functional prototype foundation, not a finished game.
 
-The first runtime uses open-source Godot 4.4.1; FrameForge remains the cutscene subsystem through a versioned manifest adapter. GitHub Actions has limited free CI capacity, not unlimited compute or free general-purpose AI inference. Android signing keys must be stored as local secrets or GitHub Actions Secrets, never committed. No system can guarantee virality or sales.
+## Export builds
+
+Use Actions → **GAMEFORGE export builds** → Run workflow. Choose Android APK, Windows EXE, or both. The Android workflow exports a debug APK for device testing; it is not store-ready or release-signed. A release signing workflow must use private keystore credentials supplied through GitHub Secrets. The Windows build is an unsigned executable artifact.
+
+## Cost and reliability
+
+GitHub Actions has limited free minutes/storage, not unlimited compute. The offline provider requires no paid inference. The optional remote model provider may incur charges. No engine can guarantee virality, sales, store ranking or millions of downloads; GAMEFORGE treats those as hypotheses to validate through research and playtesting.
