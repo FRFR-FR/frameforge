@@ -1,0 +1,73 @@
+{
+  "part": 22,
+  "title": "The Triumph Broadcast / The Survivors' Congress / The Mother Tongue of War",
+  "chapters": "64-66",
+  "location": "broadcast",
+  "props": [
+    "broadcast",
+    "flag",
+    "papers"
+  ],
+  "support": [
+    "Leona",
+    "Kaylen",
+    "Samira"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Triumph Broadcast — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Triumph Broadcast — shot 2",
+      "camera": "medium",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Survivors' Congress — shot 3",
+      "camera": "profile",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Survivors' Congress — shot 4",
+      "camera": "low",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Mother Tongue of War — shot 5",
+      "camera": "overhead",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Mother Tongue of War — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
