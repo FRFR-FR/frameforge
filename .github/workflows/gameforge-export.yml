@@ -1,0 +1,57 @@
+name: GAMEFORGE export builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      export_android:
+        description: Build Android APK
+        type: boolean
+        default: true
+      export_windows:
+        description: Build Windows EXE
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Android build tools
+        if: inputs.export_android
+        uses: android-actions/setup-android@v3
+      - name: Set up Godot and export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: true
+      - name: Export Android APK
+        if: inputs.export_android
+        run: |
+          mkdir -p build/android
+          godot --headless --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --path gameforge/runtime/godot_template --export-release "Android" build/android/gameforge.apk
+          test -s build/android/gameforge.apk
+      - name: Export Windows EXE
+        if: inputs.export_windows
+        run: |
+          mkdir -p build/windows
+          godot --headless --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --path gameforge/runtime/godot_template --export-release "Windows Desktop" build/windows/GAMEFORGE.exe
+          test -s build/windows/GAMEFORGE.exe
+      - name: Upload generated builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameforge-android-windows-builds
+          path: |
+            build/android/*.apk
+            build/windows/*
+          if-no-files-found: error
+          retention-days: 14
