@@ -1,0 +1,71 @@
+{
+  "part": 4,
+  "title": "A Colour Not on the Form / Counsel of Empty Rooms / Four Minutes Before Lunch",
+  "chapters": "10-12",
+  "location": "court",
+  "props": [
+    "registry",
+    "papers"
+  ],
+  "support": [
+    "Darius Quell",
+    "Meron"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "A Colour Not on the Form — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "A Colour Not on the Form — shot 2",
+      "camera": "medium",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Counsel of Empty Rooms — shot 3",
+      "camera": "close",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Counsel of Empty Rooms — shot 4",
+      "camera": "profile",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Four Minutes Before Lunch — shot 5",
+      "camera": "low",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Four Minutes Before Lunch — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
