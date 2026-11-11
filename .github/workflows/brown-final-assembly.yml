@@ -28,7 +28,7 @@ jobs:
           for n in $(seq -w 1 24); do
             branch="brown-film/part-${n}"
             artifact="brown-part-${n}"
-            runs=$(gh api --paginate "repos/$GH_REPO/actions/workflows/brown-part-render.yml/runs?branch=$branch&status=success&per_page=100" --jq '.workflow_runs[] | [.id,.run_number] | @tsv' | head -n 1 || true)
+            runs=$(gh api --paginate "repos/$GH_REPO/actions/workflows/brown-film-render.yml/runs?branch=$branch&status=success&per_page=100" --jq '.workflow_runs[] | [.id,.run_number] | @tsv' | head -n 1 || true)
             if [ -z "$runs" ]; then
               echo "MISSING successful run for $branch"
               missing=1
@@ -55,8 +55,8 @@ jobs:
             printf "%s\t%s\t%s\n" "$n" "$run_id" "$artifact_id" >> parts/manifest.tsv
           done
           if [ "$missing" -ne 0 ]; then
-            echo "All 24 successful part artifacts are not available yet; assembly will not run."
-            exit 1
+            echo "Waiting for all 24 successful part artifacts; this event will be skipped."
+            exit 0
           fi
           echo "All 24 rendered part artifacts located."
 
