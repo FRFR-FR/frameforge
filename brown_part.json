@@ -1,0 +1,73 @@
+{
+  "part": 12,
+  "title": "A Vote in a Burning Room / The Night the Gate Opened / The Republic Falls",
+  "chapters": "34-36",
+  "location": "parliament",
+  "props": [
+    "fire",
+    "papers",
+    "flag"
+  ],
+  "support": [
+    "Samira",
+    "Kaylen",
+    "Fikru"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "A Vote in a Burning Room — shot 1",
+      "camera": "wide",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "A Vote in a Burning Room — shot 2",
+      "camera": "medium",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Night the Gate Opened — shot 3",
+      "camera": "profile",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Night the Gate Opened — shot 4",
+      "camera": "low",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Republic Falls — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Republic Falls — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
