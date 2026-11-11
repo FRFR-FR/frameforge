@@ -490,19 +490,10 @@ def configure_render(scene, output_dir):
         pass
     scene.render.use_file_extension = True
     scene.render.image_settings.compression = 18
-    # Gentle halation is part of the reference's luminous night aesthetic.
-    scene.use_nodes = True
-    tree = scene.node_tree
-    tree.nodes.clear()
-    layers = tree.nodes.new("CompositorNodeRLayers")
-    glare = tree.nodes.new("CompositorNodeGlare")
-    glare.glare_type = "FOG_GLOW"
-    glare.quality = "MEDIUM"
-    glare.threshold = 1.7
-    glare.size = 7
-    composite = tree.nodes.new("CompositorNodeComposite")
-    tree.links.new(layers.outputs["Image"], glare.inputs["Image"])
-    tree.links.new(glare.outputs["Image"], composite.inputs["Image"])
+    # Keep compositor disabled for Blender 5.0 compatibility.
+    # The scene's emission materials provide the luminous night look without
+    # depending on the legacy Scene.node_tree compositor API.
+    scene.use_nodes = False
     scene.render.image_settings.file_format = "PNG"
     scene.render.filepath = os.path.join(output_dir, "frames", "frame_")
 
