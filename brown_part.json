@@ -1,0 +1,72 @@
+{
+  "part": 5,
+  "title": "The Court of Blessed Humans / Brown Is Not a Category / The Handcuff Choir",
+  "chapters": "13-15",
+  "location": "court",
+  "props": [
+    "papers",
+    "broadcast"
+  ],
+  "support": [
+    "Leona Saye",
+    "Darius Quell",
+    "Juno Saye"
+  ],
+  "palette": "charcoal-ochre-slate",
+  "shots": [
+    {
+      "name": "The Court of Blessed Humans — shot 1",
+      "camera": "wide",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Court of Blessed Humans — shot 2",
+      "camera": "medium",
+      "action": "point",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "Brown Is Not a Category — shot 3",
+      "camera": "profile",
+      "action": "run",
+      "support_action": "observe",
+      "hero_x": -1,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "Brown Is Not a Category — shot 4",
+      "camera": "low",
+      "action": "brace",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    },
+    {
+      "name": "The Handcuff Choir — shot 5",
+      "camera": "overhead",
+      "action": "walk",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": 0.5,
+      "dolly": 0.8
+    },
+    {
+      "name": "The Handcuff Choir — shot 6",
+      "camera": "close",
+      "action": "close",
+      "support_action": "observe",
+      "hero_x": 0,
+      "move_x": -0.35,
+      "dolly": -0.4
+    }
+  ]
+}
