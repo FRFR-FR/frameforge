@@ -1,0 +1,40 @@
+name: BROWN 5-Minute Part Render
+on:
+  push:
+    branches: ["brown-film/part-*"]
+    paths: ["brown_part.json"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: brown-part-${{ github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg
+      - name: Render the five-minute Minecraft 3D part
+        run: |
+          set -euo pipefail
+          PART=$(python3 -c 'import json;print(json.load(open("brown_part.json"))["part"])')
+          mkdir -p render
+          blender -b -noaudio --python brown_film/render_part.py -- --config brown_part.json 2>&1 | tee render.log
+          FILE=$(printf "render/part-%02d.mp4" "$PART")
+          test -s "$FILE"
+          ffprobe -v error -show_entries stream=width,height,r_frame_rate -show_entries format=duration -of json "$FILE" | tee render/verification.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brown-part-${{ github.ref_name }}
+          path: |
+            render/part-*.mp4
+            render/verification.json
+            render.log
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
