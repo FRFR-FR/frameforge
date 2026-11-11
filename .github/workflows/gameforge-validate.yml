@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate schemas and Godot runtime
+    name: Validate schemas, compiler and Godot runtime
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,21 +28,20 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install schema validator
-        run: python -m pip install --disable-pip-version-check jsonschema
+      - name: Install compiler dependencies
+        run: python -m pip install --disable-pip-version-check -r gameforge/generator/brief_compiler/requirements.txt
 
-      - name: Validate JSON schemas and defaults
+      - name: Validate schemas, defaults and sample compilation
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           from jsonschema import Draft202012Validator
 
-          schemas = [
+          for path in (
               Path("gameforge/schemas/game-spec.schema.json"),
               Path("gameforge/integrations/frameforge/manifest.schema.json"),
-          ]
-          for path in schemas:
+          ):
               schema = json.loads(path.read_text(encoding="utf-8"))
               Draft202012Validator.check_schema(schema)
               print(f"VALID schema: {path}")
@@ -54,6 +53,7 @@ jobs:
           assert defaults["campaign"]["maximum_hours"] == 10
           print("VALID defaults: full autopilot + adaptive quality")
           PY
+          python gameforge/generator/brief_compiler/compile.py --spec gameforge/examples/sample-game-spec.json --out "$RUNNER_TEMP/gameforge-sample"
 
       - name: Check runtime template structure
         run: |
@@ -71,11 +71,23 @@ jobs:
           include-templates: false
 
       - name: Import and parse Godot template headlessly
-        run: godot --headless --path gameforge/runtime/godot_template --editor --quit
-
-      - name: Check no obvious credentials are committed
         run: |
-          if grep -RniE '(api[_-]?key|secret|password)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']{12,}' gameforge --exclude='*.md'; then
-            echo "Potential credential found. Review before merging."
-            exit 1
-          fi
+          godot --headless --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --path gameforge/runtime/godot_template --quit-after 3
+
+      - name: Check for accidentally committed credentials
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          pattern = re.compile(r'''(?:api[_-]?key|secret|password)\s*[:=]\s*["'][^"']{12,}''', re.I)
+          failures = []
+          for path in Path("gameforge").rglob("*"):
+              if path.is_file() and path.suffix in {".gd", ".json", ".py", ".cfg", ".yml"}:
+                  for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                      if pattern.search(line):
+                          failures.append(f"{path}:{number}")
+          if failures:
+              raise SystemExit("Potential credentials found: " + ", ".join(failures))
+          print("No obvious hardcoded credentials found.")
+          PY
