@@ -73,7 +73,7 @@ jobs:
         run: |
           test -f gameforge/runtime/godot_template/project.godot
           test -f gameforge/runtime/godot_template/scenes/main.tscn
-          for script in main player_controller gameforge_profile adaptive_resolution dialogue_timeline narrative_state audio_event_bus vfx_event_bus; do
+          for script in main player_controller gameforge_profile adaptive_resolution dialogue_timeline narrative_state audio_event_bus vfx_event_bus world_generator third_person_camera interaction_component quest_director combat_component npc_brain frameforge_player quality_manager dialogue_director inventory_component save_manager interactable_base accessibility_settings; do
             test -f "gameforge/runtime/godot_template/scripts/$script.gd"
           done
 
