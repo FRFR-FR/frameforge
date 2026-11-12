@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parent
 SCHEMA_PATH = ROOT / "config" / "project.schema.json"
@@ -26,11 +25,19 @@ def allowed_voice_ids() -> set[str]:
 
 
 def validate_project(project: dict[str, Any]) -> dict[str, Any]:
-    schema = load_json(SCHEMA_PATH)
-    errors = sorted(Draft202012Validator(schema).iter_errors(project), key=lambda e: list(e.absolute_path))
-    if errors:
-        detail = "\n".join(f"- {'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors)
-        raise ValueError("Cutscene manifest failed schema validation:\n" + detail)
+    # Blender ships its own Python runtime and may not have jsonschema installed.
+    # Use the JSON Schema validator where available; the explicit policy checks
+    # below remain mandatory in both Blender and system Python.
+    try:
+        from jsonschema import Draft202012Validator
+    except ImportError:
+        Draft202012Validator = None
+    if Draft202012Validator is not None:
+        schema = load_json(SCHEMA_PATH)
+        errors = sorted(Draft202012Validator(schema).iter_errors(project), key=lambda e: list(e.absolute_path))
+        if errors:
+            detail = "\n".join(f"- {'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors)
+            raise ValueError("Cutscene manifest failed schema validation:\n" + detail)
 
     render = project["render"]
     if render["width"] > MAX_WIDTH or render["height"] > MAX_HEIGHT:

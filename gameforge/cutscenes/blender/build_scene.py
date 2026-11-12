@@ -122,9 +122,9 @@ def add_segment(name, start, end, radius, mat, bone_name, pieces, vertices=16):
     pieces.append(obj)
 
 
-def build_character(character, index, duration_frames):
+def build_character(character, index, total_characters, duration_frames):
     char_id, name = character["id"], character["name"]
-    x = (index - 0.5) * 2.15
+    x = (index - (total_characters - 1) / 2.0) * 2.15
     arm = add_armature(char_id, name, (x, 0, 0))
     palette = character.get("palette", {})
     primary = tuple(palette.get("primary", (0.10 + 0.05 * index, 0.20, 0.28, 1.0)))
@@ -293,8 +293,9 @@ def build(project, sync, output_dir: Path, mode: str):
     policy = render_policy(project)
     fps = policy["fps"]
     frame_end = max(2, int(round(float(project["render"]["duration_seconds"]) * fps)))
+    total_characters = len(project["characters"])
     armatures = {
-        character["id"]: build_character(character, index, frame_end)
+        character["id"]: build_character(character, index, total_characters, frame_end)
         for index, character in enumerate(project["characters"])
     }
     add_stage()
@@ -327,7 +328,19 @@ def build(project, sync, output_dir: Path, mode: str):
     scene["gameforge_procedural_rigged_characters"] = True
 
     blend_path = output_dir / "GAMEFORGE_Cutscene.blend"
+    glb_path = output_dir / "GAMEFORGE_Cutscene_Characters.glb"
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
+    # Export the skinned meshes, armatures and keyed character animation for Godot.
+    try:
+        bpy.ops.export_scene.gltf(
+            filepath=str(glb_path),
+            export_format="GLB",
+            export_animations=True,
+            export_skins=True,
+            export_materials="EXPORT"
+        )
+    except Exception as exc:
+        raise RuntimeError("The Blender glTF exporter is required to create the game-ready rigged GLB: " + str(exc)) from exc
     audit = {
         "status": "passed", "native_blender_scene": True,
         "procedural_original_characters": len(armatures),
@@ -336,7 +349,9 @@ def build(project, sync, output_dir: Path, mode: str):
         "fps": fps, "duration_seconds": project["render"]["duration_seconds"],
         "frame_count": frame_end, "cycles_device": "CPU", "samples": policy["samples"],
         "threads": policy["threads"], "forced_alignment_viseme_cues": len(sync.get("visemes", [])),
-        "blend_file": str(blend_path), "profile": policy["profile"],
+        "blend_file": str(blend_path), "glb_file": str(glb_path),
+        "glb_bytes": glb_path.stat().st_size if glb_path.exists() else 0,
+        "profile": policy["profile"],
     }
     (output_dir / "scene_audit.json").write_text(json.dumps(audit, indent=2) + "\n", encoding="utf-8")
     if mode == "render":

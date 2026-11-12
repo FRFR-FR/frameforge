@@ -9,7 +9,8 @@ REQUIRED = [
     "scripts/frameforge_player.gd", "scripts/quality_manager.gd", "scripts/gameforge_profile.gd",
     "scripts/dialogue_director.gd", "scripts/dialogue_timeline.gd", "scripts/inventory_component.gd",
     "scripts/save_manager.gd", "scripts/interactable_base.gd", "scripts/accessibility_settings.gd",
-    "scripts/cutscene_audio_director.gd", "scripts/cutscene_subtitle_layer.gd", "export_presets.cfg",
+    "scripts/cutscene_audio_director.gd", "scripts/cutscene_subtitle_layer.gd",
+    "scripts/cutscene_character_lip_sync.gd", "export_presets.cfg",
     "tests/runtime_smoke.gd"
 ]
 for relative in REQUIRED:

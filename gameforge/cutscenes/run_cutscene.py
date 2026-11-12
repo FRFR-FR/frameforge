@@ -79,6 +79,7 @@ def main() -> int:
         "tts_provider": "kyutai-pocket-tts",
         "alignment_provider": "whisperx-forced-character-alignment",
         "subtitle_style": "ASS outline-only with transparent background",
+        "rigged_character_glb": str(output / "GAMEFORGE_Cutscene_Characters.glb"),
         "lip_sync_review_required": True,
     }
     (output / "render_report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

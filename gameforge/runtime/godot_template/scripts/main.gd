@@ -33,6 +33,7 @@ func _ready() -> void:
 
     var cutscene_audio := CutsceneAudioDirector.new()
     cutscene_audio.name = "CutsceneAudioDirector"
+    cutscene_audio.viseme_cue.connect(_on_cutscene_viseme_cue)
     add_child(cutscene_audio)
 
     var save_manager := SaveManager.new()
@@ -121,3 +122,9 @@ func _create_player() -> void:
     camera_pivot.add_child(camera_arm)
     player.set("camera_pivot", camera_pivot)
     add_child(player)
+
+func _on_cutscene_viseme_cue(character_id: String, cue: Dictionary) -> void:
+    var group_name := "gameforge_character_" + character_id
+    for character in get_tree().get_nodes_in_group(group_name):
+        if character.has_method("apply_lip_sync_cue"):
+            character.apply_lip_sync_cue(cue)

@@ -94,6 +94,7 @@ jobs:
           path: |
             output/gameforge-cutscene/GAMEFORGE_Cutscene.mp4
             output/gameforge-cutscene/GAMEFORGE_Cutscene.blend
+            output/gameforge-cutscene/GAMEFORGE_Cutscene_Characters.glb
             output/gameforge-cutscene/scene_audit.json
             output/gameforge-cutscene/alignment_manifest.json
             output/gameforge-cutscene/render_report.json

@@ -31,8 +31,12 @@ The browser editor only authors the manifest. A static GitHub Pages page cannot 
 
 ## Synchronisation quality
 
-Pocket TTS produces audio, not phoneme timestamps. This pipeline therefore measures the actual generated WAV duration and uses WhisperX forced character alignment to obtain audio-grounded cue positions. The Blender rig consumes the resulting viseme cue data. Lip shape mapping is an approximation from aligned characters (not a native phoneme stream), so the final face animation must receive visual review. No software can guarantee perfect lip-sync for every line without correction; the pipeline fails on an unavailable aligner rather than silently pretending estimated timings are exact.
+Pocket TTS produces audio, not phoneme timestamps. This pipeline therefore measures the actual generated WAV duration and uses WhisperX forced character alignment to obtain audio-grounded cue positions. The Blender rig consumes the resulting viseme cue data and exports a skinned GLB for Godot import. The in-game runtime has a jaw-bone cue component that listens to the same audio playback clock. Lip shape mapping is an approximation from aligned characters (not a native phoneme stream), so the final face animation must receive visual review. No software can guarantee perfect lip-sync for every line without correction; the pipeline fails on an unavailable aligner rather than silently pretending estimated timings are exact.
 
 ## Original FrameForge isolation
 
 The original `/index.html`, `/app.js`, `/styles.css` and `/frameforge-3d.js` stay in place for independent film projects. This branch places copies inside `gameforge/cutscenes/editor/core/`; GAMEFORGE's cutscene page links to its own manifest editor and uses the copied FrameForge 3D software renderer for a lightweight preview.
+
+## In-game character lip-sync
+
+Import the generated `GAMEFORGE_Cutscene_Characters.glb` into Godot. Attach `gameforge/runtime/godot_template/scripts/cutscene_character_lip_sync.gd` to each character root, set the `skeleton_path` to the imported `Skeleton3D`, and add the root node to `gameforge_character_<character_id>`. GAMEFORGE's audio director emits the audio-aligned jaw cues, returns the jaw to neutral at each cue end, and drives subtitles from the same playback clock.

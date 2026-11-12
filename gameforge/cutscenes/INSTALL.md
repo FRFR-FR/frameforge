@@ -15,8 +15,8 @@
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -r gameforge/cutscenes/requirements.txt
-python -m pip install whisperx
+python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu -r gameforge/cutscenes/requirements.txt
+python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu whisperx
 ```
 
 Install Blender and FFmpeg separately and add their executable directories to PATH. WhisperX has additional PyTorch/model requirements; follow its current installation instructions if pip reports a platform conflict.
@@ -46,7 +46,7 @@ python -c "from pocket_tts import TTSModel; print('Pocket TTS import OK')"
 python -c "import whisperx; print('WhisperX import OK')"
 ```
 
-The first Pocket TTS and WhisperX runs download model assets. Allow disk space for Python/PyTorch packages and model caches. Do not commit model weights, cache directories, API keys, or signing keys to Git.
+On Linux, use the PyTorch CPU wheel index shown above: Kyutai notes that default PyPI installation can otherwise pull several gigabytes of CUDA runtime wheels even though Pocket TTS runs on CPU. On macOS and Windows, the standard PyTorch wheels are CPU-only. The first Pocket TTS and WhisperX runs download model assets. Allow disk space for Python/PyTorch packages and model caches. Do not commit model weights, cache directories, API keys, or signing keys to Git.
 
 ## Important distinction
 

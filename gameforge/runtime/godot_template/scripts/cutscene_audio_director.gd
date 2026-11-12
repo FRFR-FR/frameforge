@@ -13,6 +13,7 @@ var _lines: Array = []
 var _visemes: Array = []
 var _line_index := 0
 var _viseme_index := 0
+var _active_visemes: Array[Dictionary] = []
 var _active_line_id := ""
 var _active_viseme_id := ""
 var _timeline_duration := 0.0
@@ -36,6 +37,7 @@ func play_cutscene(audio_stream: AudioStream, alignment_manifest: Dictionary) ->
     _viseme_index = 0
     _active_line_id = ""
     _active_viseme_id = ""
+    _active_visemes.clear()
     _timeline_duration = 0.0
     for line in _lines:
         _timeline_duration = maxf(_timeline_duration, float(line.get("end", 0.0)))
@@ -69,7 +71,20 @@ func _process(_delta: float) -> void:
         var cue: Dictionary = _visemes[_viseme_index]
         _active_viseme_id = str(cue.get("character_id", "")) + ":" + str(cue.get("dialogue_id", "")) + ":" + str(_viseme_index)
         viseme_cue.emit(str(cue.get("character_id", "")), cue)
+        _active_visemes.append(cue)
         _viseme_index += 1
+
+    # Return the jaw to neutral at the measured end time of each aligned character cue.
+    for index in range(_active_visemes.size() - 1, -1, -1):
+        var active_cue: Dictionary = _active_visemes[index]
+        if clock >= float(active_cue.get("end", clock)):
+            var neutral_cue := active_cue.duplicate(true)
+            neutral_cue["jaw_open"] = 0.0
+            neutral_cue["viseme"] = "neutral"
+            neutral_cue["ended"] = true
+            viseme_cue.emit(str(neutral_cue.get("character_id", "")), neutral_cue)
+            _active_visemes.remove_at(index)
+
     if clock >= _timeline_duration and not _player.playing:
         stop_cutscene()
         cutscene_finished.emit()
