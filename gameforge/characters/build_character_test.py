@@ -161,7 +161,7 @@ def env():
 def export_glb(ch,path):
     r,m=ch["rig"],ch["mesh"]; x,y=r.location.x,r.location.y; r.location=(0,0,0); bpy.ops.object.select_all(action="DESELECT"); r.select_set(True); m.select_set(True); bpy.context.view_layer.objects.active=r
     bpy.ops.export_scene.gltf(filepath=str(path),export_format="GLB",use_selection=True,export_animations=True,export_skins=True,export_cameras=False,export_lights=False,export_materials="EXPORT")
-    r.location=(x,y); bpy.ops.object.select_all(action="DESELECT")
+    r.location=(x,y,0); bpy.ops.object.select_all(action="DESELECT")
 
 def main():
     a=args(); out=Path(a.output_dir).resolve(); (out/"characters").mkdir(parents=True,exist_ok=True); (out/"previews").mkdir(exist_ok=True)
