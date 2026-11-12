@@ -4,6 +4,7 @@ Builds Java-format 64x64 player skins first, then a voxel scene and silent film.
 """
 import bpy, math, os, sys, json, random, struct, zlib, binascii, subprocess
 from pathlib import Path
+import argparse
 from mathutils import Vector
 
 def cli():
