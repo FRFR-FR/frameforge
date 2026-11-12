@@ -816,19 +816,8 @@ def build_continuation_scene(out_dir):
     # Blender's default keyframe interpolation is Bezier; keep the
     # native Action representation untouched for Blender 5 compatibility.
 
-    # A subtle filmic bloom catches practical lamps and the beacon without washing out.
-    scene.use_nodes = True
-    tree = scene.node_tree
-    tree.nodes.clear()
-    render_layers = tree.nodes.new("CompositorNodeRLayers")
-    glare = tree.nodes.new("CompositorNodeGlare")
-    glare.glare_type = "FOG_GLOW"
-    glare.quality = "HIGH"
-    glare.threshold = 1.4
-    glare.size = 7
-    composite = tree.nodes.new("CompositorNodeComposite")
-    tree.links.new(render_layers.outputs["Image"], glare.inputs["Image"])
-    tree.links.new(glare.outputs["Image"], composite.inputs["Image"])
+    # Blender 5's compositor API is managed separately from the Scene node tree.
+    # Practical lamps and the beacon use emissive materials and AgX grading.
 
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
