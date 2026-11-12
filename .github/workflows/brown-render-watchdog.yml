@@ -26,106 +26,106 @@ jobs:
       - name: Find the latest controller run
         id: inspect
         env:
-          GH_TOKEN: \${{ github.token }}
-          GH_REPO: \${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          runs="$(gh api "repos/\${GH_REPO}/actions/workflows/brown-render-controller.yml/runs?branch=main&per_page=10")"
-          run_id="$(jq -r '.workflow_runs[0].id // empty' <<< "\${runs}")"
-          if [ -z "\${run_id}" ]; then
+          runs="$(gh api "repos/${GH_REPO}/actions/workflows/brown-render-controller.yml/runs?branch=main&per_page=10")"
+          run_id="$(jq -r '.workflow_runs[0].id // empty' <<< "${runs}")"
+          if [ -z "${run_id}" ]; then
             echo "No controller run exists; starting the controller."
-            gh api --method POST "repos/\${GH_REPO}/actions/workflows/brown-render-controller.yml/dispatches" -f ref=main
-            echo "action=started_controller" >> "\${GITHUB_OUTPUT}"
+            gh api --method POST "repos/${GH_REPO}/actions/workflows/brown-render-controller.yml/dispatches" -f ref=main
+            echo "action=started_controller" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          status="$(jq -r '.workflow_runs[0].status' <<< "\${runs}")"
-          conclusion="$(jq -r '.workflow_runs[0].conclusion // empty' <<< "\${runs}")"
-          attempt="$(jq -r '.workflow_runs[0].run_attempt // 1' <<< "\${runs}")"
-          echo "run_id=\${run_id}" >> "\${GITHUB_OUTPUT}"
-          echo "run_status=\${status}" >> "\${GITHUB_OUTPUT}"
-          echo "run_conclusion=\${conclusion}" >> "\${GITHUB_OUTPUT}"
-          echo "run_attempt=\${attempt}" >> "\${GITHUB_OUTPUT}"
-          echo "Latest controller run: id=\${run_id} status=\${status} conclusion=\${conclusion} attempt=\${attempt}"
+          status="$(jq -r '.workflow_runs[0].status' <<< "${runs}")"
+          conclusion="$(jq -r '.workflow_runs[0].conclusion // empty' <<< "${runs}")"
+          attempt="$(jq -r '.workflow_runs[0].run_attempt // 1' <<< "${runs}")"
+          echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
+          echo "run_status=${status}" >> "${GITHUB_OUTPUT}"
+          echo "run_conclusion=${conclusion}" >> "${GITHUB_OUTPUT}"
+          echo "run_attempt=${attempt}" >> "${GITHUB_OUTPUT}"
+          echo "Latest controller run: id=${run_id} status=${status} conclusion=${conclusion} attempt=${attempt}"
 
-          if [ "\${status}" != "completed" ]; then
+          if [ "${status}" != "completed" ]; then
             echo "Controller is already queued or running; no duplicate render will be launched."
-            echo "action=already_running" >> "\${GITHUB_OUTPUT}"
+            echo "action=already_running" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          jobs="$(gh api "repos/\${GH_REPO}/actions/runs/\${run_id}/jobs?per_page=100")"
-          artifacts="$(gh api "repos/\${GH_REPO}/actions/runs/\${run_id}/artifacts?per_page=100")"
+          jobs="$(gh api "repos/${GH_REPO}/actions/runs/${run_id}/jobs?per_page=100")"
+          artifacts="$(gh api "repos/${GH_REPO}/actions/runs/${run_id}/artifacts?per_page=100")"
           missing_parts=""
           retried=0
 
           for n in $(seq -w 1 24); do
-            artifact_name="brown-part-\${n}"
-            artifact_id="$(jq -r --arg name "\${artifact_name}" \
+            artifact_name="brown-part-${n}"
+            artifact_id="$(jq -r --arg name "${artifact_name}" \
               '.artifacts[] | select(.name == $name and .expired == false) | .id' \
-              <<< "\${artifacts}" | head -n 1)"
-            if [ -n "\${artifact_id}" ] && [ "\${artifact_id}" != "null" ]; then
+              <<< "${artifacts}" | head -n 1)"
+            if [ -n "${artifact_id}" ] && [ "${artifact_id}" != "null" ]; then
               continue
             fi
 
-            missing_parts="\${missing_parts} \${n}"
-            job_id="$(jq -r --arg name "Render part \${n}" \
+            missing_parts="${missing_parts} ${n}"
+            job_id="$(jq -r --arg name "Render part ${n}" \
               '[.jobs[] | select(.name == $name)] | last | .id // empty' \
-              <<< "\${jobs}")"
-            job_conclusion="$(jq -r --arg name "Render part \${n}" \
+              <<< "${jobs}")"
+            job_conclusion="$(jq -r --arg name "Render part ${n}" \
               '[.jobs[] | select(.name == $name)] | last | .conclusion // empty' \
-              <<< "\${jobs}")"
+              <<< "${jobs}")"
 
-            if [ -n "\${job_id}" ] && [[ "\${job_conclusion}" == "failure" || "\${job_conclusion}" == "cancelled" || "\${job_conclusion}" == "timed_out" ]]; then
-              if [ "\${attempt}" -lt 6 ]; then
-                echo "Retrying failed part \${n} (job \${job_id}, conclusion \${job_conclusion})."
-                gh api --method POST "repos/\${GH_REPO}/actions/jobs/\${job_id}/rerun"
+            if [ -n "${job_id}" ] && [[ "${job_conclusion}" == "failure" || "${job_conclusion}" == "cancelled" || "${job_conclusion}" == "timed_out" ]]; then
+              if [ "${attempt}" -lt 6 ]; then
+                echo "Retrying failed part ${n} (job ${job_id}, conclusion ${job_conclusion})."
+                gh api --method POST "repos/${GH_REPO}/actions/jobs/${job_id}/rerun"
                 retried=$((retried + 1))
               else
-                echo "Retry limit reached for part \${n}; preserving logs for diagnosis."
+                echo "Retry limit reached for part ${n}; preserving logs for diagnosis."
               fi
-            elif [ -z "\${job_id}" ]; then
-              echo "No job record found for missing part \${n}; controller will be dispatched again."
-              gh api --method POST "repos/\${GH_REPO}/actions/workflows/brown-render-controller.yml/dispatches" -f ref=main
-              echo "action=started_controller" >> "\${GITHUB_OUTPUT}"
+            elif [ -z "${job_id}" ]; then
+              echo "No job record found for missing part ${n}; controller will be dispatched again."
+              gh api --method POST "repos/${GH_REPO}/actions/workflows/brown-render-controller.yml/dispatches" -f ref=main
+              echo "action=started_controller" >> "${GITHUB_OUTPUT}"
               exit 0
             else
-              echo "Part \${n} has no verified artifact; job conclusion is '\${job_conclusion}'."
+              echo "Part ${n} has no verified artifact; job conclusion is '${job_conclusion}'."
             fi
           done
 
-          if [ "\${retried}" -gt 0 ]; then
-            echo "Relaunched \${retried} missing/failed part job(s)."
-            echo "action=reran_parts" >> "\${GITHUB_OUTPUT}"
+          if [ "${retried}" -gt 0 ]; then
+            echo "Relaunched ${retried} missing/failed part job(s)."
+            echo "action=reran_parts" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          if [ -n "\${missing_parts}" ]; then
-            echo "Missing parts remain:\${missing_parts}"
-            echo "action=blocked_missing_parts" >> "\${GITHUB_OUTPUT}"
+          if [ -n "${missing_parts}" ]; then
+            echo "Missing parts remain:${missing_parts}"
+            echo "action=blocked_missing_parts" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          final_artifact="$(jq -r '.artifacts[] | select(.name == "BROWN-Book-One-Complete-2h-720p20" and .expired == false) | .id' <<< "\${artifacts}" | head -n 1)"
-          if [ -n "\${final_artifact}" ] && [ "\${final_artifact}" != "null" ]; then
+          final_artifact="$(jq -r '.artifacts[] | select(.name == "BROWN-Book-One-Complete-2h-720p20" and .expired == false) | .id' <<< "${artifacts}" | head -n 1)"
+          if [ -n "${final_artifact}" ] && [ "${final_artifact}" != "null" ]; then
             echo "All 24 part artifacts and the final movie artifact are present."
-            echo "action=complete" >> "\${GITHUB_OUTPUT}"
+            echo "action=complete" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          assemble_id="$(jq -r '[.jobs[] | select(.name == "Validate and assemble the complete two-hour film")] | last | .id // empty' <<< "\${jobs}")"
-          assemble_conclusion="$(jq -r '[.jobs[] | select(.name == "Validate and assemble the complete two-hour film")] | last | .conclusion // empty' <<< "\${jobs}")"
-          if [ -n "\${assemble_id}" ] && [[ "\${assemble_conclusion}" == "failure" || "\${assemble_conclusion}" == "cancelled" ]]; then
-            if [ "\${attempt}" -lt 6 ]; then
-              echo "All parts are present; retrying failed final assembly job \${assemble_id}."
-              gh api --method POST "repos/\${GH_REPO}/actions/jobs/\${assemble_id}/rerun"
-              echo "action=reran_assembly" >> "\${GITHUB_OUTPUT}"
+          assemble_id="$(jq -r '[.jobs[] | select(.name == "Validate and assemble the complete two-hour film")] | last | .id // empty' <<< "${jobs}")"
+          assemble_conclusion="$(jq -r '[.jobs[] | select(.name == "Validate and assemble the complete two-hour film")] | last | .conclusion // empty' <<< "${jobs}")"
+          if [ -n "${assemble_id}" ] && [[ "${assemble_conclusion}" == "failure" || "${assemble_conclusion}" == "cancelled" ]]; then
+            if [ "${attempt}" -lt 6 ]; then
+              echo "All parts are present; retrying failed final assembly job ${assemble_id}."
+              gh api --method POST "repos/${GH_REPO}/actions/jobs/${assemble_id}/rerun"
+              echo "action=reran_assembly" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
           fi
 
           echo "All 24 parts are present, but the final artifact is not verified. Check assembly logs."
-          echo "action=assembly_needs_diagnosis" >> "\${GITHUB_OUTPUT}"
+          echo "action=assembly_needs_diagnosis" >> "${GITHUB_OUTPUT}"
 
       - name: Record watchdog outcome
         if: always()
