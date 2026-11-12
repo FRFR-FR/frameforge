@@ -845,7 +845,7 @@ def build_continuation_scene(out_dir):
     scene.render.image_settings.color_depth = "8"
     scene.render.image_settings.compression = 0
     scene.render.use_file_extension = True
-    scene.render.filepath = str(out_dir / "frames" / "frame_")
+    scene.render.filepath = str(out_dir / "frames" / "frame_######")
     scene.frame_set(1)
 
     blend_path = out_dir / (OUT_NAME + ".blend")
@@ -927,7 +927,7 @@ def run():
         scene.render.use_file_extension = True
         frame_dir = out_dir / "frames"
         frame_dir.mkdir(parents=True, exist_ok=True)
-        scene.render.filepath = str(frame_dir / "frame_")
+        scene.render.filepath = str(frame_dir / "frame_######")
         scene.frame_start = start_frame
         scene.frame_end = end_frame
         scene.frame_set(start_frame)
