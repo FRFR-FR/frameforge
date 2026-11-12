@@ -585,11 +585,8 @@ def build_continuation_scene(out_dir):
         rain_blocks.append((location, dimensions))
     rain_obj = block_batch("Animated Rain Streaks", rain_blocks, mats["rain"])
     rain_obj.parent = rain_root
-    key(rain_root, 1, loc=(0, 0, 12))
-    key(rain_root, 11, loc=(0, 0, -12))
-    key(rain_root, 21, loc=(0, 0, 12))
-    rain_curve = rain_root.animation_data.action.fcurves.find("location", index=2)
-    rain_curve.modifiers.new("CYCLES")
+    rain_curve = rain_root.driver_add("location", 2)
+    rain_curve.driver.expression = "12 - ((frame - 1) % 20) * 1.2"
 
     # Steam accents from selected vents; deliberately subtle against the dark rain.
     steam_mat = make_surface_material("Steam Grey", (0.24, 0.31, 0.39), 1.0, 0.0,
