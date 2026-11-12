@@ -1,0 +1,236 @@
+name: BROWN 24-Part Parallel Render Controller
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/brown-render-controller.yml"
+      - "brown_film/render_part.py"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: brown-book-one-controller
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: Render part \${{ matrix.part }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        part: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"]
+    steps:
+      - name: Check out the central renderer
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch and validate this part's story configuration
+        env:
+          PART: \${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          BRANCH="brown-film/part-\${PART}"
+          git fetch --no-tags --depth=1 origin "refs/heads/\${BRANCH}:refs/remotes/origin/\${BRANCH}"
+          git show "refs/remotes/origin/\${BRANCH}:brown_part.json" > brown_part.json
+          python3 - "\${PART}" <<'PY'
+          import json, sys
+          expected = int(sys.argv[1])
+          with open("brown_part.json", encoding="utf-8") as f:
+              config = json.load(f)
+          assert int(config["part"]) == expected, (config.get("part"), expected)
+          assert len(config.get("shots", [])) == 6, "Each five-minute part must contain six 50-second shots"
+          print("CONFIG_OK", expected, config.get("title", ""))
+          PY
+
+      - name: Install Blender and FFmpeg
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg libegl1 libgl1-mesa-dri libxrender1 libxi6 libxkbcommon0
+          blender --version
+          ffmpeg -version | head -n 1
+
+      - name: Render the 6,000-frame Blender scene
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          EGL_PLATFORM: "surfaceless"
+          PART: \${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          mkdir -p render
+          blender --background --factory-startup --threads 2 --python-exit-code 1 \
+            --python brown_film/render_part.py -- --config brown_part.json 2>&1 | tee render.log
+          python3 - "\${PART}" <<'PY'
+          import glob, os, sys
+          part = int(sys.argv[1])
+          frames = glob.glob("render/frame_*.png")
+          if len(frames) != 6000:
+              raise SystemExit(f"PART_{part:02d}: expected 6000 PNG frames, found {len(frames)}")
+          print(f"FRAME_SEQUENCE_OK part={part:02d} frames={len(frames)}")
+          PY
+
+      - name: Encode and validate the five-minute MP4
+        env:
+          PART: \${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          FILE="render/part-\${PART}.mp4"
+          ffmpeg -y -hide_banner -framerate 20 -start_number 1 \
+            -i render/frame_%04d.png -frames:v 6000 \
+            -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p \
+            -r 20 -an -movflags +faststart "\${FILE}"
+          test -s "\${FILE}"
+          ffprobe -v error -count_frames -select_streams v:0 \
+            -show_entries stream=width,height,r_frame_rate,nb_read_frames \
+            -show_entries format=duration,size -of json "\${FILE}" | tee render/verification.json
+          python3 - " \${FILE}" <<'PY'
+          import json, sys
+          from fractions import Fraction
+          path = sys.argv[1].strip()
+          with open("render/verification.json", encoding="utf-8") as f:
+              d = json.load(f)
+          s = d["streams"][0]
+          assert (s["width"], s["height"]) == (1280, 720), s
+          assert Fraction(s["r_frame_rate"]) == Fraction(20, 1), s
+          assert int(s["nb_read_frames"]) == 6000, s
+          assert 299.9 <= float(d["format"]["duration"]) <= 300.1, d["format"]
+          assert int(d["format"]["size"]) > 100000, d["format"]
+          print("PART_VERIFIED", path, d["format"])
+          PY
+
+      - name: Upload this verified part
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brown-part-\${{ matrix.part }}
+          path: |
+            render/part-\${{ matrix.part }}.mp4
+            render/verification.json
+            render.log
+            brown_part.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+  assemble:
+    name: Validate and assemble the complete two-hour film
+    if: always()
+    needs: [render]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Install assembly tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg jq unzip
+
+      - name: Download and validate all 24 parts from this controller run
+        env:
+          GH_TOKEN: \${{ github.token }}
+          GH_REPO: \${{ github.repository }}
+          GH_RUN_ID: \${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p parts
+          : > parts/concat.txt
+          : > parts/manifest.tsv
+          artifacts="$(gh api "repos/\${GH_REPO}/actions/runs/\${GH_RUN_ID}/artifacts?per_page=100")"
+          missing=0
+
+          for n in $(seq -w 1 24); do
+            name="brown-part-\${n}"
+            artifact_id="$(jq -r --arg name "\${name}" \
+              '.artifacts[] | select(.name == $name and .expired == false) | .id' \
+              <<< "\${artifacts}" | head -n 1)"
+            if [ -z "\${artifact_id}" ] || [ "\${artifact_id}" = "null" ]; then
+              echo "MISSING_ARTIFACT \${name}"
+              missing=1
+              continue
+            fi
+
+            mkdir -p "parts/\${n}"
+            gh api "repos/\${GH_REPO}/actions/artifacts/\${artifact_id}/zip" > "parts/\${n}/artifact.zip"
+            unzip -oq "parts/\${n}/artifact.zip" -d "parts/\${n}"
+            video="$(find "parts/\${n}" -type f -name "part-\${n}.mp4" -print -quit)"
+            if [ -z "\${video}" ] || [ ! -s "\${video}" ]; then
+              echo "MISSING_OR_EMPTY_MP4 \${name}"
+              missing=1
+              continue
+            fi
+
+            cp "\${video}" "parts/part-\${n}.mp4"
+            ffprobe -v error -count_frames -select_streams v:0 \
+              -show_entries stream=width,height,r_frame_rate,nb_read_frames \
+              -show_entries format=duration,size -of json \
+              "parts/part-\${n}.mp4" > "parts/probe-\${n}.json"
+            python3 - "\${n}" <<'PY'
+          import json, sys
+          from fractions import Fraction
+          n = sys.argv[1]
+          with open(f"parts/probe-{n}.json", encoding="utf-8") as f:
+              d = json.load(f)
+          s = d["streams"][0]
+          assert (s["width"], s["height"]) == (1280, 720), (n, s)
+          assert Fraction(s["r_frame_rate"]) == Fraction(20, 1), (n, s)
+          assert int(s["nb_read_frames"]) == 6000, (n, s)
+          assert 299.9 <= float(d["format"]["duration"]) <= 300.1, (n, d["format"])
+          print("ASSEMBLY_INPUT_VALID", n)
+          PY
+            printf "file 'part-%s.mp4'\n" "\${n}" >> parts/concat.txt
+            printf "%s\t%s\t%s\n" "\${n}" "\${GH_RUN_ID}" "\${artifact_id}" >> parts/manifest.tsv
+          done
+
+          if [ "\${missing}" -ne 0 ]; then
+            echo "Assembly blocked: one or more parts did not produce a verified artifact."
+            exit 1
+          fi
+          echo "All 24 verified MP4 parts are ready."
+
+      - name: Join the 24 parts in story order
+        run: |
+          set -euo pipefail
+          ffmpeg -y -hide_banner -f concat -safe 0 -i parts/concat.txt \
+            -c copy -movflags +faststart BROWN_Book_One_Complete_2h_720p20.mp4
+          test -s BROWN_Book_One_Complete_2h_720p20.mp4
+
+      - name: Verify the final two-hour movie
+        run: |
+          set -euo pipefail
+          ffprobe -v error -count_frames -select_streams v:0 \
+            -show_entries stream=width,height,r_frame_rate,nb_read_frames \
+            -show_entries format=duration,size -of json \
+            BROWN_Book_One_Complete_2h_720p20.mp4 > final_verification.json
+          python3 - <<'PY'
+          import json
+          from fractions import Fraction
+          with open("final_verification.json", encoding="utf-8") as f:
+              d = json.load(f)
+          s = d["streams"][0]
+          assert (s["width"], s["height"]) == (1280, 720), s
+          assert Fraction(s["r_frame_rate"]) == Fraction(20, 1), s
+          assert int(s["nb_read_frames"]) == 144000, s
+          assert 7199.0 <= float(d["format"]["duration"]) <= 7201.0, d["format"]
+          print("FINAL_MOVIE_VERIFIED", d["format"])
+          PY
+
+      - name: Upload the completed movie
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Book-One-Complete-2h-720p20
+          path: |
+            BROWN_Book_One_Complete_2h_720p20.mp4
+            final_verification.json
+            parts/manifest.tsv
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
