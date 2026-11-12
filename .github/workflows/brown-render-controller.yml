@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   render:
-    name: Render part \${{ matrix.part }}
+    name: Render part ${{ matrix.part }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
@@ -34,13 +34,13 @@ jobs:
 
       - name: Fetch and validate this part's story configuration
         env:
-          PART: \${{ matrix.part }}
+          PART: ${{ matrix.part }}
         run: |
           set -euo pipefail
-          BRANCH="brown-film/part-\${PART}"
-          git fetch --no-tags --depth=1 origin "refs/heads/\${BRANCH}:refs/remotes/origin/\${BRANCH}"
-          git show "refs/remotes/origin/\${BRANCH}:brown_part.json" > brown_part.json
-          python3 - "\${PART}" <<'PY'
+          BRANCH="brown-film/part-${PART}"
+          git fetch --no-tags --depth=1 origin "refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
+          git show "refs/remotes/origin/${BRANCH}:brown_part.json" > brown_part.json
+          python3 - "${PART}" <<'PY'
           import json, sys
           expected = int(sys.argv[1])
           with open("brown_part.json", encoding="utf-8") as f:
@@ -62,13 +62,13 @@ jobs:
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
           EGL_PLATFORM: "surfaceless"
-          PART: \${{ matrix.part }}
+          PART: ${{ matrix.part }}
         run: |
           set -euo pipefail
           mkdir -p render
           blender --background --factory-startup --threads 2 --python-exit-code 1 \
             --python brown_film/render_part.py -- --config brown_part.json 2>&1 | tee render.log
-          python3 - "\${PART}" <<'PY'
+          python3 - "${PART}" <<'PY'
           import glob, os, sys
           part = int(sys.argv[1])
           frames = glob.glob("render/frame_*.png")
@@ -79,19 +79,19 @@ jobs:
 
       - name: Encode and validate the five-minute MP4
         env:
-          PART: \${{ matrix.part }}
+          PART: ${{ matrix.part }}
         run: |
           set -euo pipefail
-          FILE="render/part-\${PART}.mp4"
+          FILE="render/part-${PART}.mp4"
           ffmpeg -y -hide_banner -framerate 20 -start_number 1 \
             -i render/frame_%04d.png -frames:v 6000 \
             -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p \
-            -r 20 -an -movflags +faststart "\${FILE}"
-          test -s "\${FILE}"
+            -r 20 -an -movflags +faststart "${FILE}"
+          test -s "${FILE}"
           ffprobe -v error -count_frames -select_streams v:0 \
             -show_entries stream=width,height,r_frame_rate,nb_read_frames \
-            -show_entries format=duration,size -of json "\${FILE}" | tee render/verification.json
-          python3 - " \${FILE}" <<'PY'
+            -show_entries format=duration,size -of json "${FILE}" | tee render/verification.json
+          python3 - " ${FILE}" <<'PY'
           import json, sys
           from fractions import Fraction
           path = sys.argv[1].strip()
@@ -110,9 +110,9 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: brown-part-\${{ matrix.part }}
+          name: brown-part-${{ matrix.part }}
           path: |
-            render/part-\${{ matrix.part }}.mp4
+            render/part-${{ matrix.part }}.mp4
             render/verification.json
             render.log
             brown_part.json
@@ -135,44 +135,44 @@ jobs:
 
       - name: Download and validate all 24 parts from this controller run
         env:
-          GH_TOKEN: \${{ github.token }}
-          GH_REPO: \${{ github.repository }}
-          GH_RUN_ID: \${{ github.run_id }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
           mkdir -p parts
           : > parts/concat.txt
           : > parts/manifest.tsv
-          artifacts="$(gh api "repos/\${GH_REPO}/actions/runs/\${GH_RUN_ID}/artifacts?per_page=100")"
+          artifacts="$(gh api "repos/${GH_REPO}/actions/runs/${GH_RUN_ID}/artifacts?per_page=100")"
           missing=0
 
           for n in $(seq -w 1 24); do
-            name="brown-part-\${n}"
-            artifact_id="$(jq -r --arg name "\${name}" \
+            name="brown-part-${n}"
+            artifact_id="$(jq -r --arg name "${name}" \
               '.artifacts[] | select(.name == $name and .expired == false) | .id' \
-              <<< "\${artifacts}" | head -n 1)"
-            if [ -z "\${artifact_id}" ] || [ "\${artifact_id}" = "null" ]; then
-              echo "MISSING_ARTIFACT \${name}"
+              <<< "${artifacts}" | head -n 1)"
+            if [ -z "${artifact_id}" ] || [ "${artifact_id}" = "null" ]; then
+              echo "MISSING_ARTIFACT ${name}"
               missing=1
               continue
             fi
 
-            mkdir -p "parts/\${n}"
-            gh api "repos/\${GH_REPO}/actions/artifacts/\${artifact_id}/zip" > "parts/\${n}/artifact.zip"
-            unzip -oq "parts/\${n}/artifact.zip" -d "parts/\${n}"
-            video="$(find "parts/\${n}" -type f -name "part-\${n}.mp4" -print -quit)"
-            if [ -z "\${video}" ] || [ ! -s "\${video}" ]; then
-              echo "MISSING_OR_EMPTY_MP4 \${name}"
+            mkdir -p "parts/${n}"
+            gh api "repos/${GH_REPO}/actions/artifacts/${artifact_id}/zip" > "parts/${n}/artifact.zip"
+            unzip -oq "parts/${n}/artifact.zip" -d "parts/${n}"
+            video="$(find "parts/${n}" -type f -name "part-${n}.mp4" -print -quit)"
+            if [ -z "${video}" ] || [ ! -s "${video}" ]; then
+              echo "MISSING_OR_EMPTY_MP4 ${name}"
               missing=1
               continue
             fi
 
-            cp "\${video}" "parts/part-\${n}.mp4"
+            cp "${video}" "parts/part-${n}.mp4"
             ffprobe -v error -count_frames -select_streams v:0 \
               -show_entries stream=width,height,r_frame_rate,nb_read_frames \
               -show_entries format=duration,size -of json \
-              "parts/part-\${n}.mp4" > "parts/probe-\${n}.json"
-            python3 - "\${n}" <<'PY'
+              "parts/part-${n}.mp4" > "parts/probe-${n}.json"
+            python3 - "${n}" <<'PY'
           import json, sys
           from fractions import Fraction
           n = sys.argv[1]
@@ -185,11 +185,11 @@ jobs:
           assert 299.9 <= float(d["format"]["duration"]) <= 300.1, (n, d["format"])
           print("ASSEMBLY_INPUT_VALID", n)
           PY
-            printf "file 'part-%s.mp4'\n" "\${n}" >> parts/concat.txt
-            printf "%s\t%s\t%s\n" "\${n}" "\${GH_RUN_ID}" "\${artifact_id}" >> parts/manifest.tsv
+            printf "file 'part-%s.mp4'\n" "${n}" >> parts/concat.txt
+            printf "%s\t%s\t%s\n" "${n}" "${GH_RUN_ID}" "${artifact_id}" >> parts/manifest.tsv
           done
 
-          if [ "\${missing}" -ne 0 ]; then
+          if [ "${missing}" -ne 0 ]; then
             echo "Assembly blocked: one or more parts did not produce a verified artifact."
             exit 1
           fi
