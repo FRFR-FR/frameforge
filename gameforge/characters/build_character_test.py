@@ -19,9 +19,8 @@ CAST=[
 ("Miri","Seed-tender",(.86,.55,.40),(.22,.10,.085),(.96,.58,.40),(1,.70,.48),"petals")]
 
 def args():
-    a=sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
-    p=argparse.ArgumentParser(); p.add_argument("--output-dir",default="output/gameforge_character_test"); p.add_argument("--samples",type=int,default=48); return p.parse_args()
-
+    p=argparse.ArgumentParser(); p.add_argument("--output-dir",default="output/gameforge_character_test"); p.add_argument("--samples",type=int,default=48)
+    parsed,_unknown=p.parse_known_args(sys.argv[1:]); return parsed
 def mat(n,c,rough=.42,metal=0,emit=None):
     m=bpy.data.materials.new(n); m.diffuse_color=(*c,1); m.use_nodes=True; b=m.node_tree.nodes.get("Principled BSDF")
     b.inputs["Base Color"].default_value=(*c,1); b.inputs["Roughness"].default_value=rough; b.inputs["Metallic"].default_value=metal
