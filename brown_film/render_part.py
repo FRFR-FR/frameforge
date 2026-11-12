@@ -6,6 +6,10 @@ def arg(n,d):
  return a[a.index(n)+1] if n in a else d
 with open(arg("--config","brown_part.json"),encoding="utf8") as f: C=json.load(f)
 P=int(C["part"]); random.seed(1000+P)
+START_FRAME = int(arg("--start-frame", "1"))
+END_FRAME = int(arg("--end-frame", "6000"))
+if not (1 <= START_FRAME <= END_FRAME <= 6000):
+ raise ValueError(f"Invalid frame range {START_FRAME}-{END_FRAME}; expected 1-6000")
 OUT=os.environ.get("BROWN_OUTPUT",f"render/part-{P:02d}.mp4"); os.makedirs("render",exist_ok=True)
 bpy.ops.object.select_all(action="SELECT"); bpy.ops.object.delete(use_global=False)
 def mat(n,c,r=.85):
@@ -86,7 +90,7 @@ light("cool fill",(8,-4,8),1200,(.48,.65,1),8,(0,0,1))
 light("rim",(1,9,11),2200,(1,.52,.28),7,(0,0,1))
 w=bpy.data.worlds.new("BROWN atmosphere");bpy.context.scene.world=w;w.use_nodes=True;w.node_tree.nodes["Background"].inputs[0].default_value=(.045,.06,.08,1);w.node_tree.nodes["Background"].inputs[1].default_value=.5
 bpy.ops.object.camera_add(location=(0,-17,8));cam=bpy.context.object;cam.data.lens=42;bpy.context.scene.camera=cam
-S=bpy.context.scene;S.render.fps=20;S.frame_start=1;S.frame_end=6000
+S=bpy.context.scene;S.render.fps=20;S.frame_start=START_FRAME;S.frame_end=END_FRAME
 def animate(arm,style,a,b,phase):
  for f in range(a,b+1,20):
   t=(f-a)/20+phase;v=sin(t*2*pi/3)*(.62 if style in ("run","walk") else .13)
@@ -104,21 +108,24 @@ for i,sh in enumerate(C["shots"]):
   animate(arm,"brace" if style=="observe" else style,a,b,j*.7+i*.35)
   root.location.x=(-2+sh.get("hero_x",0)) if j==0 else 2+j*1.5;root.location.y=-1 if j==0 else 0
   root.keyframe_insert(data_path="location",frame=a);root.location.x+=sh.get("move_x",.6);root.keyframe_insert(data_path="location",frame=b)
-# Select the Eevee engine available in the installed Blender build.
-engine_ids = {item.identifier for item in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items}
-if "BLENDER_EEVEE_NEXT" in engine_ids:
- S.render.engine = "BLENDER_EEVEE_NEXT"
-elif "BLENDER_EEVEE" in engine_ids:
- S.render.engine = "BLENDER_EEVEE"
-else:
- raise RuntimeError("No supported Eevee render engine is available: " + ", ".join(sorted(engine_ids)))
-# Legacy Eevee exposes this setting; Eevee Next manages sampling differently.
-eevee_settings = getattr(S, "eevee", None)
-if eevee_settings is not None and hasattr(eevee_settings, "taa_render_samples"):
- eevee_settings.taa_render_samples = 64
+# Fast deterministic raster rendering for the CPU-only GitHub runners.
+# The scene is deliberately built from clear, material-coloured 3D geometry;
+# Workbench preserves that palette and adds studio lighting, shadows and cavity.
+S.render.engine = "BLENDER_WORKBENCH"
+shade = S.display.shading
+shade.light = "STUDIO"
+shade.color_type = "MATERIAL"
+shade.background_type = "WORLD"
+shade.show_shadows = True
+shade.show_cavity = True
+shade.cavity_type = "WORLD"
+shade.cavity_ridge_factor = 1.2
+shade.cavity_valley_factor = 1.0
+shade.show_specular_highlight = True
+shade.studiolight_rotate_z = math.radians(18)
 S.render.resolution_x=1280;S.render.resolution_y=720;S.render.resolution_percentage=100
 S.render.image_settings.file_format="PNG";S.render.image_settings.color_mode="RGB"
 S.render.filepath=os.path.abspath("render/frame_");S.view_settings.view_transform="AgX";S.view_settings.look="AgX - Medium High Contrast"
 
 S["film"]="BROWN Book One";S["part"]=P;S["chapters"]=C["chapters"];S["camera_note"]="Unobstructed action lane, full character silhouettes, six cinematic angles."
-print("BROWN_RENDER_BEGIN",P,C["title"],"6000 frames",flush=True);bpy.ops.render.render(animation=True);print("BROWN_RENDER_COMPLETE",P,"PNG sequence",flush=True)
+print("BROWN_RENDER_BEGIN",P,C["title"],f"frames {START_FRAME}-{END_FRAME}",flush=True);bpy.ops.render.render(animation=True);print("BROWN_RENDER_COMPLETE",P,"PNG sequence",flush=True)
