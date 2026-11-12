@@ -532,9 +532,9 @@ def build_continuation_scene(out_dir):
 
     # The rain canal and arched block bridge become a major wide shot.
     cube("Canal Water", (162, 0, -0.62), (11.5, 42, 0.35), mats["water"])
-    cube("Bridge Deck", (162, 0, 0.24), (14.0, 8.3, 0.65), mats["stone"])
+    cube("Bridge Deck", (162, 0, -0.325), (14.0, 8.3, 0.65), mats["stone"])
     for side in (-1, 1):
-        cube("Bridge Stone Parapet", (162, side*4.15, 1.15), (14.0, 0.42, 1.45), mats["concrete"])
+        cube("Bridge Stone Parapet", (162, side*4.15, 0.72), (14.0, 0.42, 1.45), mats["concrete"])
         for x in range(156, 169, 3):
             cube("Bridge Parapet Post", (x, side*4.15, 1.95), (0.52, 0.48, 0.5), mats["metal"])
     for x in (157, 162, 167):
