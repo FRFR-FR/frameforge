@@ -813,16 +813,8 @@ def build_continuation_scene(out_dir):
         key(cameras[9][0], frame, loc=loc)
         key(cameras[9][1], frame, loc=target)
 
-    # Gentle camera motion is eased for all authored camera transforms.
-    for camera, focus in cameras:
-        if camera.animation_data and camera.animation_data.action:
-            for fcurve in camera.animation_data.action.fcurves:
-                for kp in fcurve.keyframe_points:
-                    kp.interpolation = "BEZIER"
-        if focus.animation_data and focus.animation_data.action:
-            for fcurve in focus.animation_data.action.fcurves:
-                for kp in fcurve.keyframe_points:
-                    kp.interpolation = "BEZIER"
+    # Blender's default keyframe interpolation is Bezier; keep the
+    # native Action representation untouched for Blender 5 compatibility.
 
     # A subtle filmic bloom catches practical lamps and the beacon without washing out.
     scene.use_nodes = True
