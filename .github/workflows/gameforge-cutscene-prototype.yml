@@ -1,0 +1,102 @@
+name: GAMEFORGE Cutscene Prototype
+
+on:
+  workflow_dispatch:
+    inputs:
+      resolution:
+        description: Output profile
+        type: choice
+        options:
+          - 720p
+          - 1080p
+        default: 720p
+      quality:
+        description: CPU render profile
+        type: choice
+        options:
+          - low
+          - balanced
+          - high
+        default: balanced
+      run_sample:
+        description: Render the checked-in 12-second sample project
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gameforge-cutscene-prototype
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gameforge-cutscene-integration
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install manifest validation dependencies
+        run: python -m pip install --disable-pip-version-check jsonschema
+      - name: Validate project contracts and subtitle policy
+        run: python -m unittest discover -s gameforge/cutscenes/tests -v
+
+  render-sample:
+    if: inputs.run_sample
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gameforge-cutscene-integration
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg
+          blender --version
+          ffmpeg -version | head -n 1
+      - name: Install Pocket TTS CPU runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu -r gameforge/cutscenes/requirements.txt
+          python -m pip install whisperx
+      - name: Select hard-capped output profile
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path("gameforge/cutscenes/config/default_project.json")
+          data = json.loads(p.read_text())
+          resolution = os.environ["RESOLUTION"]
+          data["render"]["width"], data["render"]["height"] = (1920,1080) if resolution == "1080p" else (1280,720)
+          data["render"]["profile"] = os.environ["QUALITY"]
+          p.write_text(json.dumps(data, indent=2) + "\n")
+          PY
+        env:
+          RESOLUTION: ${{ inputs.resolution }}
+          QUALITY: ${{ inputs.quality }}
+      - name: Run complete sample cutscene
+        run: |
+          python gameforge/cutscenes/run_cutscene.py \
+            --project gameforge/cutscenes/config/default_project.json \
+            --out output/gameforge-cutscene
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-Cutscene-Prototype
+          path: |
+            output/gameforge-cutscene/GAMEFORGE_Cutscene.mp4
+            output/gameforge-cutscene/GAMEFORGE_Cutscene.blend
+            output/gameforge-cutscene/scene_audit.json
+            output/gameforge-cutscene/alignment_manifest.json
+            output/gameforge-cutscene/render_report.json
+            output/gameforge-cutscene/subtitles.srt
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gameforge.local/schemas/game-spec.schema.json",
+  "title": "GAMEFORGE Game Specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "genre", "platforms", "campaign", "creative_direction", "performance"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "genre": { "type": "string", "minLength": 1 },
+    "logline": { "type": "string" },
+    "player_fantasy": { "type": "string" },
+    "platforms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["android", "windows"] } },
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_hours", "chapters", "side_content_policy"],
+      "properties": {
+        "target_hours": { "type": "number", "minimum": 5, "maximum": 10 },
+        "chapters": { "type": "integer", "minimum": 1 },
+        "side_content_policy": { "type": "string", "enum": ["none", "story_relevant_only"] }
+      }
+    },
+    "creative_direction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visual_identity", "themes", "narrative_pillars"],
+      "properties": {
+        "visual_identity": { "type": "string", "minLength": 10 },
+        "themes": { "type": "array", "items": { "type": "string" } },
+        "narrative_pillars": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "reference_exclusions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "mechanics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "player_verb", "story_purpose", "prototype_status"],
+        "properties": {
+          "name": { "type": "string" },
+          "player_verb": { "type": "string" },
+          "story_purpose": { "type": "string" },
+          "prior_art_notes": { "type": "string" },
+          "novelty_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "prototype_status": { "enum": ["idea", "greybox", "tested", "approved", "rejected"] }
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["android_profile", "pc_profile", "baseline_fps"],
+      "properties": {
+        "android_profile": { "enum": ["low", "balanced", "high"] },
+        "pc_profile": { "enum": ["low", "balanced", "high"] },
+        "baseline_fps": { "type": "integer", "enum": [30, 60] },
+        "max_download_mb": { "type": "integer", "minimum": 100 }
+      }
+    },
+    "frameforge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "manifest_version": { "type": "string" },
+        "cinematic_style": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "id": "gameforge-cutscene-prototype",
+    "title": "GAMEFORGE Cutscene Prototype",
+    "art_direction": "original stylized cinematic 3D; designed in Blender; no generated images"
+  },
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "duration_seconds": 12,
+    "profile": "balanced",
+    "samples": 16
+  },
+  "characters": [
+    {
+      "id": "hero",
+      "name": "Original Hero",
+      "voice": "george",
+      "palette": {"primary": [0.08, 0.19, 0.27, 1.0], "accent": [0.08, 0.75, 0.72, 1.0]}
+    }
+  ],
+  "dialogue": [
+    {
+      "id": "line_001",
+      "character_id": "hero",
+      "voice": "george",
+      "start": 1.0,
+      "text": "The signal is coming from beneath the old station."
+    }
+  ]
+}

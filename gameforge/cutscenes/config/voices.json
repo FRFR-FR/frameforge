@@ -1,0 +1,16 @@
+{
+  "provider": "kyutai-pocket-tts",
+  "language": "english",
+  "allowed_voices": [
+    {"id": "eponine", "label": "Eponine"},
+    {"id": "george", "label": "George"},
+    {"id": "azelma", "label": "Ezelma"},
+    {"id": "bill_boerst", "label": "Bill Boerst"},
+    {"id": "jean", "label": "Jean"},
+    {"id": "michael", "label": "Michael"},
+    {"id": "peter_yearsley", "label": "Peter Yearsley"},
+    {"id": "stuart_bell", "label": "Stuart Bell"},
+    {"id": "charles", "label": "Charles"}
+  ],
+  "policy": "No TTS voice outside this allowlist may be used by GAMEFORGE dialogue generation."
+}

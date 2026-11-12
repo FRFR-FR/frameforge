@@ -1,0 +1,56 @@
+name: GAMEFORGE validation
+
+on:
+  push:
+    branches: [gameforge-cutscene-integration]
+    paths:
+      - "gameforge/**"
+      - ".github/workflows/gameforge-validate.yml"
+  pull_request:
+    paths:
+      - "gameforge/**"
+      - ".github/workflows/gameforge-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-contracts:
+    name: Validate GAMEFORGE and cutscene contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install contract dependency
+        run: python -m pip install --disable-pip-version-check jsonschema
+      - name: Compile all cutscene Python modules
+        run: python -m compileall -q gameforge/cutscenes
+      - name: Run cutscene policy tests
+        run: python -m unittest discover -s gameforge/cutscenes/tests -v
+      - name: Check runtime integration
+        run: python gameforge/tests/validate_runtime.py
+      - name: Check GAMEFORGE autopilot
+        run: |
+          python -m pip install --disable-pip-version-check -r gameforge/generator/brief_compiler/requirements.txt
+          PYTHONPATH=gameforge/generator/autopilot python -m unittest discover -s gameforge/generator/autopilot -p 'test_*.py' -v
+
+  godot-runtime:
+    name: Import Godot project and run runtime smoke tests
+    needs: python-contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: false
+      - name: Import and parse Godot template headlessly
+        run: |
+          godot --headless --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --path gameforge/runtime/godot_template --quit-after 3
+      - name: Run Godot runtime smoke test
+        run: godot --headless --path gameforge/runtime/godot_template --script res://tests/runtime_smoke.gd

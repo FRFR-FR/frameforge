@@ -1,0 +1,39 @@
+{
+  "title": "The Quiet Between",
+  "genre": "third-person narrative adventure",
+  "logline": "A young cartographer returns to a coastal town where memories are recorded in the changing shape of the landscape.",
+  "player_fantasy": "Read a living world, navigate difficult relationships and reshape paths by choosing what to remember.",
+  "platforms": ["android", "windows"],
+  "campaign": {
+    "target_hours": 7,
+    "chapters": 8,
+    "side_content_policy": "story_relevant_only"
+  },
+  "creative_direction": {
+    "visual_identity": "Painterly 3D with layered translucent mineral surfaces, weather-shaped silhouettes and hand-authored light gradients.",
+    "themes": ["grief", "responsibility", "memory", "reconciliation"],
+    "narrative_pillars": ["relationships change through actions", "exploration reveals emotional history", "the ending reflects accumulated choices"],
+    "reference_exclusions": ["photoreal military shooter visual language", "generic loot-grind progression"]
+  },
+  "mechanics": [
+    {
+      "name": "Tide Mapping",
+      "player_verb": "trace",
+      "story_purpose": "The player draws temporary routes by aligning remembered versions of the coastline.",
+      "prior_art_notes": "Requires a prior-art review before novelty claims.",
+      "novelty_confidence": 0.2,
+      "prototype_status": "idea"
+    }
+  ],
+  "performance": {
+    "android_profile": "low",
+    "pc_profile": "balanced",
+    "baseline_fps": 30,
+    "max_download_mb": 2500
+  },
+  "frameforge": {
+    "enabled": true,
+    "manifest_version": "1.0",
+    "cinematic_style": "painterly intimate close-ups and restrained environmental spectacle"
+  }
+}

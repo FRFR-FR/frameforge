@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GAMEFORGE Cutscene Project",
+  "type": "object",
+  "required": ["schema_version", "project", "render", "characters", "dialogue"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project": {
+      "type": "object",
+      "required": ["id", "title", "art_direction"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-zA-Z0-9_-]+$"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 100},
+        "art_direction": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "render": {
+      "type": "object",
+      "required": ["width", "height", "fps", "duration_seconds", "profile"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1280, "maximum": 1920},
+        "height": {"type": "integer", "minimum": 720, "maximum": 1080},
+        "fps": {"type": "integer", "minimum": 1, "maximum": 30},
+        "duration_seconds": {"type": "number", "exclusiveMinimum": 0, "maximum": 600},
+        "profile": {"enum": ["low", "balanced", "high"]},
+        "samples": {"type": "integer", "minimum": 4, "maximum": 64}
+      },
+      "additionalProperties": true
+    },
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "voice"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-zA-Z0-9_-]+$"},
+          "name": {"type": "string", "minLength": 1},
+          "voice": {"type": "string"},
+          "palette": {"type": "object"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "dialogue": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "character_id", "voice", "start", "text"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-zA-Z0-9_-]+$"},
+          "character_id": {"type": "string"},
+          "voice": {"type": "string"},
+          "start": {"type": "number", "minimum": 0},
+          "text": {"type": "string", "minLength": 1, "maxLength": 2000}
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

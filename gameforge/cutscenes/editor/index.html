@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101722">
+  <title>GAMEFORGE — Cutscene Studio</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../README.md"><span class="brand-mark">G</span><span><strong>GAMEFORGE</strong><small>FRAMEFORGE CUTSCENE STUDIO</small></span></a>
+    <div class="project-field"><label for="projectTitle">PROJECT</label><input id="projectTitle" value="GAMEFORGE Cutscene Prototype" maxlength="100"></div>
+    <div class="actions">
+      <button id="newProject" class="quiet">New</button>
+      <button id="importProject" class="quiet">Open JSON</button>
+      <button id="exportProject" class="primary">Export project JSON</button>
+      <input id="projectFile" type="file" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="section-head"><div><p class="eyebrow">CAST</p><h2>Characters</h2></div><button id="addCharacter" class="small-button">+ Add</button></div>
+        <div id="characters" class="character-list"></div>
+        <p class="hint">Characters are generated as original, armature-driven Blender assets by the render pipeline. Preview shapes here are lightweight only.</p>
+      </section>
+      <section class="panel output-panel">
+        <p class="eyebrow">RENDER GOVERNOR</p><h2>Output limits</h2>
+        <label>Resolution<select id="resolution"><option value="720">1280 × 720 · 720p</option><option value="1080">1920 × 1080 · 1080p maximum</option></select></label>
+        <label>Frame rate<select id="fps"><option value="24">24 FPS</option><option value="30" selected>30 FPS</option></select></label>
+        <label>Quality profile<select id="profile"><option value="low">Low — fastest CPU render</option><option value="balanced" selected>Balanced</option><option value="high">High — more samples</option></select></label>
+        <label>Duration (seconds)<input id="duration" type="number" min="1" max="600" step="1" value="12"></label>
+        <p class="limit-note">Hard limit: 1920 × 1080, 30 FPS, 10 minutes per generated cutscene. No 2K/4K export.</p>
+      </section>
+    </aside>
+
+    <section class="main-column">
+      <section class="panel stage-panel">
+        <div class="section-head"><div><p class="eyebrow">SHOT / CHARACTER PREVIEW</p><h2>Scene stage</h2></div><div class="stage-meta"><span id="previewStatus">FrameForge 3D preview</span><span id="timeLabel">00:00.0</span></div></div>
+        <canvas id="preview" width="960" height="540" aria-label="Cutscene 3D preview"></canvas>
+        <div class="preview-controls"><label class="scrub-label">Preview time <input id="scrub" type="range" min="0" max="12" value="0" step="0.05"></label><button id="playPreview" class="small-button">Play preview</button></div>
+        <p class="hint">The browser view is a scene-blockout preview using the copied FrameForge CPU 3D renderer. Final rig deformation, lighting, facial animation and video rendering happen in Blender.</p>
+      </section>
+
+      <section class="panel dialogue-panel">
+        <div class="section-head"><div><p class="eyebrow">PERFORMANCE TIMELINE</p><h2>Dialogue & subtitle cues</h2></div><button id="addDialogue" class="small-button">+ Add dialogue</button></div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Time</th><th>Character</th><th>Kyutai voice</th><th>Dialogue</th><th></th></tr></thead><tbody id="dialogueRows"></tbody></table>
+        </div>
+        <div class="subtitle-strip"><span class="subtitle-chip">SUBTITLES ON</span><span>White text · dark outline · fully transparent background</span></div>
+      </section>
+
+      <section class="panel export-panel">
+        <div><p class="eyebrow">NEXT STEP</p><h2>Render this cutscene</h2><p>Export the manifest, then run the GAMEFORGE Blender + Kyutai + alignment pipeline on a machine with the required tools installed.</p></div>
+        <code>python gameforge/cutscenes/run_cutscene.py --project cutscene_project.json --out build/cutscene</code>
+      </section>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="core/frameforge-3d.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
