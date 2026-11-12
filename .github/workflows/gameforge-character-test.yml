@@ -1,0 +1,70 @@
+name: GAMEFORGE character generation test
+
+on:
+  push:
+    branches:
+      - gameforge-character-lab
+    paths:
+      - "gameforge/characters/**"
+      - ".github/workflows/gameforge-character-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  loomglass-character-build:
+    name: Build and audit 10 Loomglass characters
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out isolated character lab
+        uses: actions/checkout@v4
+
+      - name: Check generator syntax
+        run: python3 -m py_compile gameforge/characters/build_character_test.py
+
+      - name: Install Blender CPU renderer
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender
+          blender --version
+
+      - name: Generate rigged character assets and 720p previews
+        run: |
+          mkdir -p output/gameforge_character_test
+          blender --background --factory-startup --python-exit-code 1 \
+            --python gameforge/characters/build_character_test.py -- \
+            --output-dir output/gameforge_character_test --samples 48
+
+      - name: Verify expected deliverables
+        run: |
+          test -s output/gameforge_character_test/GAMEFORGE_LOOMGLASS_10_Character_Lab.blend
+          test -s output/gameforge_character_test/GAMEFORGE_LOOMGLASS_Gallery_1280x720.png
+          test -s output/gameforge_character_test/GAMEFORGE_LOOMGLASS_Audit.json
+          test -s output/gameforge_character_test/GAMEFORGE_LOOMGLASS_10_Character_Review_Pack.zip
+          test "$(find output/gameforge_character_test/characters -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10
+          test "$(find output/gameforge_character_test/previews -maxdepth 1 -name '*_720p.png' -type f | wc -l)" -eq 10
+          python3 - <<'PY'
+          import json
+          p = "output/gameforge_character_test/GAMEFORGE_LOOMGLASS_Audit.json"
+          d = json.load(open(p, encoding="utf-8"))
+          assert len(d["characters"]) == 10, d
+          assert d["failures"] == [], d["failures"]
+          assert all(all(c["checks"].values()) for c in d["characters"]), d
+          print("All ten character audits passed.")
+          PY
+
+      - name: Upload Blender project, GLBs, previews and audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-LOOMGLASS-10-Character-Test-${{ github.sha }}
+          path: |
+            output/gameforge_character_test/GAMEFORGE_LOOMGLASS_10_Character_Lab.blend
+            output/gameforge_character_test/GAMEFORGE_LOOMGLASS_Gallery_1280x720.png
+            output/gameforge_character_test/GAMEFORGE_LOOMGLASS_Audit.json
+            output/gameforge_character_test/GAMEFORGE_LOOMGLASS_10_Character_Review_Pack.zip
+            output/gameforge_character_test/README.md
+            output/gameforge_character_test/characters/*.glb
+            output/gameforge_character_test/previews/*_720p.png
+          if-no-files-found: error
+          retention-days: 14
