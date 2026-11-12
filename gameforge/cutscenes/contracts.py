@@ -25,9 +25,27 @@ def allowed_voice_ids() -> set[str]:
 
 
 def validate_project(project: dict[str, Any]) -> dict[str, Any]:
+    # Enforce explicit output caps first so callers receive clear policy errors
+    # instead of generic JSON Schema range messages.
+    render_candidate = project.get("render", {})
+    if isinstance(render_candidate, dict):
+        width = render_candidate.get("width")
+        height = render_candidate.get("height")
+        fps = render_candidate.get("fps")
+        duration = render_candidate.get("duration_seconds")
+        if isinstance(width, (int, float)) and isinstance(height, (int, float)):
+            if width > MAX_WIDTH or height > MAX_HEIGHT:
+                raise ValueError("GAMEFORGE cutscenes are capped at 1920x1080 (1080p).")
+            if (width, height) not in {(1280, 720), (1920, 1080)}:
+                raise ValueError("Select exactly 1280x720 (720p) or 1920x1080 (1080p).")
+        if isinstance(fps, (int, float)) and fps > MAX_FPS:
+            raise ValueError("GAMEFORGE cutscene frame rate is capped at 30 FPS.")
+        if isinstance(duration, (int, float)) and duration > MAX_SECONDS:
+            raise ValueError("A single GAMEFORGE cutscene may not exceed 600 seconds.")
+
     # Blender ships its own Python runtime and may not have jsonschema installed.
     # Use the JSON Schema validator where available; the explicit policy checks
-    # below remain mandatory in both Blender and system Python.
+    # remain mandatory in both Blender and system Python.
     try:
         from jsonschema import Draft202012Validator
     except ImportError:
