@@ -104,7 +104,18 @@ for i,sh in enumerate(C["shots"]):
   animate(arm,"brace" if style=="observe" else style,a,b,j*.7+i*.35)
   root.location.x=(-2+sh.get("hero_x",0)) if j==0 else 2+j*1.5;root.location.y=-1 if j==0 else 0
   root.keyframe_insert(data_path="location",frame=a);root.location.x+=sh.get("move_x",.6);root.keyframe_insert(data_path="location",frame=b)
-S.render.engine="BLENDER_EEVEE";S.eevee.taa_render_samples=64
+# Select the Eevee engine available in the installed Blender build.
+engine_ids = {item.identifier for item in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items}
+if "BLENDER_EEVEE_NEXT" in engine_ids:
+ S.render.engine = "BLENDER_EEVEE_NEXT"
+elif "BLENDER_EEVEE" in engine_ids:
+ S.render.engine = "BLENDER_EEVEE"
+else:
+ raise RuntimeError("No supported Eevee render engine is available: " + ", ".join(sorted(engine_ids)))
+# Legacy Eevee exposes this setting; Eevee Next manages sampling differently.
+eevee_settings = getattr(S, "eevee", None)
+if eevee_settings is not None and hasattr(eevee_settings, "taa_render_samples"):
+ eevee_settings.taa_render_samples = 64
 S.render.resolution_x=1280;S.render.resolution_y=720;S.render.resolution_percentage=100
 S.render.image_settings.file_format="PNG";S.render.image_settings.color_mode="RGB"
 S.render.filepath=os.path.abspath("render/frame_");S.view_settings.view_transform="AgX";S.view_settings.look="AgX - Medium High Contrast"
