@@ -26,8 +26,9 @@ jobs:
       - name: Install Blender CPU renderer
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender
+          sudo apt-get install --yes blender python3-numpy
           blender --version
+          blender --background --python-expr "import numpy; print('NumPy:', numpy.__version__)"
 
       - name: Generate rigged character assets and 720p previews
         run: |
