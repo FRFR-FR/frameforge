@@ -1,0 +1,94 @@
+{
+  "style_name": "LOOMGLASS",
+  "project": "GAMEFORGE",
+  "version": "0.1-test",
+  "design_principles": [
+    "sculptural soft-volume silhouettes",
+    "folded and chamfered ceramic planes",
+    "satin-metal hardware",
+    "thin emissive seam inlays",
+    "expressive glass-like eyes with readable brows and mouth",
+    "asymmetrical character-specific silhouette signatures",
+    "layered mantles, collars, crests and props that remain part of the rig",
+    "procedural geometry authored natively in Blender"
+  ],
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "engine": "Blender Cycles",
+    "device": "CPU",
+    "samples": 48,
+    "denoising": true,
+    "fps": 30
+  },
+  "rig": {
+    "bones": 17,
+    "mesh_per_character": 1,
+    "weighted": true,
+    "idle_animation": true,
+    "interchange": "glTF 2.0 binary"
+  },
+  "characters": [
+    {
+      "id": "01_ASTER",
+      "name": "Aster",
+      "role": "Wayfinder",
+      "signature": "orbit halo and swept compass crest"
+    },
+    {
+      "id": "02_BRONT",
+      "name": "Bront",
+      "role": "Oathkeeper",
+      "signature": "paired horns, shield gorget and furnace heart"
+    },
+    {
+      "id": "03_NYX",
+      "name": "Nyx",
+      "role": "Verdantist",
+      "signature": "leaf crown, vine arc and folded leaf mantle"
+    },
+    {
+      "id": "04_PIKA",
+      "name": "Pika",
+      "role": "Spark-runner",
+      "signature": "comet plume and diagonal runner sash"
+    },
+    {
+      "id": "05_ORIN",
+      "name": "Orin",
+      "role": "Memory-keeper",
+      "signature": "archive aureole, visor and book clasp"
+    },
+    {
+      "id": "06_SOLA",
+      "name": "Sola",
+      "role": "Cloud courier",
+      "signature": "split sky-wings and wind collar"
+    },
+    {
+      "id": "07_VEY",
+      "name": "Vey",
+      "role": "Forge-singer",
+      "signature": "asymmetrical forge pauldron and hammer prop"
+    },
+    {
+      "id": "08_LUMA",
+      "name": "Luma",
+      "role": "Tidecaller",
+      "signature": "tidal circlet and layered fin mantle"
+    },
+    {
+      "id": "09_KORO",
+      "name": "Koro",
+      "role": "Dusk ranger",
+      "signature": "shadow hood, crescent ring and bow silhouette"
+    },
+    {
+      "id": "10_MIRI",
+      "name": "Miri",
+      "role": "Seed-tender",
+      "signature": "seven-petal crest and seed charms"
+    }
+  ],
+  "originality_note": "Loomglass is an original style direction created for this GAMEFORGE test. Absolute uniqueness across all 3D games cannot be proven."
+}
