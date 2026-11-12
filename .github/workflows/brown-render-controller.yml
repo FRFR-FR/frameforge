@@ -1,23 +1,73 @@
 name: BROWN 24-Part Parallel Render Controller
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/brown-render-controller.yml"
-      - "brown_film/render_part.py"
   workflow_dispatch:
+    inputs:
+      parts:
+        description: 'JSON array of part IDs to render, e.g. ["01","02"]. Use [] for assembly-only.'
+        required: false
+        type: string
+        default: '["01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24"]'
+      batch_id:
+        description: Unique batch ID supplied by the watchdog
+        required: false
+        type: string
+        default: manual
 
 permissions:
   actions: read
   contents: read
 
+# Each recovery batch gets its own group so a partially running older batch
+# cannot block recovery work for other parts.
 concurrency:
-  group: brown-book-one-controller
+  group: brown-book-one-controller-${{ inputs.batch_id || github.run_id }}
   cancel-in-progress: false
 
 jobs:
+  benchmark:
+    if: inputs.parts != '[]'
+    name: Verify CPU render speed before launching production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the central renderer
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch part 01 story configuration
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin refs/heads/brown-film/part-01:refs/remotes/origin/brown-film/part-01
+          git show refs/remotes/origin/brown-film/part-01:brown_part.json > brown_part.json
+
+      - name: Install Blender and FFmpeg
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg libegl1 libgl1-mesa-dri libxrender1 libxi6 libxkbcommon0
+          blender --version
+          ffmpeg -version | head -n 1
+
+      - name: Render and time a 20-frame smoke test
+        run: |
+          set -euo pipefail
+          mkdir -p render
+          START="$(date +%s)"
+          blender --background --factory-startup --threads 2 --python-exit-code 1 \
+            --python brown_film/render_part.py -- --config brown_part.json --start-frame 1 --end-frame 20 2>&1 | tee benchmark.log
+          ELAPSED="$(( $(date +%s) - START ))"
+          COUNT="$(find render -maxdepth 1 -name 'frame_*.png' | wc -l)"
+          echo "BENCHMARK_SECONDS=${ELAPSED} FRAMES=${COUNT}"
+          test "${COUNT}" -eq 20
+          # At 3 seconds/frame, the complete 6,000-frame part fits inside
+          # the six-hour GitHub Actions job timeout.
+          test "${ELAPSED}" -le 60
+
   render:
+    needs: [benchmark]
+    if: inputs.parts != '[]' && needs.benchmark.result == 'success'
     name: Render part ${{ matrix.part }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -25,7 +75,7 @@ jobs:
       fail-fast: false
       max-parallel: 20
       matrix:
-        part: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"]
+        part: ${{ fromJSON(inputs.parts) }}
     steps:
       - name: Check out the central renderer
         uses: actions/checkout@v4
@@ -69,7 +119,7 @@ jobs:
           blender --background --factory-startup --threads 2 --python-exit-code 1 \
             --python brown_film/render_part.py -- --config brown_part.json 2>&1 | tee render.log
           python3 - "${PART}" <<'PY'
-          import glob, os, sys
+          import glob, sys
           part = int(sys.argv[1])
           frames = glob.glob("render/frame_*.png")
           if len(frames) != 6000:
@@ -91,10 +141,10 @@ jobs:
           ffprobe -v error -count_frames -select_streams v:0 \
             -show_entries stream=width,height,r_frame_rate,nb_read_frames \
             -show_entries format=duration,size -of json "${FILE}" | tee render/verification.json
-          python3 - " ${FILE}" <<'PY'
+          python3 - "${FILE}" <<'PY'
           import json, sys
           from fractions import Fraction
-          path = sys.argv[1].strip()
+          path = sys.argv[1]
           with open("render/verification.json", encoding="utf-8") as f:
               d = json.load(f)
           s = d["streams"][0]
@@ -122,8 +172,8 @@ jobs:
 
   assemble:
     name: Validate and assemble the complete two-hour film
-    if: always()
-    needs: [render]
+    needs: [benchmark, render]
+    if: always() && (needs.benchmark.result == 'success' || needs.benchmark.result == 'skipped') && (needs.render.result == 'success' || needs.render.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -133,25 +183,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg jq unzip
 
-      - name: Download and validate all 24 parts from this controller run
+      - name: Locate the newest verified artifact for every part across all render batches
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          GH_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
           mkdir -p parts
           : > parts/concat.txt
           : > parts/manifest.tsv
-          artifacts="$(gh api "repos/${GH_REPO}/actions/runs/${GH_RUN_ID}/artifacts?per_page=100")"
-          missing=0
+          : > parts/artifacts.tsv
 
+          runs="$(gh api "repos/${GH_REPO}/actions/workflows/brown-render-controller.yml/runs?branch=main&per_page=100")"
+          while IFS= read -r run_id; do
+            gh api "repos/${GH_REPO}/actions/runs/${run_id}/artifacts?per_page=100" \
+              | jq -r --arg rid "${run_id}" '.artifacts[] | select(.expired == false) | [.name, $rid, (.id|tostring)] | @tsv' \
+              >> parts/artifacts.tsv
+          done < <(jq -r '.workflow_runs[].id' <<< "${runs}")
+
+          missing=0
           for n in $(seq -w 1 24); do
             name="brown-part-${n}"
-            artifact_id="$(jq -r --arg name "${name}" \
-              '.artifacts[] | select(.name == $name and .expired == false) | .id' \
-              <<< "${artifacts}" | head -n 1)"
-            if [ -z "${artifact_id}" ] || [ "${artifact_id}" = "null" ]; then
+            artifact_id="$(awk -F '\t' -v name="${name}" '$1 == name { print $3; exit }' parts/artifacts.tsv)"
+            artifact_run="$(awk -F '\t' -v name="${name}" '$1 == name { print $2; exit }' parts/artifacts.tsv)"
+            if [ -z "${artifact_id}" ]; then
               echo "MISSING_ARTIFACT ${name}"
               missing=1
               continue
@@ -170,8 +225,7 @@ jobs:
             cp "${video}" "parts/part-${n}.mp4"
             ffprobe -v error -count_frames -select_streams v:0 \
               -show_entries stream=width,height,r_frame_rate,nb_read_frames \
-              -show_entries format=duration,size -of json \
-              "parts/part-${n}.mp4" > "parts/probe-${n}.json"
+              -show_entries format=duration,size -of json "parts/part-${n}.mp4" > "parts/probe-${n}.json"
             python3 - "${n}" <<'PY'
           import json, sys
           from fractions import Fraction
@@ -186,11 +240,11 @@ jobs:
           print("ASSEMBLY_INPUT_VALID", n)
           PY
             printf "file 'part-%s.mp4'\n" "${n}" >> parts/concat.txt
-            printf "%s\t%s\t%s\n" "${n}" "${GH_RUN_ID}" "${artifact_id}" >> parts/manifest.tsv
+            printf "%s\t%s\t%s\n" "${n}" "${artifact_run}" "${artifact_id}" >> parts/manifest.tsv
           done
 
           if [ "${missing}" -ne 0 ]; then
-            echo "Assembly blocked: one or more parts did not produce a verified artifact."
+            echo "Assembly blocked: one or more parts do not yet have a verified artifact."
             exit 1
           fi
           echo "All 24 verified MP4 parts are ready."
