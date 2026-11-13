@@ -648,8 +648,6 @@ def make_arched_window(frame_mat, glass_mat):
         h = 0.6 + 0.5 * (i % 4)
         cylinder("Distant pine trunk", (xx, 2.79, 2.0 + h * 0.3), 0.045, h, frame_mat, 8)
         for j in range(3):
-            cone = bpy.data.objects.new("Distant pine silhouette", bpy.data.meshes.new("Pine mesh"))
-            bpy.context.collection.objects.link(cone)
             bpy.ops.mesh.primitive_cone_add(vertices=9, radius1=0.45 - j * 0.07, radius2=0.02,
                                            depth=0.85, location=(xx, 2.75, 2.35 + h * 0.45 + j * 0.28))
             tree = bpy.context.object
