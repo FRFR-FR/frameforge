@@ -1,6 +1,6 @@
-# BROWN — Blender CPU Production Pipeline
+# BROWN — Blender CPU Prototype (Final Film Render Blocked)
 
-This is the high-quality production path for the BROWN Book One animation. It uses **Blender's real 3D scene, armature, constraints, camera, material, lighting, animation and Cycles systems** instead of FrameForge's lightweight Canvas 2D software preview renderer.
+**This folder currently contains a short procedural prototype, not the complete BROWN Book One film. It is not approved for final delivery.** The current scene is 90 seconds, uses block-built characters and a small rigid-weighted skeleton, and focuses on one vehicle ambush. It does not adapt all 72 chapters, provide the full cast, or deliver the required dialogue/action coverage. See [QUALITY_REBUILD_SPEC.md](QUALITY_REBUILD_SPEC.md) for the mandatory rebuild plan.
 
 It does not generate images and does not need a GPU. Blender Cycles is explicitly configured for **CPU rendering**.
 
