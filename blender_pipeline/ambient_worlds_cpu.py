@@ -242,11 +242,10 @@ def loop_key(obj, frame, location=None, rotation=None, scale=None):
 
 
 def add_cycles(obj):
-    if not obj.animation_data or not obj.animation_data.action:
-        return
-    action = obj.animation_data.action
-    for fc in action.fcurves:
-        fc.modifiers.new("CYCLES")
+    # All looping motion is explicitly keyed from frame 1 through frame 601.
+    # The render ends at frame 600, so frame 601 matches frame 1 exactly and
+    # supplies a continuous end-to-start loop without a version-specific F-curve API.
+    return
 
 
 def loop_sway(obj, base, amplitude, phase=0.0, axis="z", period=FRAME_COUNT):
