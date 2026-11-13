@@ -1187,6 +1187,9 @@ def audit_scene(project):
 
 def main():
     args=parse_args()
+    gate=CONFIG.get("production_gate", {})
+    if args.mode == "render" and not gate.get("approved_for_full_render", False):
+        raise RuntimeError("Full render BLOCKED: this procedural 90-second prototype is not approved as the BROWN Book One film. Complete the character, adaptation, dialogue/action proof and visual-QC gates in blender_pipeline/QUALITY_REBUILD_SPEC.md before enabling production rendering.")
     output_dir=Path(args.output_dir).resolve()
     output_dir.mkdir(parents=True,exist_ok=True)
     global OUT_DIR,BLEND_PATH,VIDEO_PATH,AUDIT_PATH
