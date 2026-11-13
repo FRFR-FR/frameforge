@@ -148,5 +148,19 @@
     "check_camera_tracking": true,
     "check_minimum_vehicle_travel": true,
     "check_cpu_renderer": true
+  },
+  "production_gate": {
+    "approved_for_full_render": false,
+    "status": "BLOCKED — prototype rejected for final-film use",
+    "required_before_approval": [
+      "complete 72-chapter source-to-scene adaptation",
+      "approved detailed character model sheets and production models",
+      "full-body and facial rigs validated",
+      "audible dialogue and lip-sync test",
+      "action/dialogue proof scene visually approved",
+      "five-minute pilot visually approved",
+      "human visual QC sign-off"
+    ],
+    "specification": "blender_pipeline/QUALITY_REBUILD_SPEC.md"
   }
 }
