@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: frameforge-dual-ambient-videos
+  group: frameforge-dual-ambient-videos-v2
   cancel-in-progress: false
 
 jobs:
