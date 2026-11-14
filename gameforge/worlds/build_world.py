@@ -5,6 +5,7 @@ import argparse
 import json
 import math
 import random
+import sys
 from pathlib import Path
 import bpy
 from mathutils import Vector
@@ -21,7 +22,9 @@ def arguments():
     parser.add_argument("--seed", type=int, default=42017)
     parser.add_argument("--grid", type=int, default=129)
     parser.add_argument("--samples", type=int, default=32)
-    values, _ = parser.parse_known_args()
+    argv = sys.argv
+    argv = argv[argv.index('--') + 1:] if '--' in argv else []
+    values = parser.parse_args(argv)
     values.grid = max(33, min(257, values.grid))
     if values.grid % 2 == 0:
         values.grid += 1
@@ -388,10 +391,10 @@ def main():
         },
     }
     audit["failures"] = [key for key, passed in audit["checks"].items() if not passed]
-    (output / "GAMEFORGE_Loomwild_Audit.json").write_text(json.dumps(audit, indent=2) + "\\n", encoding="utf-8")
+    (output / "GAMEFORGE_Loomwild_Audit.json").write_text(json.dumps(audit, indent=2) + "\n", encoding="utf-8")
     (output / "README.md").write_text(
-        "# GAMEFORGE Loomwild environment build\\n\\n"
-        "Deterministic painterly 3D landscape generated in Blender. Includes a sculpted heightfield, winding river, old trail, forest, rocks, wildflower patches and an ancient gateway. The .blend is editable, the GLB is the engine interchange asset and the 1280x720 PNG is the review render.\\n",
+        "# GAMEFORGE Loomwild environment build\n\n"
+        "Deterministic painterly 3D landscape generated in Blender. Includes a sculpted heightfield, winding river, old trail, forest, rocks, wildflower patches and an ancient gateway. The .blend is editable, the GLB is the engine interchange asset and the 1280x720 PNG is the review render.\n",
         encoding="utf-8"
     )
     if audit["failures"]:
