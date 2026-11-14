@@ -298,7 +298,7 @@ jobs:
 
   build-android:
     name: Export Android APK on GitHub
-    if: ${{ inputs.build_android }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_android }}
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -360,7 +360,7 @@ jobs:
 
   build-windows:
     name: Export Windows EXE on GitHub
-    if: ${{ inputs.build_windows }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_windows }}
     needs: validate
     runs-on: windows-2025
     timeout-minutes: 90
