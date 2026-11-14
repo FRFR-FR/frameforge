@@ -1,0 +1,119 @@
+name: FrameForge — 10 Second Video Extracts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ambient-extracts.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  extract:
+    name: Create ${{ matrix.project }} 10-second extract
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [asmr, study]
+    env:
+      PROJECT: ${{ matrix.project }}
+      OUT: output/${{ matrix.project }}
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Download the three completed render segments
+        uses: actions/download-artifact@v4
+        with:
+          pattern: FrameForge-${{ matrix.project }}-frames-*
+          path: downloaded
+          merge-multiple: false
+          run-id: 43544489111
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install FFmpeg and set up audio composer
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
+      - name: Set up Python and NumPy
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install NumPy
+        run: python -m pip install --disable-pip-version-check numpy
+
+      - name: Collect the first 300 rendered frames
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT/frames"
+          for CHUNK in 0 1 2; do
+            SRC="downloaded/FrameForge-$PROJECT-frames-$CHUNK"
+            test -d "$SRC"
+            cp "$SRC"/frames/frame_*.png "$OUT/frames/"
+          done
+          COUNT=$(find "$OUT/frames" -maxdepth 1 -name 'frame_*.png' | wc -l)
+          test "$COUNT" -eq 600
+          test -s "$OUT/frames/frame_0001.png"
+          test -s "$OUT/frames/frame_0300.png"
+          echo "Verified 600 source frames; extracting the first 300."
+
+      - name: Generate the matching original 10-second soundtrack
+        run: |
+          set -euo pipefail
+          python blender_pipeline/make_ambient_audio.py \
+            --project "$PROJECT" --seconds 10 --sample-rate 44100 --output-dir "$OUT"
+          if [ "$PROJECT" = "asmr" ]; then
+            test -s "$OUT/asmr_nature_soundscape.wav"
+          else
+            test -s "$OUT/peaceful_study_music.wav"
+          fi
+
+      - name: Encode a 10-second 720p MP4 extract
+        run: |
+          set -euo pipefail
+          if [ "$PROJECT" = "asmr" ]; then
+            AUDIO="$OUT/asmr_nature_soundscape.wav"
+            FINAL="$OUT/FrameForge_ASMR_Enchanted_Water_Garden_10s_720p.mp4"
+          else
+            AUDIO="$OUT/peaceful_study_music.wav"
+            FINAL="$OUT/FrameForge_Study_Music_Cozy_Rainy_Library_10s_720p.mp4"
+          fi
+          ffmpeg -y -hide_banner \
+            -framerate 30 -start_number 1 -i "$OUT/frames/frame_%04d.png" \
+            -i "$AUDIO" -frames:v 300 -t 10 \
+            -map 0:v:0 -map 1:a:0 \
+            -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p \
+            -r 30 -c:a aac -b:a 160k -ar 44100 \
+            -movflags +faststart "$FINAL"
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate,sample_rate,channels \
+            -show_entries format=duration,size -of json "$FINAL" > "$OUT/verification.json"
+          python - "$OUT/verification.json" <<'PY'
+          import json, sys
+          from fractions import Fraction
+          d = json.load(open(sys.argv[1], encoding="utf-8"))
+          v = next(s for s in d["streams"] if s["codec_type"] == "video")
+          a = next(s for s in d["streams"] if s["codec_type"] == "audio")
+          assert (v["width"], v["height"]) == (1280, 720), v
+          assert Fraction(v["r_frame_rate"]) == Fraction(30, 1), v
+          assert 9.9 <= float(d["format"]["duration"]) <= 10.1, d["format"]
+          assert a["codec_name"] == "aac", a
+          print("TEN_SECOND_EXTRACT_VERIFIED", d["format"], v, a)
+          PY
+
+      - name: Upload the finished 10-second MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-${{ matrix.project }}-10-second-extract-720p
+          path: output/${{ matrix.project }}/FrameForge_*_10s_720p.mp4
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
