@@ -375,17 +375,16 @@ jobs:
           version: 4.4.1
           use-dotnet: false
           include-templates: true
+          cache: false
 
       - name: Import and export Windows build
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path "build/windows" | Out-Null
-          $godot = Join-Path $env:USERPROFILE "godot\Godot_v4.4.1-stable_win64_console.exe"
-          if (-not (Test-Path $godot)) {
-            $godot = (Get-Command godot).Source
-          }
-          if (-not (Test-Path $godot)) { throw "Godot console executable was not found." }
+          $godot = Get-ChildItem (Join-Path $env:USERPROFILE "godot") -Filter "*_console.exe" -File |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $godot) { throw "The freshly installed Godot console executable was not found." }
           & $godot --version
           if ($LASTEXITCODE -ne 0) { throw "Godot version check failed: $LASTEXITCODE" }
           & $godot --headless --path "gameforge/runtime/godot_template" --editor --quit
