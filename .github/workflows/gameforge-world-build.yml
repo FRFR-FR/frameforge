@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: gameforge-world-build-\${{ github.ref }}
+  group: gameforge-world-build-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -35,8 +35,8 @@ jobs:
 
       - name: Install pinned Blender CPU renderer
         run: |
-          curl --fail --location --retry 3 \\
-            https://download.blender.org/release/Blender4.5/blender-4.5.16-linux-x64.tar.xz \\
+          curl --fail --location --retry 3 \
+            https://download.blender.org/release/Blender4.5/blender-4.5.16-linux-x64.tar.xz \
             --output "$RUNNER_TEMP/blender.tar.xz"
           mkdir -p "$RUNNER_TEMP/blender"
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
@@ -49,9 +49,9 @@ jobs:
       - name: Generate full 3D landscape, export GLB and render 720p review
         run: |
           mkdir -p "$GITHUB_WORKSPACE/build/gameforge_world"
-          blender --background --factory-startup --python-exit-code 1 \\
-            --python gameforge/worlds/build_world.py -- \\
-            --output-dir "$GITHUB_WORKSPACE/build/gameforge_world" \\
+          blender --background --factory-startup --python-exit-code 1 \
+            --python gameforge/worlds/build_world.py -- \
+            --output-dir "$GITHUB_WORKSPACE/build/gameforge_world" \
             --seed 42017 --grid 129 --samples 32
 
       - name: Verify editable scene, game-ready GLB and rendered preview
@@ -76,7 +76,7 @@ jobs:
       - name: Upload environment project and render pack
         uses: actions/upload-artifact@v4
         with:
-          name: GAMEFORGE-LOOMWILD-Environment-\${{ github.sha }}
+          name: GAMEFORGE-LOOMWILD-Environment-${{ github.sha }}
           path: |
             build/gameforge_world/GAMEFORGE_Loomwild_Environment.blend
             build/gameforge_world/GAMEFORGE_Loomwild_Environment.glb
