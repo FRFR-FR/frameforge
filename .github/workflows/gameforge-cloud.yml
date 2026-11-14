@@ -334,7 +334,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$HOME/.config/godot" "$HOME/.android" "$GITHUB_WORKSPACE/build/android"
-          keytool -genkeypair -noprompt -v             -keystore "$HOME/.android/gameforge-debug.keystore"             -storetype JKS -storepass android -alias androiddebugkey -keypass android             -dname "CN=GAMEFORGE Debug,O=GAMEFORGE,C=US" -validity 10000
+          keytool -genkeypair -noprompt -v -keyalg RSA -keysize 2048             -keystore "$HOME/.android/gameforge-debug.keystore"             -storetype JKS -storepass android -alias androiddebugkey -keypass android             -dname "CN=GAMEFORGE Debug,O=GAMEFORGE,C=US" -validity 10000
           cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
           [resource]
