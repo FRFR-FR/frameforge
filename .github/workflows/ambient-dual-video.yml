@@ -6,7 +6,6 @@ on:
     paths:
       - "blender_pipeline/ambient_worlds_cpu.py"
       - "blender_pipeline/make_ambient_audio.py"
-      - ".github/workflows/ambient-dual-video.yml"
   workflow_dispatch:
     inputs:
       mode:
@@ -26,18 +25,20 @@ concurrency:
 
 jobs:
   render:
-    name: Build and render ${{ matrix.project }} 3D film
+    name: Render ${ matrix.project }} frames ${ matrix.chunk }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 6
       matrix:
         project: [asmr, study]
+        chunk: [0, 1, 2]
 
     env:
-      PROJECT: ${{ matrix.project }}
-      OUT: output/${{ matrix.project }}
+      PROJECT: ${ matrix.project }}
+      CHUNK: ${ matrix.chunk }}
+      OUT: output/${ matrix.project }}/chunk-${ matrix.chunk }}
 
     steps:
       - name: Check out FrameForge
@@ -50,6 +51,58 @@ jobs:
           sudo apt-get install --yes blender ffmpeg
           blender --version
           ffmpeg -version | head -n 1
+
+      - name: Render this segment of the native 3D scene
+        run: |
+          set -euo pipefail
+          START=$((CHUNK * 200 + 1))
+          END=$((START + 199))
+          mkdir -p "$OUT/frames"
+          echo "Rendering $PROJECT frames $START-$END at 720p, 24 Cycles samples."
+          blender --background --factory-startup --threads 2 --python-exit-code 1 \
+            --python blender_pipeline/ambient_worlds_cpu.py -- \
+            --project "$PROJECT" --mode render --samples 24 \
+            --frame-start "$START" --frame-end "$END" --output-dir "$OUT" \
+            2>&1 | tee "$OUT/blender-render.log"
+
+      - name: Upload rendered frames and editable scene source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-${ matrix.project }}-frames-${ matrix.chunk }}
+          path: |
+            output/${ matrix.project }}/chunk-${ matrix.chunk }}/frames/
+            output/${ matrix.project }}/chunk-${ matrix.chunk }}/*.blend
+            output/${ matrix.project }}/chunk-${ matrix.chunk }}/*.glb
+            output/${ matrix.project }}/chunk-${ matrix.chunk }}/*.json
+            output/${ matrix.project }}/chunk-${ matrix.chunk }}/blender-render.log
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+
+  assemble:
+    name: Assemble ${ matrix.project }} one-hour film
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [asmr, study]
+    env:
+      PROJECT: ${ matrix.project }}
+      OUT: output/${ matrix.project }}
+
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
 
       - name: Set up Python audio composer
@@ -60,14 +113,31 @@ jobs:
       - name: Install NumPy
         run: python -m pip install --disable-pip-version-check numpy
 
-      - name: Build the complete native Blender environment and render the seamless 20-second loop
+      - name: Download all three rendered segments
+        uses: actions/download-artifact@v4
+        with:
+          pattern: FrameForge-${ matrix.project }}-frames-*
+          path: downloaded
+          merge-multiple: false
+
+      - name: Reassemble the complete 600-frame seamless loop
         run: |
           set -euo pipefail
           mkdir -p "$OUT/frames"
-          blender --background --factory-startup --threads 2 --python-exit-code 1 \
-            --python blender_pipeline/ambient_worlds_cpu.py -- \
-            --project "$PROJECT" --mode render --samples 24 --output-dir "$OUT" \
-            2>&1 | tee "$OUT/blender-render.log"
+          for CHUNK in 0 1 2; do
+            SRC="downloaded/FrameForge-$PROJECT-frames-$CHUNK"
+            test -d "$SRC"
+            cp "$SRC"/frames/frame_*.png "$OUT/frames/"
+          done
+          COUNT=$(find "$OUT/frames" -maxdepth 1 -name 'frame_*.png' | wc -l)
+          test "$COUNT" -eq 600
+          test -f "$OUT/frames/frame_0001.png"
+          test -f "$OUT/frames/frame_0600.png"
+          echo "FRAMEFORGE_ALL_FRAMES_REASSEMBLED: $COUNT"
+          cp downloaded/FrameForge-"$PROJECT"-frames-0/*.blend "$OUT/"
+          cp downloaded/FrameForge-"$PROJECT"-frames-0/*.glb "$OUT/" || true
+          cp downloaded/FrameForge-"$PROJECT"-frames-0/scene_audit.json "$OUT/"
+          find downloaded -name blender-render.log -type f -print0 | sort -z | xargs -0 cat > "$OUT/blender-render.log"
 
       - name: Compose the original soundtrack for this video
         run: |
@@ -76,14 +146,17 @@ jobs:
             --project "$PROJECT" --seconds 300 --sample-rate 44100 --output-dir "$OUT"
           test -s "$OUT/asmr_nature_soundscape.wav" -o -s "$OUT/peaceful_study_music.wav"
 
-      - name: Encode the 3D loop and assemble the one-hour video
+      - name: Encode the seamless 20-second 720p background loop
         run: |
           set -euo pipefail
           ffmpeg -y -hide_banner -framerate 30 -start_number 1 \
             -i "$OUT/frames/frame_%04d.png" -frames:v 600 \
-            -c:v libx264 -preset medium -crf 17 -pix_fmt yuv420p \
+            -c:v libx264 -preset veryfast -crf 17 -pix_fmt yuv420p \
             -r 30 -an -movflags +faststart "$OUT/background_loop_20s.mp4"
 
+      - name: Assemble the one-hour video with the correct audio
+        run: |
+          set -euo pipefail
           if [ "$PROJECT" = "asmr" ]; then
             AUDIO="$OUT/asmr_nature_soundscape.wav"
             FINAL="$OUT/FrameForge_ASMR_Enchanted_Water_Garden_60min_720p.mp4"
@@ -91,18 +164,16 @@ jobs:
             AUDIO="$OUT/peaceful_study_music.wav"
             FINAL="$OUT/FrameForge_Study_Music_Cozy_Rainy_Library_60min_720p.mp4"
           fi
-
           ffmpeg -y -hide_banner \
             -stream_loop -1 -i "$OUT/background_loop_20s.mp4" \
             -stream_loop -1 -i "$AUDIO" -t 3600 \
             -map 0:v:0 -map 1:a:0 \
-            -c:v libx264 -preset fast -crf 21 -maxrate 3500k -bufsize 7000k \
+            -c:v libx264 -preset veryfast -crf 21 -maxrate 3500k -bufsize 7000k \
             -pix_fmt yuv420p -r 30 -profile:v high -level 4.1 \
             -c:a aac -b:a 160k -ar 44100 \
             -metadata title="FrameForge $PROJECT painterly 3D ambient film" \
             -metadata comment="Original Blender 3D scene and original audio composition" \
             -movflags +faststart "$FINAL"
-
           test -s "$FINAL"
           cp "$OUT/frames/frame_0001.png" "$OUT/preview_start.png"
           cp "$OUT/frames/frame_0301.png" "$OUT/preview_mid.png"
@@ -136,15 +207,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: FrameForge-${{ matrix.project }}-Painterly-3D-60min-720p
+          name: FrameForge-${ matrix.project }}-Painterly-3D-60min-720p
           path: |
-            output/${{ matrix.project }}/FrameForge_*.mp4
-            output/${{ matrix.project }}/*.blend
-            output/${{ matrix.project }}/*.glb
-            output/${{ matrix.project }}/*.wav
-            output/${{ matrix.project }}/*.json
-            output/${{ matrix.project }}/preview_*.png
-            output/${{ matrix.project }}/blender-render.log
+            output/${ matrix.project }}/FrameForge_*.mp4
+            output/${ matrix.project }}/*.blend
+            output/${ matrix.project }}/*.glb
+            output/${ matrix.project }}/*.wav
+            output/${ matrix.project }}/*.json
+            output/${ matrix.project }}/preview_*.png
+            output/${ matrix.project }}/background_loop_20s.mp4
+            output/${ matrix.project }}/blender-render.log
           if-no-files-found: warn
           retention-days: 30
           compression-level: 0
