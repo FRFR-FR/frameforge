@@ -68,7 +68,8 @@ $BlenderCandidates = @(
 $BlenderExe = $BlenderCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $BlenderExe) {
     Download-File $BlenderUrl $BlenderMsi
-    $p = Start-Process msiexec.exe -ArgumentList @("/i", $BlenderMsi, "/qn", "/norestart") -Wait -PassThru
+    $MsiArgs = "/i " + [char]34 + $BlenderMsi + [char]34 + " /qn /norestart"
+    $p = Start-Process msiexec.exe -ArgumentList $MsiArgs -Wait -PassThru
     if ($p.ExitCode -notin @(0, 3010)) { throw "Blender installer failed: $($p.ExitCode)" }
     $BlenderExe = $BlenderCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 }
@@ -95,7 +96,7 @@ $GodotDir = Join-Path $ToolsRoot "godot-$GodotVersion"
 $GodotExe = Join-Path $GodotDir "Godot_v$GodotVersion-stable_win64.exe"
 if (-not (Test-Path $GodotExe)) {
     $GodotZip = Join-Path $Work "Godot_v$GodotVersion-stable_win64.exe.zip"
-    Download-File "https://github.com/godotengine/godot/releases/download/$GodotVersion-stable/Godot_v$GodotVersion-stable_win64.exe.zip" $GodotZip
+    Download-File "https://downloads.godotengine.org/?flavor=stable&platform=windows.64&slug=win64.exe.zip&version=$GodotVersion" $GodotZip
     New-Item -ItemType Directory -Force -Path $GodotDir | Out-Null
     Expand-Archive -Path $GodotZip -DestinationPath $GodotDir -Force
 }
@@ -105,7 +106,7 @@ Add-UserPath $GodotDir
 $TemplateRoot = Join-Path $env:APPDATA "Godot/export_templates/$GodotVersion.stable"
 if (-not (Test-Path (Join-Path $TemplateRoot "android_debug.apk"))) {
     $TemplateZip = Join-Path $Work "Godot_v$GodotVersion-stable_export_templates.zip"
-    Download-File "https://github.com/godotengine/godot/releases/download/$GodotVersion-stable/Godot_v$GodotVersion-stable_export_templates.tpz" $TemplateZip
+    Download-File "https://downloads.godotengine.org/?flavor=stable&platform=templates&slug=export_templates.tpz&version=$GodotVersion" $TemplateZip
     $TemplateTemp = Join-Path $Work "godot-templates"
     if (Test-Path $TemplateTemp) { Remove-Item $TemplateTemp -Recurse -Force }
     Expand-Archive -Path $TemplateZip -DestinationPath $TemplateTemp -Force

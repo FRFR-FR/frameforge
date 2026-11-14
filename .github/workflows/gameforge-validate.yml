@@ -5,10 +5,14 @@ on:
     branches: [gameforge-cutscene-integration]
     paths:
       - "gameforge/**"
+      - "setup/**"
+      - ".gitignore"
       - ".github/workflows/gameforge-validate.yml"
   pull_request:
     paths:
       - "gameforge/**"
+      - "setup/**"
+      - ".gitignore"
       - ".github/workflows/gameforge-validate.yml"
   workflow_dispatch:
 
@@ -54,3 +58,40 @@ jobs:
           godot --headless --path gameforge/runtime/godot_template --quit-after 3
       - name: Run Godot runtime smoke test
         run: godot --headless --path gameforge/runtime/godot_template --script res://tests/runtime_smoke.gd
+
+  setup-script-validation:
+    name: Validate local installation scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Linux installer shell syntax
+        run: bash -n setup/linux/install-gameforge.sh
+      - name: Compile Python setup utilities
+        run: python -m py_compile setup/verify_install.py setup/fetch_models.py
+      - name: Check required installer files
+        run: |
+          test -s setup/windows/Install-GAMEFORGE.ps1
+          test -s setup/linux/install-gameforge.sh
+          test -s setup/verify_install.py
+          test -s setup/fetch_models.py
+
+  windows-installer-parse:
+    name: Parse Windows PowerShell installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse installer without running installation
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            "setup/windows/Install-GAMEFORGE.ps1",
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host "PowerShell installer syntax is valid."
