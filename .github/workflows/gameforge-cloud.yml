@@ -329,6 +329,7 @@ jobs:
           version: 4.4.1
           use-dotnet: false
           include-templates: true
+          cache: false
 
       - name: Configure Godot Android paths and ephemeral debug signing
         shell: bash
