@@ -15,6 +15,7 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
+# Render workers can select disjoint frame ranges while preserving the full timeline.
 FPS = 30
 LOOP_SECONDS = 20
 FRAME_COUNT = FPS * LOOP_SECONDS
