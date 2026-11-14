@@ -31,7 +31,7 @@ jobs:
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes xz-utils libxkbcommon0 libxrender1 libxi6 libxfixes3 libxext6 libx11-6
+          sudo apt-get install --yes xz-utils libegl1 libgl1 libglx0 libopengl0 libglu1-mesa libglib2.0-0 libsm6 libxkbcommon0 libxrender1 libxi6 libxfixes3 libxext6 libx11-6 libxrandr2 libxcursor1 libxinerama1
 
       - name: Install pinned Blender CPU renderer
         run: |
