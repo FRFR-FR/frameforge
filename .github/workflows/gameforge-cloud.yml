@@ -348,7 +348,7 @@ jobs:
       - name: Import and export Android APK
         run: |
           godot --headless --path gameforge/runtime/godot_template --editor --quit
-          godot --headless --path gameforge/runtime/godot_template             --export-debug "Android" "$GITHUB_WORKSPACE/build/android/GAMEFORGE.apk"
+          godot --headless --path gameforge/runtime/godot_template --install-android-build-template             --export-debug "Android" "$GITHUB_WORKSPACE/build/android/GAMEFORGE.apk"
           test -s build/android/GAMEFORGE.apk
           unzip -t build/android/GAMEFORGE.apk
 
