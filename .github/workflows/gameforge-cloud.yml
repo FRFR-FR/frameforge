@@ -381,11 +381,20 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path "build/windows" | Out-Null
-          godot --headless --path "gameforge/runtime/godot_template" --editor --quit
+          $godot = Join-Path $env:USERPROFILE "godot\Godot_v4.4.1-stable_win64_console.exe"
+          if (-not (Test-Path $godot)) {
+            $godot = (Get-Command godot).Source
+          }
+          if (-not (Test-Path $godot)) { throw "Godot console executable was not found." }
+          & $godot --version
+          if ($LASTEXITCODE -ne 0) { throw "Godot version check failed: $LASTEXITCODE" }
+          & $godot --headless --path "gameforge/runtime/godot_template" --editor --quit
+          if ($LASTEXITCODE -ne 0) { throw "Godot project import failed: $LASTEXITCODE" }
           $exe = Join-Path (Resolve-Path "build/windows").Path "GAMEFORGE.exe"
-          godot --headless --path "gameforge/runtime/godot_template" --export-release "Windows Desktop" $exe
+          & $godot --headless --path "gameforge/runtime/godot_template" --export-release "Windows Desktop" $exe
+          if ($LASTEXITCODE -ne 0) { throw "Godot Windows export failed: $LASTEXITCODE" }
           if (-not (Test-Path $exe) -or (Get-Item $exe).Length -le 0) {
-            throw "The Windows export was not created."
+            throw "The Windows export did not create a non-empty EXE."
           }
 
       - name: Upload Windows EXE
