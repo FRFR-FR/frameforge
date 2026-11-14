@@ -1,6 +1,15 @@
 name: GAMEFORGE GitHub Cloud Pipeline
 
 on:
+  push:
+    branches: [gameforge-cutscene-integration]
+    paths:
+      - "gameforge/**"
+      - ".github/workflows/gameforge-cloud.yml"
+  pull_request:
+    paths:
+      - "gameforge/**"
+      - ".github/workflows/gameforge-cloud.yml"
   workflow_dispatch:
     inputs:
       build_android:
