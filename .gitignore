@@ -1,0 +1,16 @@
+# GAMEFORGE local environments and generated assets
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.huggingface/
+.cache/huggingface/
+build/
+output/
+*.blend1
+*.blend2
+*.tmp
+*.part
