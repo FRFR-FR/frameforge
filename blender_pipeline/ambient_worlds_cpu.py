@@ -29,6 +29,8 @@ def parse_args():
     parser.add_argument("--mode", choices=("audit", "render"), default="render")
     parser.add_argument("--output-dir", default="output/ambient")
     parser.add_argument("--samples", type=int, default=24)
+    parser.add_argument("--frame-start", type=int, default=1)
+    parser.add_argument("--frame-end", type=int, default=FRAME_COUNT)
     return parser.parse_args(raw)
 
 
@@ -893,8 +895,20 @@ def build_scene(args, output_dir):
     else:
         scene.render.resolution_percentage = 100
         scene.cycles.samples = args.samples
+        render_start = args.frame_start
+        render_end = args.frame_end
+        if not (1 <= render_start <= render_end <= FRAME_COUNT):
+            raise ValueError(
+                f"Invalid render frame range {render_start}-{render_end}; "
+                f"expected 1-{FRAME_COUNT}"
+            )
+        # Each GitHub worker renders a non-overlapping range of this same
+        # 600-frame animation. Global frame numbers preserve the exact motion.
+        scene.frame_start = render_start
+        scene.frame_end = render_end
+        scene.render.frame_step = 1
         scene.render.filepath = str(output_dir / "frames" / "frame_")
-        scene.frame_set(1)
+        scene.frame_set(render_start)
         bpy.ops.render.render(animation=True)
     return report
 
@@ -906,10 +920,14 @@ def main():
     report = build_scene(args, out)
     print("FRAMEFORGE_AMBIENT_SCENE_OK", json.dumps(report, sort_keys=True))
     if args.mode == "render":
+        expected_frames = args.frame_end - args.frame_start + 1
         frames = list((out / "frames").glob("frame_*.png"))
-        if len(frames) != FRAME_COUNT:
-            raise RuntimeError(f"Expected {FRAME_COUNT} rendered frames, got {len(frames)}")
-        print("FRAMEFORGE_LOOP_FRAMES_OK", len(frames))
+        if len(frames) != expected_frames:
+            raise RuntimeError(
+                f"Expected {expected_frames} rendered frames "
+                f"({args.frame_start}-{args.frame_end}), got {len(frames)}"
+            )
+        print("FRAMEFORGE_LOOP_FRAMES_OK", len(frames), args.frame_start, args.frame_end)
 
 
 if __name__ == "__main__":
