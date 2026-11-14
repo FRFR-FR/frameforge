@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   render:
-    name: Render ${ matrix.project }} frames ${ matrix.chunk }}
+    name: Render ${{ matrix.project }} frames ${{ matrix.chunk }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
@@ -36,9 +36,9 @@ jobs:
         chunk: [0, 1, 2]
 
     env:
-      PROJECT: ${ matrix.project }}
-      CHUNK: ${ matrix.chunk }}
-      OUT: output/${ matrix.project }}/chunk-${ matrix.chunk }}
+      PROJECT: ${{ matrix.project }}
+      CHUNK: ${{ matrix.chunk }}
+      OUT: output/${{ matrix.project }}/chunk-${{ matrix.chunk }}
 
     steps:
       - name: Check out FrameForge
@@ -69,19 +69,19 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: FrameForge-${ matrix.project }}-frames-${ matrix.chunk }}
+          name: FrameForge-${{ matrix.project }}-frames-${{ matrix.chunk }}
           path: |
-            output/${ matrix.project }}/chunk-${ matrix.chunk }}/frames/
-            output/${ matrix.project }}/chunk-${ matrix.chunk }}/*.blend
-            output/${ matrix.project }}/chunk-${ matrix.chunk }}/*.glb
-            output/${ matrix.project }}/chunk-${ matrix.chunk }}/*.json
-            output/${ matrix.project }}/chunk-${ matrix.chunk }}/blender-render.log
+            output/${{ matrix.project }}/chunk-${{ matrix.chunk }}/frames/
+            output/${{ matrix.project }}/chunk-${{ matrix.chunk }}/*.blend
+            output/${{ matrix.project }}/chunk-${{ matrix.chunk }}/*.glb
+            output/${{ matrix.project }}/chunk-${{ matrix.chunk }}/*.json
+            output/${{ matrix.project }}/chunk-${{ matrix.chunk }}/blender-render.log
           if-no-files-found: warn
           retention-days: 7
           compression-level: 0
 
   assemble:
-    name: Assemble ${ matrix.project }} one-hour film
+    name: Assemble ${{ matrix.project }} one-hour film
     needs: render
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -90,8 +90,8 @@ jobs:
       matrix:
         project: [asmr, study]
     env:
-      PROJECT: ${ matrix.project }}
-      OUT: output/${ matrix.project }}
+      PROJECT: ${{ matrix.project }}
+      OUT: output/${{ matrix.project }}
 
     steps:
       - name: Check out FrameForge
@@ -116,7 +116,7 @@ jobs:
       - name: Download all three rendered segments
         uses: actions/download-artifact@v4
         with:
-          pattern: FrameForge-${ matrix.project }}-frames-*
+          pattern: FrameForge-${{ matrix.project }}-frames-*
           path: downloaded
           merge-multiple: false
 
@@ -207,16 +207,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: FrameForge-${ matrix.project }}-Painterly-3D-60min-720p
+          name: FrameForge-${{ matrix.project }}-Painterly-3D-60min-720p
           path: |
-            output/${ matrix.project }}/FrameForge_*.mp4
-            output/${ matrix.project }}/*.blend
-            output/${ matrix.project }}/*.glb
-            output/${ matrix.project }}/*.wav
-            output/${ matrix.project }}/*.json
-            output/${ matrix.project }}/preview_*.png
-            output/${ matrix.project }}/background_loop_20s.mp4
-            output/${ matrix.project }}/blender-render.log
+            output/${{ matrix.project }}/FrameForge_*.mp4
+            output/${{ matrix.project }}/*.blend
+            output/${{ matrix.project }}/*.glb
+            output/${{ matrix.project }}/*.wav
+            output/${{ matrix.project }}/*.json
+            output/${{ matrix.project }}/preview_*.png
+            output/${{ matrix.project }}/background_loop_20s.mp4
+            output/${{ matrix.project }}/blender-render.log
           if-no-files-found: warn
           retention-days: 30
           compression-level: 0
