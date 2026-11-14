@@ -849,14 +849,10 @@ def build_scene(args, output_dir):
     os.makedirs(output_dir / "frames", exist_ok=True)
     blend_path = output_dir / (project_name + ".blend")
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
-    # Optional glTF copy makes the scene portable to other 3D tools.
+    # The fully editable .blend is the authoritative 3D source. Skip optional
+    # glTF export on CPU workers because Blender's bundled exporter may lack NumPy.
     glb_path = output_dir / (project_name + ".glb")
-    glb_status = "not exported"
-    try:
-        bpy.ops.export_scene.gltf(filepath=str(glb_path), export_format="GLB", export_animations=True)
-        glb_status = "exported"
-    except Exception as exc:
-        glb_status = "optional export unavailable: " + str(exc)[:240]
+    glb_status = "skipped on CPU worker; editable .blend preserved"
     objects = list(scene.objects)
     mesh_count = sum(1 for o in objects if o.type == "MESH")
     animation_count = sum(1 for o in objects if o.animation_data and o.animation_data.action)
@@ -878,7 +874,7 @@ def build_scene(args, output_dir):
         "palette": info["palette"],
         "sound_design": info["audio"],
         "blend_file": blend_path.name,
-        "glb_file": glb_path.name,
+        "glb_file": glb_path.name if glb_path.exists() else None,
         "glb_export": glb_status,
         "loop_validation": "Keyframed cyclic motions return to their starting transforms at frame 601."
     }
@@ -907,7 +903,6 @@ def build_scene(args, output_dir):
         # 600-frame animation. Global frame numbers preserve the exact motion.
         scene.frame_start = render_start
         scene.frame_end = render_end
-        scene.render.frame_step = 1
         scene.render.filepath = str(output_dir / "frames" / "frame_")
         scene.frame_set(render_start)
         bpy.ops.render.render(animation=True)
