@@ -346,10 +346,28 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
+      - name: Verify Android toolchain and export templates
+        run: |
+          set -euxo pipefail
+          java -version
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          test -d "$ANDROID_HOME/platforms/android-34"
+          test -d "$ANDROID_HOME/build-tools/34.0.0"
+          test -d "$ANDROID_HOME/ndk/23.2.8568313"
+          test -f "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_debug.apk"
+          test -f "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_release.apk"
+          ls -lh "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_"*.apk
+          cat "$HOME/.config/godot/editor_settings-4.tres"
+
       - name: Import and export Android APK
         run: |
-          godot --headless --path gameforge/runtime/godot_template --editor --quit
-          godot --headless --path gameforge/runtime/godot_template --export-debug "Android" "$GITHUB_WORKSPACE/build/android/GAMEFORGE.apk"
+          set -euxo pipefail
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/gameforge-debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
+          godot --headless --verbose --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --verbose --path gameforge/runtime/godot_template --export-debug "Android" "$GITHUB_WORKSPACE/build/android/GAMEFORGE.apk"
           test -s build/android/GAMEFORGE.apk
           unzip -t build/android/GAMEFORGE.apk
 
