@@ -186,8 +186,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 350
     env:
-      HF_HOME: ${{ runner.temp }}/gameforge-huggingface
-      TRANSFORMERS_CACHE: ${{ runner.temp }}/gameforge-huggingface
+      HF_HOME: ${{ github.workspace }}/.cache/gameforge-huggingface
+      TRANSFORMERS_CACHE: ${{ github.workspace }}/.cache/gameforge-huggingface
     steps:
       - uses: actions/checkout@v4
 
@@ -202,7 +202,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ runner.temp }}/gameforge-huggingface
+            ${{ github.workspace }}/.cache/gameforge-huggingface
             ~/.cache/torch
             ~/.cache/pocket_tts
           key: ${{ runner.os }}-gameforge-speech-v1-${{ hashFiles('gameforge/cutscenes/requirements.txt') }}
