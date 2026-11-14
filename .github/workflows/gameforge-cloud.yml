@@ -1,0 +1,386 @@
+name: GAMEFORGE GitHub Cloud Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_android:
+        description: Build an Android debug APK on GitHub
+        type: boolean
+        required: true
+        default: true
+      build_windows:
+        description: Build a Windows EXE on GitHub
+        type: boolean
+        required: true
+        default: true
+      run_cutscene:
+        description: Generate the selected voices, original Blender characters, lip-sync and cutscene video
+        type: boolean
+        required: true
+        default: false
+      confirm_voice_terms:
+        description: I have reviewed the selected voice/model terms in VOICE_LICENSES.md
+        type: boolean
+        required: true
+        default: false
+      project_file:
+        description: Repository path to the cutscene JSON manifest
+        type: string
+        required: true
+        default: gameforge/cutscenes/config/default_project.json
+      resolution:
+        description: Cutscene render resolution
+        type: choice
+        options:
+          - 720p
+          - 1080p
+        required: true
+        default: 720p
+      quality:
+        description: CPU render quality profile
+        type: choice
+        options:
+          - low
+          - balanced
+          - high
+        required: true
+        default: balanced
+      run_design_autopilot:
+        description: Generate the structured game design pack from the brief
+        type: boolean
+        required: true
+        default: false
+      game_brief:
+        description: Brief used by the offline design autopilot
+        type: string
+        required: true
+        default: "Create an original third-person adventure with a distinctive central mechanic, a coherent campaign, and scalable Android performance."
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gameforge-cloud-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate project and cloud build inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out GAMEFORGE
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            gameforge/cutscenes/requirements.txt
+            gameforge/generator/brief_compiler/requirements.txt
+
+      - name: Install validation dependencies
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema
+          python -m pip install --disable-pip-version-check -r gameforge/generator/brief_compiler/requirements.txt
+
+      - name: Compile and test Python systems
+        run: |
+          python -m compileall -q gameforge/cutscenes gameforge/generator
+          python -m unittest discover -s gameforge/cutscenes/tests -v
+          python gameforge/tests/validate_runtime.py
+          PYTHONPATH=gameforge/generator/autopilot python -m unittest discover -s gameforge/generator/autopilot -p 'test_*.py' -v
+
+      - name: Validate cutscene manifest and voice terms acknowledgement
+        if: ${{ inputs.run_cutscene }}
+        env:
+          PROJECT_FILE: ${{ inputs.project_file }}
+          CONFIRM_VOICE_TERMS: ${{ inputs.confirm_voice_terms }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          project_path = Path(os.environ["PROJECT_FILE"])
+          if project_path.is_absolute() or ".." in project_path.parts:
+              raise SystemExit("project_file must be a repository-relative path without '..'.")
+          root = Path.cwd().resolve()
+          resolved = (root / project_path).resolve()
+          if root not in resolved.parents or not resolved.is_file():
+              raise SystemExit(f"Cutscene project not found inside the repository: {project_path}")
+
+          sys.path.insert(0, str(root / "gameforge" / "cutscenes"))
+          from contracts import load_json, validate_project
+
+          project = validate_project(load_json(resolved))
+          voices = sorted({line["voice"] for line in project["dialogue"]})
+          voices += sorted({character["voice"] for character in project["characters"] if character["voice"] not in voices})
+          print("Validated project:", project["project"]["title"])
+          print("Selected voices:", ", ".join(voices) if voices else "none (silent cutscene)")
+          if project["dialogue"] and os.environ["CONFIRM_VOICE_TERMS"].lower() != "true":
+              raise SystemExit(
+                  "Before cloud TTS runs, review gameforge/cutscenes/VOICE_LICENSES.md "
+                  "and set confirm_voice_terms=true for the selected voice assets."
+              )
+          PY
+
+      - name: Set up Godot for headless validation
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: false
+
+      - name: Import and smoke-test the Godot runtime
+        run: |
+          godot --headless --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --path gameforge/runtime/godot_template --quit-after 3
+          godot --headless --path gameforge/runtime/godot_template --script res://tests/runtime_smoke.gd
+
+  design-autopilot:
+    name: Generate the design pack on GitHub
+    if: ${{ inputs.run_design_autopilot }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run deterministic offline design autopilot
+        env:
+          GAME_BRIEF: ${{ inputs.game_brief }}
+        run: |
+          python gameforge/generator/autopilot/run.py --brief "$GAME_BRIEF" --out build/game-design
+          test -s build/game-design/GAME_SPEC.json
+          test -s build/game-design/STORY_BIBLE.json
+          test -s build/game-design/SCENE_PLAN.json
+          test -s build/game-design/MECHANIC_REVIEW.json
+          test -s build/game-design/PIPELINE_REPORT.json
+      - name: Upload design pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-Design-Pack
+          path: build/game-design/
+          if-no-files-found: error
+          retention-days: 7
+
+  build-cutscene:
+    name: Render characters and cutscene on GitHub CPU
+    if: ${{ inputs.run_cutscene }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    env:
+      HF_HOME: ${{ runner.temp }}/gameforge-huggingface
+      TRANSFORMERS_CACHE: ${{ runner.temp }}/gameforge-huggingface
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: gameforge/cutscenes/requirements.txt
+
+      - name: Restore speech and alignment model cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/gameforge-huggingface
+            ~/.cache/torch
+            ~/.cache/pocket_tts
+          key: ${{ runner.os }}-gameforge-speech-v1-${{ hashFiles('gameforge/cutscenes/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gameforge-speech-v1-
+
+      - name: Install FFmpeg with subtitle support
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libass9 xz-utils
+          ffmpeg -filters 2>&1 | grep -E '(^| )ass[[:space:]]|subtitles' || true
+          ffmpeg -filters 2>&1 | grep -q subtitles
+
+      - name: Install the pinned official Blender build
+        run: |
+          curl --fail --location --retry 3             https://download.blender.org/release/Blender4.5/blender-4.5.16-linux-x64.tar.xz             --output "$RUNNER_TEMP/blender.tar.xz"
+          mkdir -p "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+          echo "$RUNNER_TEMP/blender" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/blender/blender" --version
+
+      - name: Install CPU-only Pocket TTS and WhisperX
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --disable-pip-version-check             --extra-index-url https://download.pytorch.org/whl/cpu             -r gameforge/cutscenes/requirements.txt whisperx
+          python - <<'PY'
+          import torch
+          import pocket_tts
+          import whisperx
+          print("PyTorch:", torch.__version__)
+          print("CUDA available:", torch.cuda.is_available())
+          print("Pocket TTS and WhisperX imports passed.")
+          if torch.cuda.is_available():
+              raise SystemExit("The cloud cutscene pipeline is configured for CPU-only rendering.")
+          PY
+
+      - name: Apply the requested cloud render profile
+        env:
+          PROJECT_FILE: ${{ inputs.project_file }}
+          RESOLUTION: ${{ inputs.resolution }}
+          QUALITY: ${{ inputs.quality }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          root = Path.cwd().resolve()
+          source = Path(os.environ["PROJECT_FILE"])
+          resolved = (root / source).resolve()
+          if source.is_absolute() or ".." in source.parts or root not in resolved.parents or not resolved.is_file():
+              raise SystemExit("project_file must point to an existing JSON file inside this repository.")
+
+          sys.path.insert(0, str(root / "gameforge" / "cutscenes"))
+          from contracts import load_json, validate_project
+
+          project = validate_project(load_json(resolved))
+          if os.environ["RESOLUTION"] == "1080p":
+              project["render"]["width"], project["render"]["height"] = 1920, 1080
+          else:
+              project["render"]["width"], project["render"]["height"] = 1280, 720
+          project["render"]["profile"] = os.environ["QUALITY"]
+          validate_project(project)
+
+          target = Path(os.environ["RUNNER_TEMP"]) / "gameforge-cloud-project.json"
+          target.write_text(json.dumps(project, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          print("Prepared:", project["project"]["title"])
+          print("Render:", project["render"]["width"], "x", project["render"]["height"], "@", project["render"]["fps"], "FPS")
+          print("Duration:", project["render"]["duration_seconds"], "seconds")
+          print("Characters:", len(project["characters"]), "| Dialogue lines:", len(project["dialogue"]))
+          PY
+
+      - name: Generate TTS, align dialogue, create original characters and render MP4
+        run: |
+          python gameforge/cutscenes/run_cutscene.py             --project "$RUNNER_TEMP/gameforge-cloud-project.json"             --out "$GITHUB_WORKSPACE/build/gameforge-cutscene"
+
+      - name: Upload cutscene deliverables
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-Cutscene
+          path: |
+            build/gameforge-cutscene/GAMEFORGE_Cutscene.mp4
+            build/gameforge-cutscene/GAMEFORGE_Cutscene.blend
+            build/gameforge-cutscene/GAMEFORGE_Cutscene_Characters.glb
+            build/gameforge-cutscene/scene_audit.json
+            build/gameforge-cutscene/alignment_manifest.json
+            build/gameforge-cutscene/render_report.json
+            build/gameforge-cutscene/subtitles.srt
+            build/gameforge-cutscene/subtitles.ass
+          if-no-files-found: error
+          retention-days: 7
+
+  build-android:
+    name: Export Android APK on GitHub
+    if: ${{ inputs.build_android }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android command-line tools
+        uses: android-actions/setup-android@v3
+
+      - name: Install the Godot 4.4 Android SDK/NDK set
+        run: |
+          set +o pipefail
+          yes | sdkmanager --licenses
+          set -o pipefail
+          sdkmanager --install             "platform-tools"             "platforms;android-34"             "build-tools;34.0.0"             "cmake;3.10.2.4988404"             "ndk;23.2.8568313"
+
+      - name: Set up Godot and Android export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: true
+
+      - name: Configure Godot Android paths and ephemeral debug signing
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/godot" "$HOME/.android" "$GITHUB_WORKSPACE/build/android"
+          keytool -genkeypair -noprompt -v             -keystore "$HOME/.android/gameforge-debug.keystore"             -storetype JKS -storepass android -alias androiddebugkey -keypass android             -dname "CN=GAMEFORGE Debug,O=GAMEFORGE,C=US" -validity 10000
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/debug_keystore = "$HOME/.android/gameforge-debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+
+      - name: Import and export Android APK
+        run: |
+          godot --headless --path gameforge/runtime/godot_template --editor --quit
+          godot --headless --path gameforge/runtime/godot_template             --export-debug "Android" "$GITHUB_WORKSPACE/build/android/GAMEFORGE.apk"
+          test -s build/android/GAMEFORGE.apk
+          unzip -t build/android/GAMEFORGE.apk
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-Android-APK
+          path: build/android/GAMEFORGE.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  build-windows:
+    name: Export Windows EXE on GitHub
+    if: ${{ inputs.build_windows }}
+    needs: validate
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Godot and Windows export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: true
+
+      - name: Import and export Windows build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path "build/windows" | Out-Null
+          godot --headless --path "gameforge/runtime/godot_template" --editor --quit
+          $exe = Join-Path (Resolve-Path "build/windows").Path "GAMEFORGE.exe"
+          godot --headless --path "gameforge/runtime/godot_template" --export-release "Windows Desktop" $exe
+          if (-not (Test-Path $exe) -or (Get-Item $exe).Length -le 0) {
+            throw "The Windows export was not created."
+          }
+
+      - name: Upload Windows EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-Windows-EXE
+          path: build/windows/GAMEFORGE.exe
+          if-no-files-found: error
+          retention-days: 7

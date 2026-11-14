@@ -1,42 +1,34 @@
 # GAMEFORGE Cutscene Studio
 
-This is a GAMEFORGE-only derivative of FrameForge. The original standalone FrameForge editor remains at the repository root and is not modified by this subsystem. The copied FrameForge canvas/3D source is kept under `editor/core/`; the GAMEFORGE editor adds a character/dialogue director and exports a cutscene project manifest for the native Blender pipeline.
+The supported production route is **GitHub Actions**. The browser editor creates a project manifest; GitHub-hosted runners install Blender, FFmpeg, Pocket TTS, WhisperX and the required Python dependencies, then generate the assets and render the cutscene. You do not need those programs installed on your own computer.
 
-## Scope and output limits
+## GitHub cloud workflow
+
+1. Open `editor/index.html` from this directory (or the deployed GitHub Pages copy, when enabled).
+2. Create the characters and dialogue, using only the approved voice IDs.
+3. Export the JSON project manifest.
+4. Add that JSON file to this repository, for example under `gameforge/cutscenes/projects/`.
+5. Open the [GAMEFORGE GitHub Cloud Pipeline](https://github.com/FRFR-FR/frameforge/actions/workflows/gameforge-cloud.yml), select the `gameforge-cutscene-integration` branch, and press **Run workflow**.
+6. Enable **run_cutscene**, enter the manifest's repository-relative path, and select the render profile.
+7. Before generating speech, review `VOICE_LICENSES.md` for the selected assets and confirm the workflow input. Download the cutscene artifact when the job finishes.
+
+The artifact contains the MP4, editable Blender scene, rigged animated GLB, SRT/ASS subtitles, scene audit, alignment manifest and render report.
+
+## Output policy
 
 - 16:9 cutscene output only.
 - Default: 1280x720 (720p), up to 30 FPS.
-- Maximum: 1920x1080 (1080p). The renderer rejects larger dimensions and frame rates above 30.
-- Character geometry and rigs are generated procedurally in Blender; no image-generation service is used.
-- Blender renders on CPU in bounded quality profiles. This avoids GPU dependency but is slower.
-- Final MP4 includes synced dialogue audio and outline-only subtitles with no subtitle box/background.
+- Maximum: 1920x1080 (1080p), 30 FPS and 600 seconds per cutscene.
+- Characters are generated procedurally in Blender; no image-generation service is used.
+- The hosted workflow renders on CPU. Standard public GitHub runners do not provide a GPU.
+- Long renders may exceed GitHub's six-hour per-job ceiling; the maximum duration is a format cap, not a promise that a maximum-length render will complete on a standard runner.
 
-## Voice policy
+## Voice policy and lip-sync
 
-The voice selector is a strict allowlist. Canonical Pocket TTS IDs:
-`eponine`, `george`, `azelma` (UI label: Ezelma), `bill_boerst`, `jean`, `michael`, `peter_yearsley`, `stuart_bell`, `charles`.
-No other TTS voices are accepted by the project validator.
+Pocket TTS IDs are `eponine`, `george`, `azelma` (UI label Ezelma), `bill_boerst`, `jean`, `michael`, `peter_yearsley`, `stuart_bell` and `charles`. Review the source terms for each selected voice before any commercial release; the presets do not all necessarily share the same licence. The workflow requires an acknowledgement before it downloads or generates dialogue audio.
 
-## First prototype
-
-Install Blender, FFmpeg, Python 3.11 or 3.12, and Pocket TTS. For accurate dialogue timing, install the optional WhisperX forced aligner and its CPU PyTorch dependencies. See [INSTALL.md](INSTALL.md).
-
-1. Open `editor/index.html` from the GAMEFORGE copy (not the root FrameForge site).
-2. Create characters and assign only an allowlisted voice.
-3. Add dialogue with intended start times, then export `cutscene_project.json`.
-4. Run `python gameforge/cutscenes/run_cutscene.py --project cutscene_project.json --out build/cutscene`.
-5. Review the rendered MP4 and the alignment report before using it in a game.
-
-The browser editor only authors the manifest. A static GitHub Pages page cannot start Blender or run the TTS model by itself.
-
-## Synchronisation quality
-
-Pocket TTS produces audio, not phoneme timestamps. This pipeline therefore measures the actual generated WAV duration and uses WhisperX forced character alignment to obtain audio-grounded cue positions. The Blender rig consumes the resulting viseme cue data and exports a skinned GLB for Godot import. The in-game runtime has a jaw-bone cue component that listens to the same audio playback clock. Lip shape mapping is an approximation from aligned characters (not a native phoneme stream), so the final face animation must receive visual review. No software can guarantee perfect lip-sync for every line without correction; the pipeline fails on an unavailable aligner rather than silently pretending estimated timings are exact.
+Pocket TTS does not emit native phoneme/viseme timestamps. WhisperX provides forced character alignment, and GAMEFORGE maps those timestamps to approximate mouth shapes. Review facial sync in the output before shipping; perfect lip movement is not guaranteed.
 
 ## Original FrameForge isolation
 
-The original `/index.html`, `/app.js`, `/styles.css` and `/frameforge-3d.js` stay in place for independent film projects. This branch places copies inside `gameforge/cutscenes/editor/core/`; GAMEFORGE's cutscene page links to its own manifest editor and uses the copied FrameForge 3D software renderer for a lightweight preview.
-
-## In-game character lip-sync
-
-Import the generated `GAMEFORGE_Cutscene_Characters.glb` into Godot. Attach `gameforge/runtime/godot_template/scripts/cutscene_character_lip_sync.gd` to each character root, set the `skeleton_path` to the imported `Skeleton3D`, and add the root node to `gameforge_character_<character_id>`. GAMEFORGE's audio director emits the audio-aligned jaw cues, returns the jaw to neutral at each cue end, and drives subtitles from the same playback clock.
+The standalone FrameForge editor at the repository root remains independent. This directory contains the GAMEFORGE-only editor copy and its cutscene pipeline.

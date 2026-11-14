@@ -8,12 +8,14 @@ on:
       - "setup/**"
       - ".gitignore"
       - ".github/workflows/gameforge-validate.yml"
+      - ".github/workflows/gameforge-cloud.yml"
   pull_request:
     paths:
       - "gameforge/**"
       - "setup/**"
       - ".gitignore"
       - ".github/workflows/gameforge-validate.yml"
+      - ".github/workflows/gameforge-cloud.yml"
   workflow_dispatch:
 
 permissions:
@@ -40,6 +42,10 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r gameforge/generator/brief_compiler/requirements.txt
           PYTHONPATH=gameforge/generator/autopilot python -m unittest discover -s gameforge/generator/autopilot -p 'test_*.py' -v
+      - name: Check GitHub cloud workflow is present and parses
+        run: |
+          test -s .github/workflows/gameforge-cloud.yml
+          ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0), aliases: true)' .github/workflows/gameforge-cloud.yml
 
   godot-runtime:
     name: Import Godot project and run runtime smoke tests
@@ -60,7 +66,7 @@ jobs:
         run: godot --headless --path gameforge/runtime/godot_template --script res://tests/runtime_smoke.gd
 
   setup-script-validation:
-    name: Validate local installation scripts
+    name: Validate optional local developer scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,7 +74,7 @@ jobs:
         run: bash -n setup/linux/install-gameforge.sh
       - name: Compile Python setup utilities
         run: python -m py_compile setup/verify_install.py setup/fetch_models.py
-      - name: Check required installer files
+      - name: Check required optional scripts
         run: |
           test -s setup/windows/Install-GAMEFORGE.ps1
           test -s setup/linux/install-gameforge.sh
@@ -76,7 +82,7 @@ jobs:
           test -s setup/fetch_models.py
 
   windows-installer-parse:
-    name: Parse Windows PowerShell installer
+    name: Parse optional Windows developer script
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

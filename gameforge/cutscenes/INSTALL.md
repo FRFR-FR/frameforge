@@ -1,24 +1,15 @@
-# GAMEFORGE Cutscene Studio — local installation
+# GAMEFORGE Cutscene Studio — GitHub cloud run
 
-Use the automated installer from the repository root:
+**No local installation is required.** Do not install Blender, FFmpeg, Pocket TTS, WhisperX, Python or Godot to run the supported pipeline.
 
-- Windows 10/11: `Set-ExecutionPolicy -Scope Process Bypass`, then `./setup/windows/Install-GAMEFORGE.ps1`.
-- Ubuntu/Debian: `bash setup/linux/install-gameforge.sh`.
+Use the [GAMEFORGE GitHub Cloud Pipeline](https://github.com/FRFR-FR/frameforge/actions/workflows/gameforge-cloud.yml):
 
-See [setup/README.md](../../setup/README.md) for the installer details and verification steps.
+1. Select the `gameforge-cutscene-integration` branch.
+2. Make sure your cutscene JSON manifest is committed to the repository.
+3. Enable `run_cutscene`, enter the manifest path and choose the resolution/quality profile.
+4. Read `VOICE_LICENSES.md`. For dialogue, acknowledge that you reviewed the terms for the selected voice assets.
+5. Start the workflow and download the `GAMEFORGE-Cutscene` artifact.
 
-The toolchain installs Git, Python 3.12/3.13, Blender 4.5.16 LTS, Godot 4.4.1 and matching export templates, FFmpeg/libass, Kyutai Pocket TTS, WhisperX, OpenJDK 17 and Android SDK packages.
+GitHub installs the required pinned Blender and Godot releases, FFmpeg, CPU PyTorch, Pocket TTS, WhisperX, Java and Android SDK components only on the runners that need them. The runner is temporary and is discarded after each job.
 
-## First render
-
-After installation and first model download:
-
-```bash
-python gameforge/cutscenes/run_cutscene.py \
-  --project gameforge/cutscenes/config/default_project.json \
-  --out build/cutscene
-```
-
-The expected deliverables are an MP4, editable Blender project, rigged character GLB, alignment report, SRT/ASS subtitles and render report. Output is limited to 720p or 1080p, maximum 30 FPS and 10 minutes per cutscene.
-
-The installer can prefetch the Pocket TTS weights, all nine allowlisted voice assets and the WhisperX English aligner after you explicitly confirm that you have reviewed and accepted their model/voice terms. If you defer that step, run setup/fetch_models.py from the repository root using the .venv Python. Do not commit model caches, Python virtual environments, generated frames, Android signing keys or passwords.
+The scripts under `setup/` are optional convenience tooling for contributors who explicitly choose to develop locally. They are not part of the end-user workflow.
