@@ -1,0 +1,87 @@
+name: GAMEFORGE world generation build
+
+on:
+  push:
+    branches: [gameforge-world-lab]
+    paths:
+      - "gameforge/worlds/**"
+      - ".github/workflows/gameforge-world-build.yml"
+  pull_request:
+    paths:
+      - "gameforge/worlds/**"
+      - ".github/workflows/gameforge-world-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gameforge-world-build-\${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-world:
+    name: Generate and render Loomwild 3D environment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out GAMEFORGE world lab
+        uses: actions/checkout@v4
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xz-utils libxkbcommon0 libxrender1 libxi6 libxfixes3 libxext6 libx11-6
+
+      - name: Install pinned Blender CPU renderer
+        run: |
+          curl --fail --location --retry 3 \\
+            https://download.blender.org/release/Blender4.5/blender-4.5.16-linux-x64.tar.xz \\
+            --output "$RUNNER_TEMP/blender.tar.xz"
+          mkdir -p "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+          echo "$RUNNER_TEMP/blender" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/blender/blender" --version
+
+      - name: Check generator syntax
+        run: python3 -m py_compile gameforge/worlds/build_world.py
+
+      - name: Generate full 3D landscape, export GLB and render 720p review
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/build/gameforge_world"
+          blender --background --factory-startup --python-exit-code 1 \\
+            --python gameforge/worlds/build_world.py -- \\
+            --output-dir "$GITHUB_WORKSPACE/build/gameforge_world" \\
+            --seed 42017 --grid 129 --samples 32
+
+      - name: Verify editable scene, game-ready GLB and rendered preview
+        run: |
+          test -s build/gameforge_world/GAMEFORGE_Loomwild_Environment.blend
+          test -s build/gameforge_world/GAMEFORGE_Loomwild_Environment.glb
+          test -s build/gameforge_world/GAMEFORGE_Loomwild_1280x720.png
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          audit = json.loads(Path("build/gameforge_world/GAMEFORGE_Loomwild_Audit.json").read_text(encoding="utf-8"))
+          assert not audit["failures"], audit["failures"]
+          assert audit["terrain_vertices"] >= 1000
+          assert audit["counts"]["trees"] >= 40
+          assert audit["counts"]["rocks"] >= 60
+          assert audit["counts"]["flowers"] >= 20
+          for item in audit["outputs"].values():
+              assert item["bytes"] > 20000, item
+          print("Loomwild environment audit passed.")
+          PY
+
+      - name: Upload environment project and render pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: GAMEFORGE-LOOMWILD-Environment-\${{ github.sha }}
+          path: |
+            build/gameforge_world/GAMEFORGE_Loomwild_Environment.blend
+            build/gameforge_world/GAMEFORGE_Loomwild_Environment.glb
+            build/gameforge_world/GAMEFORGE_Loomwild_1280x720.png
+            build/gameforge_world/GAMEFORGE_Loomwild_Audit.json
+            build/gameforge_world/README.md
+          if-no-files-found: error
+          retention-days: 14
