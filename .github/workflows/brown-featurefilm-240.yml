@@ -101,7 +101,7 @@ jobs:
         run: |
           set -u
           printf -v PADDED "%03d" "$SEGMENT"
-          START_FRAME=$(( (SEGMENT - 1) * 1200 + 1 ))
+          START_FRAME=$(( (SEGMENT - 1) * 1440 + 1 ))
           AUDIO_OFFSET=$(( (SEGMENT - 1) * 60 ))
           WORK="output/featurefilm_segments/segment-$PADDED"
           MASTER="production/assets/BROWN_featurefilm_master.blend"
@@ -119,11 +119,11 @@ jobs:
                 --segment "$SEGMENT" --work-dir "$WORK" \
                 > "$WORK/blender-attempt-$attempt.log" 2>&1; then
               if ffmpeg -y -hide_banner -loglevel warning \
-                  -framerate 20 -start_number "$START_FRAME" \
+                  -framerate 24 -start_number "$START_FRAME" \
                   -i "$WORK/frames/frame_%06d.png" \
                   -ss "$AUDIO_OFFSET" -i "$AUDIO" \
-                  -map 0:v:0 -map 1:a:0 -t 60 -frames:v 1200 \
-                  -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r 20 \
+                  -map 0:v:0 -map 1:a:0 -t 60 -frames:v 1440 \
+                  -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r 24 \
                   -c:a aac -b:a 192k -ar 48000 -ac 2 \
                   -movflags +faststart "$VIDEO" \
                   > "$WORK/ffmpeg-attempt-$attempt.log" 2>&1; then
