@@ -66,7 +66,7 @@ def main():
         str(v.get("nb_read_frames"))) != (1280, 720, "24/1", "172800"):
         raise SystemExit(f"Final frame/resolution/fps QC failed: {v}")
     if not 7199 <= duration <= 7201:
-        raise SystemExit(f"Final duration is {duration:.2f}s; expected 14,400s")
+        raise SystemExit(f"Final duration is {duration:.2f}s; expected 7,200s")
     print(json.dumps({
         "status": "VERIFIED",
         "segments": SEGMENT_COUNT,
