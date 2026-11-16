@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "project": "BROWN — Book One",
+  "status": "PROVISIONAL_DESIGN_BRIEFS_NOT_APPROVED",
+  "visual_language": {
+    "format": "stylised painterly 3D/2.5D animation",
+    "target": "expressive, human performance; graphic silhouettes; tactile painted textures; layered lighting; fluid, intentional motion",
+    "avoid": [
+      "photorealistic skin rendering",
+      "generic AI-slop faces",
+      "Minecraft/blocky proportions",
+      "flat placeholder shapes as final art",
+      "caricatured racial features",
+      "unmotivated camera shake"
+    ],
+    "design_principles": [
+      "silhouette readability at thumbnail size",
+      "distinct posture and movement vocabulary for each character",
+      "costume wear and material reflect story and social position",
+      "faces remain nuanced and emotionally readable",
+      "all appearance details not explicitly sourced are proposals requiring author approval"
+    ]
+  },
+  "characters": [
+    {
+      "asset_id": "CHAR-KAYLEN-ATLEE",
+      "name": "Kaylen Atlee",
+      "source_role": "Central viewpoint character; Grave Choir survivor",
+      "source_anchors": [
+        "split lip in opening chapter",
+        "carries emotional weight and guilt",
+        "hesitates over Eamon's message",
+        "looks down while Juno treats his injury"
+      ],
+      "design_proposal": "Lean, guarded silhouette with a slightly closed posture; movement economical and watchful. Costume should feel lived-in and practical for Vesper street life. Keep face, skin tone, hair, age-specific features and exact garments TBD pending source/reference confirmation.",
+      "performance": "micro-expressions, delayed eye contact, tension held in jaw and shoulders; avoid action-hero swagger",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-EAMON-VOSS",
+      "name": "Eamon Voss",
+      "source_role": "Grave Choir leader",
+      "source_anchors": [
+        "enters the print shop in a dark coat",
+        "uses commands that can sound like invitations"
+      ],
+      "design_proposal": "Controlled vertical silhouette; composed stillness; dark coat as the only presently source-grounded costume element. Facial and body details TBD.",
+      "performance": "minimal gestures; claims space through timing and eye-line rather than exaggerated menace",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-JUNO-SAYE",
+      "name": "Juno Saye",
+      "source_role": "Grave Choir member; offers practical care",
+      "source_anchors": [
+        "carries a small medical pouch",
+        "cleans Kaylen's split lip",
+        "care is offered without demanding eye contact"
+      ],
+      "design_proposal": "Practical, mobile silhouette with clear access to medical pouch; exact appearance and clothing TBD.",
+      "performance": "precise hands, calm focus, kindness expressed through action rather than sentimentality",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-LARK-TEMBA",
+      "name": "Lark Temba",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "speaks from the back of the print shop in the opening passage"
+      ],
+      "design_proposal": "Distinct silhouette and spatial presence in group compositions; all physical and wardrobe details TBD.",
+      "performance": "observant, measured; avoid assigning unsupported traits",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-BIKO-NARE",
+      "name": "Biko Nare",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "jokes about the crew's music-note mark and culture"
+      ],
+      "design_proposal": "Readable expressive silhouette for quick comic timing; all physical and wardrobe details TBD.",
+      "performance": "warm, quick timing; humour should feel human rather than broad slapstick",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-AMEL-ZORI",
+      "name": "Amel Zori",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "works at a table with two screens",
+        "dryly corrects Biko's joke"
+      ],
+      "design_proposal": "Functional workstation-friendly costume and silhouette; no unsupported techwear clichés. Physical details TBD.",
+      "performance": "small precise gestures; focused gaze; dry timing",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-TOVIN-BELL",
+      "name": "Tovin Bell",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "fills out a school application",
+        "asks Kaylen for a reference"
+      ],
+      "design_proposal": "Youthful read should come from source-confirmed age and posture; do not infer age or appearance beyond text. Wardrobe TBD.",
+      "performance": "earnest, quietly hopeful; hold on the application as an ordinary-life counterpoint",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-KESH-AYO",
+      "name": "Kesh Ayo",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "asleep in a chair, one hand around a phone"
+      ],
+      "design_proposal": "Relaxed seated silhouette for the opening group tableau; all physical details TBD.",
+      "performance": "sleep-weighted stillness; no added business",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-RASHA-DENI",
+      "name": "Rasha Deni",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "repairs a torn sleeve"
+      ],
+      "design_proposal": "Hands-and-material focused visual beat; exact appearance and clothing TBD.",
+      "performance": "absorbed practical task; avoid decorative gestures",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-SEFU-MALK",
+      "name": "Sefu Malk",
+      "source_role": "Grave Choir member",
+      "source_anchors": [
+        "has a kettle apart and explains the heating element"
+      ],
+      "design_proposal": "A distinctive prop interaction rather than an invented costume gimmick; appearance TBD.",
+      "performance": "focused tinkering and conversational explanation",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    },
+    {
+      "asset_id": "CHAR-REGISTRY-CLERK",
+      "name": "Registry Clerk",
+      "source_role": "Prologue figure questioning the neutrality of the census",
+      "source_anchors": [
+        "questions the claim that numbers are morally neutral"
+      ],
+      "design_proposal": "Institutional workwear, restrained silhouette; exact age, appearance, gender presentation and costume details TBD pending full source check.",
+      "performance": "quiet moral hesitation; the question is more important than melodrama",
+      "approval": "PENDING_AUTHOR_REVIEW"
+    }
+  ],
+  "required_outputs": [
+    "front three-quarter model sheet",
+    "profile and rear turnaround",
+    "expression sheet with neutral, guarded, startled, grief-held and focused states",
+    "neutral pose and five key poses",
+    "costume/material callouts",
+    "scale comparison",
+    "Blender-ready model",
+    "rig and deformation test",
+    "facial performance test",
+    "author approval record"
+  ]
+}
