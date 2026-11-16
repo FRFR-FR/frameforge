@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - brown-film/final-assembly
+      - fix/two-hour-feature-film
     paths:
       - "featurefilm_pipeline/**"
       - "production/**"
