@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import argparse
+import subprocess
 from mathutils import Vector
 
 FPS = 30
@@ -388,12 +389,13 @@ def render_segment(scene, seg, outdir):
     end = start + SEGMENT_FRAMES - 1
     scene.frame_start = start
     scene.frame_end = end
-    scene.render.filepath = os.path.join(outdir, "segment_%02d.mp4" % seg)
-    scene.render.image_settings.file_format = "FFMPEG"
-    scene.render.ffmpeg.format = "MPEG4"
-    scene.render.ffmpeg.codec = "H264"
-    scene.render.ffmpeg.constant_rate_factor = "HIGH"
-    scene.render.ffmpeg.ffmpeg_preset = "GOOD"
+    frames_dir = os.path.join(outdir, "segment_%02d_frames" % seg)
+    os.makedirs(frames_dir, exist_ok=True)
+    prefix = os.path.join(frames_dir, "frame_")
+    scene.render.filepath = prefix
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.color_mode = "RGB"
+    scene.render.image_settings.color_depth = "8"
     scene.render.fps = FPS
     scene.render.resolution_x = WIDTH
     scene.render.resolution_y = HEIGHT
@@ -401,7 +403,15 @@ def render_segment(scene, seg, outdir):
     scene.frame_set(start)
     print("RENDER_START segment=%d frames=%d-%d" % (seg, start, end), flush=True)
     bpy.ops.render.render(animation=True)
-    path = scene.render.filepath
+    path = os.path.join(outdir, "segment_%02d.mp4" % seg)
+    cmd = [
+        "ffmpeg", "-y", "-framerate", str(FPS), "-start_number", str(start),
+        "-i", prefix + "%04d.png", "-frames:v", str(SEGMENT_FRAMES),
+        "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+        "-pix_fmt", "yuv420p", "-movflags", "+faststart", path
+    ]
+    print("ENCODE_START", " ".join(cmd), flush=True)
+    subprocess.run(cmd, check=True)
     if not os.path.exists(path) or os.path.getsize(path) < 100000:
         raise RuntimeError("Render output missing or unexpectedly small: " + path)
     print("RENDER_SECTION_VERIFIED", path, os.path.getsize(path), flush=True)
