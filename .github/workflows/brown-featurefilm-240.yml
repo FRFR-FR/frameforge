@@ -32,6 +32,7 @@ jobs:
     timeout-minutes: 20
     outputs:
       render_ready: ${{ steps.gate.outputs.ready }}
+      storage_ready: ${{ steps.storage.outputs.ready }}
     steps:
       - name: Check out approved production files
         uses: actions/checkout@v4
@@ -51,6 +52,38 @@ jobs:
             featurefilm_pipeline/validate_segment.py \
             featurefilm_pipeline/assemble_featurefilm.py \
             featurefilm_pipeline/assemble_external.py
+
+      - name: Validate external storage configuration
+        id: storage
+        env:
+          BROWN_RCLONE_CONFIG: ${{ secrets.BROWN_RCLONE_CONFIG }}
+          BROWN_STORAGE_REMOTE: ${{ vars.BROWN_STORAGE_REMOTE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${BROWN_RCLONE_CONFIG:-}" ] || [ -z "${BROWN_STORAGE_REMOTE:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::External storage is not configured. Full render will remain blocked."
+            if [ "${{ inputs.operation }}" = "render" ]; then
+              echo "::error::Set BROWN_RCLONE_CONFIG and BROWN_STORAGE_REMOTE before requesting render."
+              exit 1
+            fi
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install --yes rclone
+          umask 077
+          printf '%s\n' "$BROWN_RCLONE_CONFIG" > "$RUNNER_TEMP/rclone.conf"
+          remote_name="${BROWN_STORAGE_REMOTE%%:*}:"
+          if ! rclone listremotes --config "$RUNNER_TEMP/rclone.conf" | grep -Fxq "$remote_name"; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::error::BROWN_STORAGE_REMOTE does not reference a remote configured in BROWN_RCLONE_CONFIG."
+            exit 1
+          fi
+          rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/segments"
+          rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/final"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "External storage remote is configured and writable."
 
       - name: Validate all pre-animation gates
         id: gate
@@ -81,7 +114,7 @@ jobs:
   render-segment:
     name: Render segment ${{ matrix.segment }}
     needs: preflight
-    if: ${{ needs.preflight.outputs.render_ready == 'true' && ((github.event_name == 'push' && contains(toJson(github.event.commits), 'production/approvals.json')) || (github.event_name == 'workflow_dispatch' && inputs.operation == 'render')) }}
+    if: ${{ needs.preflight.outputs.render_ready == 'true' && needs.preflight.outputs.storage_ready == 'true' && ((github.event_name == 'push' && contains(toJson(github.event.commits), 'production/approvals.json')) || (github.event_name == 'workflow_dispatch' && inputs.operation == 'render')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
@@ -260,7 +293,6 @@ jobs:
             exit 1
           fi
           test -d "$RUNNER_TEMP/brown-storage/segments"
-          mkdir -p "$RUNNER_TEMP/brown-storage/final" || true
 
       - name: Verify all 240 remote segments and stream the final film to external storage
         env:
