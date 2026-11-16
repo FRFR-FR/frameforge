@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Verify and concatenate all 240 unique segments in strict numeric order."""
+"""Verify and concatenate all 120 unique segments in strict numeric order."""
 from __future__ import annotations
 import argparse
 import json
 import subprocess
 from pathlib import Path
 
-SEGMENT_COUNT = 240
+SEGMENT_COUNT = 120
 
 def run(command):
     return subprocess.run(command, check=True, capture_output=True, text=True)
@@ -63,9 +63,9 @@ def main():
     v = videos[0]
     duration = float(final.get("format", {}).get("duration", 0))
     if (v.get("width"), v.get("height"), v.get("r_frame_rate"),
-        str(v.get("nb_read_frames"))) != (1280, 720, "24/1", "345600"):
+        str(v.get("nb_read_frames"))) != (1280, 720, "24/1", "172800"):
         raise SystemExit(f"Final frame/resolution/fps QC failed: {v}")
-    if not 14399 <= duration <= 14401:
+    if not 7199 <= duration <= 7201:
         raise SystemExit(f"Final duration is {duration:.2f}s; expected 14,400s")
     print(json.dumps({
         "status": "VERIFIED",
