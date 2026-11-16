@@ -59,8 +59,7 @@ def validate() -> dict:
         errors.append("Maximum parallel segments must remain exactly 3")
 
     paths = manifest.get("paths", {})
-    existing_repo_file(paths.get("source_book_pdf"), "source Book One PDF", errors)
-    existing_repo_file(paths.get("story_bible_pdf"), "source story bible PDF", errors)
+    existing_repo_file(paths.get("source_provenance"), "source provenance record", errors)
     story = read_json(ROOT / paths.get("story_breakdown", "production/story_breakdown.json"), errors)
     assets = read_json(ROOT / paths.get("asset_registry", "production/asset_registry.json"), errors)
     approvals = read_json(ROOT / paths.get("approvals", "production/approvals.json"), errors)
