@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "status": "NOT_APPROVED",
+  "approvals": {
+    "source_breakdown_complete": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "all_character_model_sheets_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "all_asset_categories_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "all_production_rigs_and_facial_tests_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "dialogue_and_lipsync_test_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "action_dialogue_proof_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "five_minute_pilot_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "visual_qc_signoff": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    },
+    "master_scene_and_audio_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
+    }
+  }
+}
