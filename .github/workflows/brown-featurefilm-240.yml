@@ -1,6 +1,12 @@
 name: BROWN Feature Film — 240 Stylised Segments
 
 on:
+  push:
+    branches:
+      - brown-film/final-assembly
+    paths:
+      - "featurefilm_pipeline/**"
+      - "production/**"
   workflow_dispatch:
     inputs:
       operation:
