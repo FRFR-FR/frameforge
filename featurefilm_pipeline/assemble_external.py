@@ -93,17 +93,17 @@ def main() -> int:
     ]
     log = (work / "final-assembly-ffmpeg.log").open("w", encoding="utf-8")
     uploader = subprocess.Popen(rclone_cmd, stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     assert uploader.stdin is not None
-    ffmpeg = subprocess.Popen(ffmpeg_cmd, stdout=uploader.stdin,
-                               stderr=log)
-    uploader.stdin.close()
+    ffmpeg = subprocess.Popen(ffmpeg_cmd, stdout=uploader.stdin, stderr=log)
     ffmpeg_rc = ffmpeg.wait()
-    upload_stdout, upload_stderr = uploader.communicate()
+    uploader.stdin.close()
+    upload_stderr = uploader.stderr.read() if uploader.stderr is not None else b""
+    upload_rc = uploader.wait()
     log.close()
     if ffmpeg_rc != 0:
         raise RuntimeError(f"FFmpeg assembly failed (exit {ffmpeg_rc}); inspect {log.name}")
-    if uploader.returncode != 0:
+    if upload_rc != 0:
         raise RuntimeError("External upload failed: " + upload_stderr.decode("utf-8", "replace")[-4000:])
 
     # Verify the uploaded object through the mounted remote. The fragmented MP4
