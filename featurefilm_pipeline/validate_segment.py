@@ -30,8 +30,8 @@ def main() -> int:
     stream = videos[0]
     fmt = data.get("format", {})
     expected = {
-        "width": 1280, "height": 720, "r_frame_rate": "20/1",
-        "nb_read_frames": "1200"
+        "width": 1280, "height": 720, "r_frame_rate": "24/1",
+        "nb_read_frames": "1440"
     }
     for key, value in expected.items():
         actual = stream.get(key)
@@ -45,8 +45,8 @@ def main() -> int:
     if audios[0].get("codec_name") != "aac":
         raise SystemExit(f"Segment {args.segment}: audio codec is not AAC")
     print(json.dumps({"segment": args.segment, "valid": True,
-                      "duration": duration, "frames": 1200,
-                      "resolution": "1280x720", "fps": "20/1",
+                      "duration": duration, "frames": 1440,
+                      "resolution": "1280x720", "fps": "24/1",
                       "audio": audios[0].get("codec_name")}))
     return 0
 
