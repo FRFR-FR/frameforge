@@ -59,7 +59,7 @@ def main():
     work = args.work_dir.resolve()
     frames = work / "frames"
     frames.mkdir(parents=True, exist_ok=True)
-    scene.render.filepath = str(frames / "frame_")
+    scene.render.filepath = str(frames / "frame_######")
     scene.frame_set(first_frame)
 
     print(json.dumps({
