@@ -38,7 +38,7 @@ def main():
         v = videos[0]
         f = data.get("format", {})
         if (v.get("width"), v.get("height"), v.get("r_frame_rate"),
-            str(v.get("nb_read_frames"))) != (1280, 720, "20/1", "1200"):
+            str(v.get("nb_read_frames"))) != (1280, 720, "24/1", "1440"):
             raise SystemExit(f"Segment {number:03d} failed video frame/size/fps QC: {v}")
         if not 59.9 <= float(f.get("duration", 0)) <= 60.1:
             raise SystemExit(f"Segment {number:03d} duration is not 60 seconds")
@@ -63,7 +63,7 @@ def main():
     v = videos[0]
     duration = float(final.get("format", {}).get("duration", 0))
     if (v.get("width"), v.get("height"), v.get("r_frame_rate"),
-        str(v.get("nb_read_frames"))) != (1280, 720, "20/1", "288000"):
+        str(v.get("nb_read_frames"))) != (1280, 720, "24/1", "345600"):
         raise SystemExit(f"Final frame/resolution/fps QC failed: {v}")
     if not 14399 <= duration <= 14401:
         raise SystemExit(f"Final duration is {duration:.2f}s; expected 14,400s")
@@ -74,7 +74,7 @@ def main():
         "runtime_hours": duration / 3600,
         "frames": int(v["nb_read_frames"]),
         "resolution": "1280x720",
-        "fps": "20/1",
+        "fps": "24/1",
         "output": str(args.output),
         "bytes": args.output.stat().st_size
     }, indent=2))
