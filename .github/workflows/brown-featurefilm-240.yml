@@ -86,17 +86,40 @@ jobs:
         with:
           lfs: true
 
-      - name: Install Blender and FFmpeg
+      - name: Install Blender, FFmpeg, rclone and FUSE
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender ffmpeg
+          sudo apt-get install --yes blender ffmpeg rclone fuse3
           blender --version
           ffmpeg -version | head -n 2
+          rclone version
+
+      - name: Configure external video storage
+        env:
+          BROWN_RCLONE_CONFIG: ${{ secrets.BROWN_RCLONE_CONFIG }}
+          BROWN_STORAGE_REMOTE: ${{ vars.BROWN_STORAGE_REMOTE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${BROWN_RCLONE_CONFIG:-}" ] || [ -z "${BROWN_STORAGE_REMOTE:-}" ]; then
+            echo "::error::External storage is not configured. Add Actions secret BROWN_RCLONE_CONFIG and repository variable BROWN_STORAGE_REMOTE before starting the render queue."
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "$BROWN_RCLONE_CONFIG" > "$RUNNER_TEMP/rclone.conf"
+          remote_name="${BROWN_STORAGE_REMOTE%%:*}:"
+          if ! rclone listremotes --config "$RUNNER_TEMP/rclone.conf" | grep -Fxq "$remote_name"; then
+            echo "::error::BROWN_STORAGE_REMOTE references a remote that is absent from BROWN_RCLONE_CONFIG."
+            exit 1
+          fi
+          rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/segments"
 
       - name: Render, encode and verify this one-minute segment (up to three safe attempts)
         id: render
         env:
           SEGMENT: ${{ matrix.segment }}
+          BROWN_RCLONE_CONFIG: ${{ secrets.BROWN_RCLONE_CONFIG }}
+          BROWN_STORAGE_REMOTE: ${{ vars.BROWN_STORAGE_REMOTE }}
         shell: bash
         run: |
           set -u
@@ -151,16 +174,17 @@ jobs:
             exit 1
           fi
           echo "Segment $PADDED passed technical QC."
-
-      - name: Upload verified segment
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: brown-featurefilm-segment-${{ matrix.segment }}
-          path: output/featurefilm_segments/segment-*/segment-*.mp4
-          if-no-files-found: error
-          retention-days: 30
-          compression-level: 0
+          umask 077
+          printf '%s\n' "$BROWN_RCLONE_CONFIG" > "$RUNNER_TEMP/rclone.conf"
+          REMOTE_VIDEO="${BROWN_STORAGE_REMOTE%/}/segments/segment-$PADDED.mp4"
+          rclone copyto --config "$RUNNER_TEMP/rclone.conf" "$VIDEO" "$REMOTE_VIDEO"
+          LOCAL_SHA="$(sha256sum "$VIDEO" | awk '{print $1}')"
+          REMOTE_SHA="$(rclone cat --config "$RUNNER_TEMP/rclone.conf" "$REMOTE_VIDEO" | sha256sum | awk '{print $1}')"
+          if [ "$LOCAL_SHA" != "$REMOTE_SHA" ]; then
+            echo "::error::External storage checksum mismatch for segment $PADDED."
+            exit 1
+          fi
+          echo "Segment $PADDED uploaded and checksum-verified in external storage."
 
       - name: Upload failure diagnostics
         if: failure()
@@ -172,7 +196,7 @@ jobs:
             output/featurefilm_segments/segment-*/ffmpeg-attempt-*.log
             output/featurefilm_segments/segment-*/qc-attempt-*.json
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 7
           compression-level: 0
 
   assemble:
@@ -185,33 +209,56 @@ jobs:
       - name: Check out assembly tools
         uses: actions/checkout@v4
 
-      - name: Install FFmpeg and Python
+      - name: Install FFmpeg, rclone and FUSE
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ffmpeg
+          sudo apt-get install --yes ffmpeg rclone fuse3
           python3 --version
           ffmpeg -version | head -n 2
+          rclone version
 
-      - name: Download every successful segment artifact
-        uses: actions/download-artifact@v4
-        with:
-          pattern: brown-featurefilm-segment-*
-          path: output/verified_segments
-          merge-multiple: true
-
-      - name: Verify all 240 parts and assemble final four-hour film
+      - name: Configure and mount external segment storage
+        env:
+          BROWN_RCLONE_CONFIG: ${{ secrets.BROWN_RCLONE_CONFIG }}
+          BROWN_STORAGE_REMOTE: ${{ vars.BROWN_STORAGE_REMOTE }}
+        shell: bash
         run: |
-          python3 featurefilm_pipeline/assemble_featurefilm.py \
-            --input-dir output/verified_segments \
-            --output output/BROWN_Book_One_Complete_4h_720p20.mp4
+          set -euo pipefail
+          if [ -z "${BROWN_RCLONE_CONFIG:-}" ] || [ -z "${BROWN_STORAGE_REMOTE:-}" ]; then
+            echo "::error::External storage is not configured."
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "$BROWN_RCLONE_CONFIG" > "$RUNNER_TEMP/rclone.conf"
+          mkdir -p "$RUNNER_TEMP/brown-storage"
+          nohup rclone mount --config "$RUNNER_TEMP/rclone.conf" \
+            "$BROWN_STORAGE_REMOTE" "$RUNNER_TEMP/brown-storage" \
+            --read-only --vfs-cache-mode full --vfs-cache-max-size 2G \
+            --vfs-cache-max-age 1h --buffer-size 16M \
+            --vfs-read-chunk-size 32M --vfs-read-chunk-size-limit 256M \
+            > "$RUNNER_TEMP/rclone-mount.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/rclone-mount.pid"
+          for attempt in $(seq 1 60); do
+            if mountpoint -q "$RUNNER_TEMP/brown-storage"; then
+              break
+            fi
+            sleep 2
+          done
+          if ! mountpoint -q "$RUNNER_TEMP/brown-storage"; then
+            cat "$RUNNER_TEMP/rclone-mount.log"
+            echo "::error::Could not mount external video storage."
+            exit 1
+          fi
+          test -d "$RUNNER_TEMP/brown-storage/segments"
 
-      - name: Upload final verified feature film
-        uses: actions/upload-artifact@v4
-        with:
-          name: BROWN-Book-One-Complete-4h-720p20
-          path: |
-            output/BROWN_Book_One_Complete_4h_720p20.mp4
-            output/featurefilm_concat.txt
-          if-no-files-found: error
-          retention-days: 30
-          compression-level: 0
+      - name: Verify all 240 remote segments and stream the final film to external storage
+        env:
+          BROWN_RCLONE_CONFIG: ${{ secrets.BROWN_RCLONE_CONFIG }}
+          BROWN_STORAGE_REMOTE: ${{ vars.BROWN_STORAGE_REMOTE }}
+        run: |
+          python3 featurefilm_pipeline/assemble_external.py \
+            --input-dir "$RUNNER_TEMP/brown-storage/segments" \
+            --remote-root "$BROWN_STORAGE_REMOTE" \
+            --output-relative "final/BROWN_Book_One_Complete_4h_720p24.mp4" \
+            --rclone-config "$RUNNER_TEMP/rclone.conf" \
+            --work-dir output/external_assembly
