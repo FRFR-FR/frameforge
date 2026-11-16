@@ -23,7 +23,7 @@ jobs:
       - name: Install Blender and unpack scene script
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender ffmpeg
+          sudo apt-get install --yes blender ffmpeg libegl1 libegl-mesa0 libgl1-mesa-dri xvfb
           python3 -m py_compile blender_pipeline/windows_ip_explainer.py
           blender --version
       - name: Audit all 2,700 frames
@@ -59,7 +59,7 @@ jobs:
       - name: Render 15-second section at 720 x 1280, 30 FPS
         run: |
           mkdir -p output/windows_ip_explainer
-          blender --background --python-exit-code 1 --python blender_pipeline/windows_ip_explainer.py -- --mode render --segment-index ${{ matrix.segment }} --output-dir output/windows_ip_explainer
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 blender --background --python-exit-code 1 --python blender_pipeline/windows_ip_explainer.py -- --mode render --segment-index ${{ matrix.segment }} --output-dir output/windows_ip_explainer
       - uses: actions/upload-artifact@v4
         with:
           name: FrameForge-Windows-IP-part-${{ matrix.segment }}
