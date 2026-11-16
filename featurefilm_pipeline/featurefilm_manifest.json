@@ -86,5 +86,15 @@
     "five_minute_pilot_approved",
     "visual_qc_signoff",
     "master_scene_and_audio_approved"
-  ]
+  ],
+  "storage": {
+    "mode": "external_rclone",
+    "config_secret": "BROWN_RCLONE_CONFIG",
+    "remote_variable": "BROWN_STORAGE_REMOTE",
+    "remote_layout": {
+      "segments": "segments/segment-001.mp4 ... segments/segment-240.mp4",
+      "final": "final/BROWN_Book_One_Complete_4h_720p24.mp4"
+    },
+    "note": "Video payloads are never stored as GitHub Actions artifacts. Configure a private rclone remote (Drive/Dropbox/S3-compatible/other supported backend) and a remote root path in GitHub Actions secrets/variables."
+  }
 }
