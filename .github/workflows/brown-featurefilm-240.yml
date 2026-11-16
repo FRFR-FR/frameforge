@@ -1,0 +1,203 @@
+name: BROWN Feature Film — 240 Stylised Segments
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Preflight the production assets, or start all approved segment renders
+        type: choice
+        required: true
+        default: preflight
+        options:
+          - preflight
+          - render
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brown-featurefilm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Verify story, assets, rigs, pilot and approvals
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      render_ready: ${{ steps.gate.outputs.ready }}
+    steps:
+      - name: Check out approved production files
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate all pre-animation gates
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output/featurefilm_preflight
+          python featurefilm_pipeline/validate_preproduction.py \
+            --report output/featurefilm_preflight/readiness.json
+          ready="$(python featurefilm_pipeline/validate_preproduction.py --print-ready)"
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+          echo "Feature-film render-ready: $ready"
+          if [ "${{ inputs.operation }}" = "render" ] && [ "$ready" != "true" ]; then
+            echo "::error::Rendering is blocked. Complete the source breakdown, 65-character model library, every asset category, approved master scene/audio, dialogue/action proof, five-minute pilot and human visual QC."
+            cat output/featurefilm_preflight/readiness.json
+            exit 1
+          fi
+
+      - name: Upload preflight report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-featurefilm-preflight
+          path: output/featurefilm_preflight/readiness.json
+          if-no-files-found: error
+          retention-days: 30
+
+  render-segment:
+    name: Render segment MATRIX_SEGMENT
+    needs: preflight
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.operation == 'render' && needs.preflight.outputs.render_ready == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        segment: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240]
+    steps:
+      - name: Check out feature-film source and assets
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender ffmpeg
+          blender --version
+          ffmpeg -version | head -n 2
+
+      - name: Render, encode and verify this one-minute segment (up to three safe attempts)
+        id: render
+        env:
+          SEGMENT: ${{ matrix.segment }}
+        shell: bash
+        run: |
+          set -u
+          printf -v PADDED "%03d" "$SEGMENT"
+          START_FRAME=$(( (SEGMENT - 1) * 1200 + 1 ))
+          AUDIO_OFFSET=$(( (SEGMENT - 1) * 60 ))
+          WORK="output/featurefilm_segments/segment-$PADDED"
+          MASTER="production/assets/BROWN_featurefilm_master.blend"
+          AUDIO="production/audio/BROWN_featurefilm_master_mix.wav"
+          VIDEO="$WORK/segment-$PADDED.mp4"
+          mkdir -p "$WORK"
+          success=0
+
+          for attempt in 1 2 3; do
+            echo "Segment $PADDED attempt $attempt/3"
+            rm -rf "$WORK/frames"
+            mkdir -p "$WORK/frames"
+            if blender --background "$MASTER" \
+                --python featurefilm_pipeline/render_segment.py -- \
+                --segment "$SEGMENT" --work-dir "$WORK" \
+                > "$WORK/blender-attempt-$attempt.log" 2>&1; then
+              if ffmpeg -y -hide_banner -loglevel warning \
+                  -framerate 20 -start_number "$START_FRAME" \
+                  -i "$WORK/frames/frame_%06d.png" \
+                  -ss "$AUDIO_OFFSET" -i "$AUDIO" \
+                  -map 0:v:0 -map 1:a:0 -t 60 -frames:v 1200 \
+                  -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r 20 \
+                  -c:a aac -b:a 192k -ar 48000 -ac 2 \
+                  -movflags +faststart "$VIDEO" \
+                  > "$WORK/ffmpeg-attempt-$attempt.log" 2>&1; then
+                if python featurefilm_pipeline/validate_segment.py \
+                    --video "$VIDEO" --segment "$SEGMENT" \
+                    > "$WORK/qc-attempt-$attempt.json" 2>&1; then
+                  success=1
+                  break
+                fi
+              fi
+            fi
+            echo "Attempt $attempt did not pass; clearing only generated scratch frames/video and retrying."
+            rm -rf "$WORK/frames"
+            rm -f "$VIDEO"
+            sleep $((attempt * 15))
+          done
+
+          if [ "$success" -ne 1 ]; then
+            echo "::error::Segment $PADDED failed three render/encode/QC attempts. Diagnostic logs will be uploaded."
+            exit 1
+          fi
+          echo "Segment $PADDED passed technical QC."
+
+      - name: Upload verified segment
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brown-featurefilm-segment-${{ matrix.segment }}
+          path: output/featurefilm_segments/segment-${{ format('{0:000}', matrix.segment) }}/segment-${{ format('{0:000}', matrix.segment) }}.mp4
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brown-featurefilm-diagnostics-${{ matrix.segment }}
+          path: output/featurefilm_segments/segment-${{ format('{0:000}', matrix.segment) }}/*
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 0
+
+  assemble:
+    name: Verify and merge all 240 segments into the final film
+    needs: render-segment
+    if: ${{ needs.render-segment.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out assembly tools
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg and Python
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          python3 --version
+          ffmpeg -version | head -n 2
+
+      - name: Download every successful segment artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: brown-featurefilm-segment-*
+          path: output/verified_segments
+          merge-multiple: true
+
+      - name: Verify all 240 parts and assemble final four-hour film
+        run: |
+          python3 featurefilm_pipeline/assemble_featurefilm.py \
+            --input-dir output/verified_segments \
+            --output output/BROWN_Book_One_Complete_4h_720p20.mp4
+
+      - name: Upload final verified feature film
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Book-One-Complete-4h-720p20
+          path: |
+            output/BROWN_Book_One_Complete_4h_720p20.mp4
+            output/featurefilm_concat.txt
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
