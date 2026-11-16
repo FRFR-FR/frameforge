@@ -2,7 +2,7 @@
 
 ## Superseding delivery target
 
-This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **120 × 1-minute segments**, which equals **2 hours** total. At 24 fps and 1280 × 720, that is 172,800 frames. The queue permits a maximum of **three segment renders at once**. The 24 fps master contains 1,440 frames per segment and 345,600 frames overall.
+This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **120 × 1-minute segments**, which equals **2 hours** total. At 24 fps and 1280 × 720, that is 172,800 frames. The queue permits a maximum of **three segment renders at once**. The 24 fps master contains 1,440 frames per segment and 172,800 frames overall.
 
 The phrase “2-minute segments” conflicted with “120 one-minute segments”; the exact requested count is being treated as authoritative. The resulting master filename is:
 
@@ -74,8 +74,8 @@ Configure these in the repository's Settings → Secrets and variables → Actio
 1. Secret BROWN_RCLONE_CONFIG: the complete private rclone configuration text for one storage backend. Keep its credentials private.
 2. Repository variable BROWN_STORAGE_REMOTE: the remote root, for example brownfilm:projects/BROWN-Book-One. The remote name before the colon must match a remote in the secret configuration.
 
-The selected backend must have enough capacity for all 120 segments plus the final four-hour MP4. Supported rclone backends include cloud drives and S3-compatible object storage. GitHub Actions stores only small preflight and failure reports.
+The selected backend must have enough capacity for all 120 segments plus the final two-hour MP4. Supported rclone backends include cloud drives and S3-compatible object storage. GitHub Actions stores only small preflight and failure reports.
 
-Each rendered segment is uploaded to segments/segment-NNN.mp4, then SHA-256 checked against the local output. The assembly job mounts that remote read-only, validates every segment, and streams the final fragmented MP4 directly to final/BROWN_Book_One_Complete_2h_720p24.mp4; the four-hour file is not staged on the GitHub runner disk.
+Each rendered segment is uploaded to segments/segment-NNN.mp4, then SHA-256 checked against the local output. The assembly job mounts that remote read-only, validates every segment, and streams the final fragmented MP4 directly to final/BROWN_Book_One_Complete_2h_720p24.mp4; the two-hour file is not staged on the GitHub runner disk.
 
 A successful upload and technical probe do not certify artistic quality. Human visual approval remains a required gate. The private storage destination and credentials are not yet configured in this repository, so the render queue must not be started until that connection is in place.
