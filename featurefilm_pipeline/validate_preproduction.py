@@ -61,6 +61,7 @@ def validate() -> dict:
     paths = manifest.get("paths", {})
     existing_repo_file(paths.get("source_provenance"), "source provenance record", errors)
     story = read_json(ROOT / paths.get("story_breakdown", "production/story_breakdown.json"), errors)
+    screenplay = read_json(ROOT / paths.get("screenplay_and_shotlist", "production/screenplay_and_shotlist.json"), errors)
     assets = read_json(ROOT / paths.get("asset_registry", "production/asset_registry.json"), errors)
     approvals = read_json(ROOT / paths.get("approvals", "production/approvals.json"), errors)
 
@@ -95,7 +96,84 @@ def validate() -> dict:
         if not scenes:
             errors.append("Source breakdown contains no scene records")
 
+    screenplay_asset_ids: set[str] = set()
+    screenplay_cast: set[str] = set()
+    screenplay_shot_ids: set[str] = set()
+    screenplay_shot_count = 0
+    if screenplay:
+        if screenplay.get("status") != "APPROVED":
+            errors.append("Complete screenplay and shot schedule is not approved")
+        if screenplay.get("runtime_seconds") != 14400 or screenplay.get("segment_count") != 240:
+            errors.append("Screenplay schedule must cover exactly 240 one-minute segments")
+        segments = screenplay.get("segments", [])
+        if not isinstance(segments, list) or len(segments) != 240:
+            errors.append(f"Screenplay schedule must contain exactly 240 segments; found {len(segments) if isinstance(segments, list) else 'invalid'}")
+            segments = segments if isinstance(segments, list) else []
+        seen_segments: set[int] = set()
+        for index, segment in enumerate(segments):
+            label = f"screenplay.segments[{index}]"
+            number = segment.get("segment_number")
+            if not isinstance(number, int) or number < 1 or number > 240 or number in seen_segments:
+                errors.append(f"{label}: segment_number must be unique from 1 to 240")
+            else:
+                seen_segments.add(number)
+            if segment.get("duration_seconds") != 60:
+                errors.append(f"{label}: duration_seconds must equal 60")
+            if segment.get("segment_status") != "APPROVED" or segment.get("review_status") != "APPROVED":
+                errors.append(f"{label}: segment and review statuses must both be APPROVED")
+            existing_repo_file(segment.get("review_evidence"), label + ".review_evidence", errors)
+            scene_refs = segment.get("scene_refs", [])
+            shots = segment.get("shot_list", [])
+            if not isinstance(scene_refs, list) or not scene_refs:
+                errors.append(f"{label}: scene_refs must be a non-empty array")
+                scene_refs = []
+            if not isinstance(shots, list) or not shots:
+                errors.append(f"{label}: shot_list must contain reviewed shots")
+                shots = []
+            unknown_scenes = sorted(set(scene_refs) - scene_ids)
+            if unknown_scenes:
+                errors.append(f"{label}: references unknown scenes: " + ", ".join(unknown_scenes))
+            previous_end = 0.0
+            for shot_index, shot in enumerate(shots):
+                shot_label = f"{label}.shot_list[{shot_index}]"
+                shot_id = shot.get("shot_id")
+                if not isinstance(shot_id, str) or not shot_id.strip() or shot_id in screenplay_shot_ids:
+                    errors.append(f"{shot_label}: shot_id must be non-empty and globally unique")
+                else:
+                    screenplay_shot_ids.add(shot_id)
+                screenplay_shot_count += 1
+                scene_id = shot.get("scene_id")
+                if scene_id not in scene_refs or scene_id not in scene_ids:
+                    errors.append(f"{shot_label}: scene_id must be present in the segment scene_refs and source breakdown")
+                start = shot.get("start_seconds")
+                duration = shot.get("duration_seconds")
+                if not isinstance(start, (int, float)) or not isinstance(duration, (int, float)) or duration <= 0:
+                    errors.append(f"{shot_label}: start_seconds and positive duration_seconds are required")
+                else:
+                    if abs(float(start) - previous_end) > 0.01:
+                        errors.append(f"{shot_label}: shot timing has a gap or overlap; expected start {previous_end:.2f}s")
+                    previous_end = float(start) + float(duration)
+                    if previous_end > 60.01:
+                        errors.append(f"{shot_label}: shot exceeds the 60-second segment")
+                for field in ("camera_plan", "performance_or_action", "dialogue_or_action_text", "sound_plan", "continuity_notes"):
+                    if not isinstance(shot.get(field), str) or not shot[field].strip():
+                        errors.append(f"{shot_label}: {field} is required")
+                for field in ("character_ids", "location_ids", "asset_ids"):
+                    values = shot.get(field)
+                    if not isinstance(values, list) or not values:
+                        errors.append(f"{shot_label}: {field} must be a non-empty array")
+                    elif field == "asset_ids":
+                        screenplay_asset_ids.update(values)
+                    elif field == "character_ids":
+                        screenplay_cast.update(values)
+            if shots and abs(previous_end - 60.0) > 0.01:
+                errors.append(f"{label}: shot timings cover {previous_end:.2f}s, not 60 seconds")
+        missing_segments = sorted(set(range(1, 241)) - seen_segments)
+        if missing_segments:
+            errors.append("Screenplay schedule is missing segment numbers: " + ", ".join(map(str, missing_segments[:30])))
+
     asset_ids: set[str] = set()
+    character_names: set[str] = set()
     character_count = 0
     required_categories = set(manifest.get("required_asset_categories", []))
     if assets:
@@ -126,13 +204,29 @@ def validate() -> dict:
                 existing_repo_file(item.get("review_evidence"), label + ".review_evidence", errors)
                 if category_id == "characters":
                     character_count += 1
+                    character_name = item.get("character_name")
+                    if not isinstance(character_name, str) or not character_name.strip():
+                        errors.append(f"{label}: character_name is required")
+                    else:
+                        if character_name in character_names:
+                            errors.append(f"{label}: duplicate character_name {character_name}")
+                        character_names.add(character_name)
                     for field in ("model_sheet", "turntable", "model_blend", "rig_blend", "facial_test"):
                         existing_repo_file(item.get(field), label + "." + field, errors)
         if character_count < REQUIRED_CHARACTER_COUNT:
             errors.append(f"Character library has {character_count} approved character records; {REQUIRED_CHARACTER_COUNT} named characters are required")
-        unresolved = sorted(linked_asset_ids - asset_ids)
+        unresolved = sorted((linked_asset_ids | screenplay_asset_ids) - asset_ids)
         if unresolved:
-            errors.append("Story scenes reference unknown asset IDs: " + ", ".join(unresolved[:30]))
+            errors.append("Story/screenplay references unknown or unapproved asset IDs: " + ", ".join(unresolved[:30]))
+        if story:
+            missing_cast = sorted(set(story.get("named_cast", [])) - character_names)
+            if missing_cast:
+                errors.append("Character library is missing named cast designs: " + ", ".join(missing_cast[:30]))
+        if story:
+            declared_cast = set(story.get("named_cast", []))
+            unknown_cast = sorted(screenplay_cast - declared_cast)
+            if unknown_cast:
+                errors.append("Screenplay references cast names absent from the story bible: " + ", ".join(unknown_cast[:30]))
 
     if approvals:
         approval_map = approvals.get("approvals", {})
@@ -158,6 +252,7 @@ def validate() -> dict:
         "render": render,
         "approved_character_records": character_count,
         "story_scenes": len(story.get("scenes", [])) if story else 0,
+        "screenplay_shots": screenplay_shot_count,
         "approved_asset_ids": len(asset_ids),
         "errors": errors,
         "notes": notes,
