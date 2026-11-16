@@ -2,11 +2,11 @@
 
 ## Superseding delivery target
 
-This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **240 × 1-minute segments**, which equals **4 hours** total. At 24 fps and 1280 × 720, that is 345,600 frames. The queue permits a maximum of **three segment renders at once**. The 24 fps master contains 1,440 frames per segment and 345,600 frames overall.
+This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **120 × 1-minute segments**, which equals **2 hours** total. At 24 fps and 1280 × 720, that is 172,800 frames. The queue permits a maximum of **three segment renders at once**. The 24 fps master contains 1,440 frames per segment and 345,600 frames overall.
 
-The phrase “2-minute segments” conflicted with “240 one-minute segments”; the exact requested count is being treated as authoritative. The resulting master filename is:
+The phrase “2-minute segments” conflicted with “120 one-minute segments”; the exact requested count is being treated as authoritative. The resulting master filename is:
 
-    BROWN_Book_One_Complete_4h_720p24.mp4
+    BROWN_Book_One_Complete_2h_720p24.mp4
 
 ## Visual target
 
@@ -52,11 +52,11 @@ The new workflow is .github/workflows/brown-featurefilm-240.yml.
 - Changing pipeline files runs an automatic preflight.
 - Committing the final production/approvals.json also runs a preflight. If—and only if—every source, scene, asset, rig, audio, pilot and visual-QC requirement passes, the queue starts automatically.
 - A manual workflow_dispatch can run preflight or render.
-- The render matrix has 240 unique one-minute jobs and max-parallel: 3.
+- The render matrix has 120 unique one-minute jobs and max-parallel: 3.
 - Each job renders 1,440 frames, encodes a 60-second 720p H.264 segment at 24 fps, adds the matching 60-second audio slice, validates audio/video streams and retries up to three times. Retry attempts lower the Blender/encoder thread cap (8, then 4, then 2) to mitigate resource-pressure failures without reducing resolution or changing the quality profile.
 - Retries clear only disposable generated frames and partial MP4 output. They never alter the source book, approved assets, animation, or production settings.
 - If a deterministic Blender/model/scene error remains after three attempts, the job uploads its logs and stops. It does not make arbitrary code or artistic changes that could corrupt the film.
-- Final assembly cannot start until all 240 segment jobs pass. The assembler verifies every segment's frame count, resolution, frame rate, duration and audio before concatenation, then verifies the 4-hour final file.
+- Final assembly cannot start until all 120 segment jobs pass. The assembler verifies every segment's frame count, resolution, frame rate, duration and audio before concatenation, then verifies the 2-hour final file.
 
 ## Honest production limits
 
@@ -67,15 +67,15 @@ GitHub-hosted CPU runners can execute Blender, but they do not guarantee feature
 
 ## External storage setup required before full render
 
-GitHub Free includes 500 MB of Actions artifact storage, shared with GitHub Packages. This is only suitable for small reports and failure logs, not 240 video segments plus a four-hour master. The workflow therefore sends video files to an external rclone remote and does not upload successful segment videos or the master as GitHub artifacts.
+GitHub Free includes 500 MB of Actions artifact storage, shared with GitHub Packages. This is only suitable for small reports and failure logs, not 240 video segments plus a two-hour master. The workflow therefore sends video files to an external rclone remote and does not upload successful segment videos or the master as GitHub artifacts.
 
 Configure these in the repository's Settings → Secrets and variables → Actions:
 
 1. Secret BROWN_RCLONE_CONFIG: the complete private rclone configuration text for one storage backend. Keep its credentials private.
 2. Repository variable BROWN_STORAGE_REMOTE: the remote root, for example brownfilm:projects/BROWN-Book-One. The remote name before the colon must match a remote in the secret configuration.
 
-The selected backend must have enough capacity for all 240 segments plus the final four-hour MP4. Supported rclone backends include cloud drives and S3-compatible object storage. GitHub Actions stores only small preflight and failure reports.
+The selected backend must have enough capacity for all 120 segments plus the final four-hour MP4. Supported rclone backends include cloud drives and S3-compatible object storage. GitHub Actions stores only small preflight and failure reports.
 
-Each rendered segment is uploaded to segments/segment-NNN.mp4, then SHA-256 checked against the local output. The assembly job mounts that remote read-only, validates every segment, and streams the final fragmented MP4 directly to final/BROWN_Book_One_Complete_4h_720p24.mp4; the four-hour file is not staged on the GitHub runner disk.
+Each rendered segment is uploaded to segments/segment-NNN.mp4, then SHA-256 checked against the local output. The assembly job mounts that remote read-only, validates every segment, and streams the final fragmented MP4 directly to final/BROWN_Book_One_Complete_2h_720p24.mp4; the four-hour file is not staged on the GitHub runner disk.
 
 A successful upload and technical probe do not certify artistic quality. Human visual approval remains a required gate. The private storage destination and credentials are not yet configured in this repository, so the render queue must not be started until that connection is in place.
