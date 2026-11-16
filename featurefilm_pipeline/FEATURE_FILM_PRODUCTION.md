@@ -2,7 +2,7 @@
 
 ## Superseding delivery target
 
-This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **240 × 1-minute segments**, which equals **4 hours** total. At 24 fps and 1280 × 720, that is 345,600 frames. The queue permits a maximum of **three segment renders at once**.
+This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **240 × 1-minute segments**, which equals **4 hours** total. At 24 fps and 1280 × 720, that is 345,600 frames. The queue permits a maximum of **three segment renders at once**. The 24 fps master contains 1,440 frames per segment and 345,600 frames overall.
 
 The phrase “2-minute segments” conflicted with “240 one-minute segments”; the exact requested count is being treated as authoritative. The resulting master filename is:
 
@@ -53,7 +53,7 @@ The new workflow is .github/workflows/brown-featurefilm-240.yml.
 - Committing the final production/approvals.json also runs a preflight. If—and only if—every source, scene, asset, rig, audio, pilot and visual-QC requirement passes, the queue starts automatically.
 - A manual workflow_dispatch can run preflight or render.
 - The render matrix has 240 unique one-minute jobs and max-parallel: 3.
-- Each job renders 1,200 frames, encodes a 60-second 720p H.264 segment, adds the matching 60-second audio slice, validates audio/video streams and retries up to three times.
+- Each job renders 1,440 frames, encodes a 60-second 720p H.264 segment at 24 fps, adds the matching 60-second audio slice, validates audio/video streams and retries up to three times. Retry attempts lower the Blender/encoder thread cap (8, then 4, then 2) to mitigate resource-pressure failures without reducing resolution or changing the quality profile.
 - Retries clear only disposable generated frames and partial MP4 output. They never alter the source book, approved assets, animation, or production settings.
 - If a deterministic Blender/model/scene error remains after three attempts, the job uploads its logs and stops. It does not make arbitrary code or artistic changes that could corrupt the film.
 - Final assembly cannot start until all 240 segment jobs pass. The assembler verifies every segment's frame count, resolution, frame rate, duration and audio before concatenation, then verifies the 4-hour final file.
