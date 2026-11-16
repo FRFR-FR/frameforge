@@ -8,9 +8,9 @@
   "render": {
     "width": 1280,
     "height": 720,
-    "fps": 20,
-    "frames_per_segment": 1200,
-    "total_frames": 288000,
+    "fps": 24,
+    "frames_per_segment": 1440,
+    "total_frames": 345600,
     "container": "mp4",
     "video_codec": "h264",
     "pixel_format": "yuv420p",
