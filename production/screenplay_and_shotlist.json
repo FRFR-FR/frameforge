@@ -1,0 +1,2421 @@
+{
+  "schema_version": 1,
+  "project": "BROWN — Book One feature-film screenplay and shot schedule",
+  "status": "NOT_STARTED",
+  "runtime_seconds": 14400,
+  "segment_duration_seconds": 60,
+  "segment_count": 240,
+  "frame_rate": 24,
+  "instructions": [
+    "This must be a complete production screenplay and shot-by-shot animation plan, not a chapter summary.",
+    "Every 60-second segment must reference one or more source-derived scenes, and each shot must have timing, dramatic purpose, camera framing/movement, character performances, environment, assets, dialogue or action, sound and continuity details.",
+    "Every beat must be traceable to production/story_breakdown.json and the source manuscript/story bible.",
+    "Do not invent scenes, dialogue, characters, props or locations. Where a story-bible outline needs expansion into screenplay form, flag that expansion and require author approval before animation.",
+    "Every character, location, vehicle, prop, food item, environment, weather/sky effect and sound cue must reference a designed and approved asset ID in production/asset_registry.json.",
+    "Each segment must total exactly 60 seconds; the complete schedule must total exactly 14,400 seconds.",
+    "Each shot entry must include shot_id, scene_id, start_seconds, duration_seconds, camera_plan, performance_or_action, dialogue_or_action_text, character_ids, location_ids, asset_ids, sound_plan and continuity_notes.",
+    "Shot IDs must be unique across the full film, and all time ranges must fit inside their own segment."
+  ],
+  "segments": [
+    {
+      "segment_number": 1,
+      "segment_id": "B1-SEG-001",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 2,
+      "segment_id": "B1-SEG-002",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 3,
+      "segment_id": "B1-SEG-003",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 4,
+      "segment_id": "B1-SEG-004",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 5,
+      "segment_id": "B1-SEG-005",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 6,
+      "segment_id": "B1-SEG-006",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 7,
+      "segment_id": "B1-SEG-007",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 8,
+      "segment_id": "B1-SEG-008",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 9,
+      "segment_id": "B1-SEG-009",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 10,
+      "segment_id": "B1-SEG-010",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 11,
+      "segment_id": "B1-SEG-011",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 12,
+      "segment_id": "B1-SEG-012",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 13,
+      "segment_id": "B1-SEG-013",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 14,
+      "segment_id": "B1-SEG-014",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 15,
+      "segment_id": "B1-SEG-015",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 16,
+      "segment_id": "B1-SEG-016",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 17,
+      "segment_id": "B1-SEG-017",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 18,
+      "segment_id": "B1-SEG-018",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 19,
+      "segment_id": "B1-SEG-019",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 20,
+      "segment_id": "B1-SEG-020",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 21,
+      "segment_id": "B1-SEG-021",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 22,
+      "segment_id": "B1-SEG-022",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 23,
+      "segment_id": "B1-SEG-023",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 24,
+      "segment_id": "B1-SEG-024",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 25,
+      "segment_id": "B1-SEG-025",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 26,
+      "segment_id": "B1-SEG-026",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 27,
+      "segment_id": "B1-SEG-027",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 28,
+      "segment_id": "B1-SEG-028",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 29,
+      "segment_id": "B1-SEG-029",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 30,
+      "segment_id": "B1-SEG-030",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 31,
+      "segment_id": "B1-SEG-031",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 32,
+      "segment_id": "B1-SEG-032",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 33,
+      "segment_id": "B1-SEG-033",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 34,
+      "segment_id": "B1-SEG-034",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 35,
+      "segment_id": "B1-SEG-035",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 36,
+      "segment_id": "B1-SEG-036",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 37,
+      "segment_id": "B1-SEG-037",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 38,
+      "segment_id": "B1-SEG-038",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 39,
+      "segment_id": "B1-SEG-039",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 40,
+      "segment_id": "B1-SEG-040",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 41,
+      "segment_id": "B1-SEG-041",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 42,
+      "segment_id": "B1-SEG-042",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 43,
+      "segment_id": "B1-SEG-043",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 44,
+      "segment_id": "B1-SEG-044",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 45,
+      "segment_id": "B1-SEG-045",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 46,
+      "segment_id": "B1-SEG-046",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 47,
+      "segment_id": "B1-SEG-047",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 48,
+      "segment_id": "B1-SEG-048",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 49,
+      "segment_id": "B1-SEG-049",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 50,
+      "segment_id": "B1-SEG-050",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 51,
+      "segment_id": "B1-SEG-051",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 52,
+      "segment_id": "B1-SEG-052",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 53,
+      "segment_id": "B1-SEG-053",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 54,
+      "segment_id": "B1-SEG-054",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 55,
+      "segment_id": "B1-SEG-055",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 56,
+      "segment_id": "B1-SEG-056",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 57,
+      "segment_id": "B1-SEG-057",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 58,
+      "segment_id": "B1-SEG-058",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 59,
+      "segment_id": "B1-SEG-059",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 60,
+      "segment_id": "B1-SEG-060",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 61,
+      "segment_id": "B1-SEG-061",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 62,
+      "segment_id": "B1-SEG-062",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 63,
+      "segment_id": "B1-SEG-063",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 64,
+      "segment_id": "B1-SEG-064",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 65,
+      "segment_id": "B1-SEG-065",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 66,
+      "segment_id": "B1-SEG-066",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 67,
+      "segment_id": "B1-SEG-067",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 68,
+      "segment_id": "B1-SEG-068",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 69,
+      "segment_id": "B1-SEG-069",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 70,
+      "segment_id": "B1-SEG-070",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 71,
+      "segment_id": "B1-SEG-071",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 72,
+      "segment_id": "B1-SEG-072",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 73,
+      "segment_id": "B1-SEG-073",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 74,
+      "segment_id": "B1-SEG-074",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 75,
+      "segment_id": "B1-SEG-075",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 76,
+      "segment_id": "B1-SEG-076",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 77,
+      "segment_id": "B1-SEG-077",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 78,
+      "segment_id": "B1-SEG-078",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 79,
+      "segment_id": "B1-SEG-079",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 80,
+      "segment_id": "B1-SEG-080",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 81,
+      "segment_id": "B1-SEG-081",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 82,
+      "segment_id": "B1-SEG-082",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 83,
+      "segment_id": "B1-SEG-083",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 84,
+      "segment_id": "B1-SEG-084",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 85,
+      "segment_id": "B1-SEG-085",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 86,
+      "segment_id": "B1-SEG-086",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 87,
+      "segment_id": "B1-SEG-087",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 88,
+      "segment_id": "B1-SEG-088",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 89,
+      "segment_id": "B1-SEG-089",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 90,
+      "segment_id": "B1-SEG-090",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 91,
+      "segment_id": "B1-SEG-091",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 92,
+      "segment_id": "B1-SEG-092",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 93,
+      "segment_id": "B1-SEG-093",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 94,
+      "segment_id": "B1-SEG-094",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 95,
+      "segment_id": "B1-SEG-095",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 96,
+      "segment_id": "B1-SEG-096",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 97,
+      "segment_id": "B1-SEG-097",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 98,
+      "segment_id": "B1-SEG-098",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 99,
+      "segment_id": "B1-SEG-099",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 100,
+      "segment_id": "B1-SEG-100",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 101,
+      "segment_id": "B1-SEG-101",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 102,
+      "segment_id": "B1-SEG-102",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 103,
+      "segment_id": "B1-SEG-103",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 104,
+      "segment_id": "B1-SEG-104",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 105,
+      "segment_id": "B1-SEG-105",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 106,
+      "segment_id": "B1-SEG-106",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 107,
+      "segment_id": "B1-SEG-107",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 108,
+      "segment_id": "B1-SEG-108",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 109,
+      "segment_id": "B1-SEG-109",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 110,
+      "segment_id": "B1-SEG-110",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 111,
+      "segment_id": "B1-SEG-111",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 112,
+      "segment_id": "B1-SEG-112",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 113,
+      "segment_id": "B1-SEG-113",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 114,
+      "segment_id": "B1-SEG-114",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 115,
+      "segment_id": "B1-SEG-115",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 116,
+      "segment_id": "B1-SEG-116",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 117,
+      "segment_id": "B1-SEG-117",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 118,
+      "segment_id": "B1-SEG-118",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 119,
+      "segment_id": "B1-SEG-119",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 120,
+      "segment_id": "B1-SEG-120",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 121,
+      "segment_id": "B1-SEG-121",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 122,
+      "segment_id": "B1-SEG-122",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 123,
+      "segment_id": "B1-SEG-123",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 124,
+      "segment_id": "B1-SEG-124",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 125,
+      "segment_id": "B1-SEG-125",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 126,
+      "segment_id": "B1-SEG-126",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 127,
+      "segment_id": "B1-SEG-127",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 128,
+      "segment_id": "B1-SEG-128",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 129,
+      "segment_id": "B1-SEG-129",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 130,
+      "segment_id": "B1-SEG-130",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 131,
+      "segment_id": "B1-SEG-131",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 132,
+      "segment_id": "B1-SEG-132",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 133,
+      "segment_id": "B1-SEG-133",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 134,
+      "segment_id": "B1-SEG-134",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 135,
+      "segment_id": "B1-SEG-135",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 136,
+      "segment_id": "B1-SEG-136",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 137,
+      "segment_id": "B1-SEG-137",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 138,
+      "segment_id": "B1-SEG-138",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 139,
+      "segment_id": "B1-SEG-139",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 140,
+      "segment_id": "B1-SEG-140",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 141,
+      "segment_id": "B1-SEG-141",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 142,
+      "segment_id": "B1-SEG-142",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 143,
+      "segment_id": "B1-SEG-143",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 144,
+      "segment_id": "B1-SEG-144",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 145,
+      "segment_id": "B1-SEG-145",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 146,
+      "segment_id": "B1-SEG-146",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 147,
+      "segment_id": "B1-SEG-147",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 148,
+      "segment_id": "B1-SEG-148",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 149,
+      "segment_id": "B1-SEG-149",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 150,
+      "segment_id": "B1-SEG-150",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 151,
+      "segment_id": "B1-SEG-151",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 152,
+      "segment_id": "B1-SEG-152",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 153,
+      "segment_id": "B1-SEG-153",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 154,
+      "segment_id": "B1-SEG-154",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 155,
+      "segment_id": "B1-SEG-155",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 156,
+      "segment_id": "B1-SEG-156",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 157,
+      "segment_id": "B1-SEG-157",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 158,
+      "segment_id": "B1-SEG-158",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 159,
+      "segment_id": "B1-SEG-159",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 160,
+      "segment_id": "B1-SEG-160",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 161,
+      "segment_id": "B1-SEG-161",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 162,
+      "segment_id": "B1-SEG-162",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 163,
+      "segment_id": "B1-SEG-163",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 164,
+      "segment_id": "B1-SEG-164",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 165,
+      "segment_id": "B1-SEG-165",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 166,
+      "segment_id": "B1-SEG-166",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 167,
+      "segment_id": "B1-SEG-167",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 168,
+      "segment_id": "B1-SEG-168",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 169,
+      "segment_id": "B1-SEG-169",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 170,
+      "segment_id": "B1-SEG-170",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 171,
+      "segment_id": "B1-SEG-171",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 172,
+      "segment_id": "B1-SEG-172",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 173,
+      "segment_id": "B1-SEG-173",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 174,
+      "segment_id": "B1-SEG-174",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 175,
+      "segment_id": "B1-SEG-175",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 176,
+      "segment_id": "B1-SEG-176",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 177,
+      "segment_id": "B1-SEG-177",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 178,
+      "segment_id": "B1-SEG-178",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 179,
+      "segment_id": "B1-SEG-179",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 180,
+      "segment_id": "B1-SEG-180",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 181,
+      "segment_id": "B1-SEG-181",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 182,
+      "segment_id": "B1-SEG-182",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 183,
+      "segment_id": "B1-SEG-183",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 184,
+      "segment_id": "B1-SEG-184",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 185,
+      "segment_id": "B1-SEG-185",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 186,
+      "segment_id": "B1-SEG-186",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 187,
+      "segment_id": "B1-SEG-187",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 188,
+      "segment_id": "B1-SEG-188",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 189,
+      "segment_id": "B1-SEG-189",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 190,
+      "segment_id": "B1-SEG-190",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 191,
+      "segment_id": "B1-SEG-191",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 192,
+      "segment_id": "B1-SEG-192",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 193,
+      "segment_id": "B1-SEG-193",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 194,
+      "segment_id": "B1-SEG-194",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 195,
+      "segment_id": "B1-SEG-195",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 196,
+      "segment_id": "B1-SEG-196",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 197,
+      "segment_id": "B1-SEG-197",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 198,
+      "segment_id": "B1-SEG-198",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 199,
+      "segment_id": "B1-SEG-199",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 200,
+      "segment_id": "B1-SEG-200",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 201,
+      "segment_id": "B1-SEG-201",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 202,
+      "segment_id": "B1-SEG-202",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 203,
+      "segment_id": "B1-SEG-203",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 204,
+      "segment_id": "B1-SEG-204",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 205,
+      "segment_id": "B1-SEG-205",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 206,
+      "segment_id": "B1-SEG-206",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 207,
+      "segment_id": "B1-SEG-207",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 208,
+      "segment_id": "B1-SEG-208",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 209,
+      "segment_id": "B1-SEG-209",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 210,
+      "segment_id": "B1-SEG-210",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 211,
+      "segment_id": "B1-SEG-211",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 212,
+      "segment_id": "B1-SEG-212",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 213,
+      "segment_id": "B1-SEG-213",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 214,
+      "segment_id": "B1-SEG-214",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 215,
+      "segment_id": "B1-SEG-215",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 216,
+      "segment_id": "B1-SEG-216",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 217,
+      "segment_id": "B1-SEG-217",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 218,
+      "segment_id": "B1-SEG-218",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 219,
+      "segment_id": "B1-SEG-219",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 220,
+      "segment_id": "B1-SEG-220",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 221,
+      "segment_id": "B1-SEG-221",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 222,
+      "segment_id": "B1-SEG-222",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 223,
+      "segment_id": "B1-SEG-223",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 224,
+      "segment_id": "B1-SEG-224",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 225,
+      "segment_id": "B1-SEG-225",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 226,
+      "segment_id": "B1-SEG-226",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 227,
+      "segment_id": "B1-SEG-227",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 228,
+      "segment_id": "B1-SEG-228",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 229,
+      "segment_id": "B1-SEG-229",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 230,
+      "segment_id": "B1-SEG-230",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 231,
+      "segment_id": "B1-SEG-231",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 232,
+      "segment_id": "B1-SEG-232",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 233,
+      "segment_id": "B1-SEG-233",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 234,
+      "segment_id": "B1-SEG-234",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 235,
+      "segment_id": "B1-SEG-235",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 236,
+      "segment_id": "B1-SEG-236",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 237,
+      "segment_id": "B1-SEG-237",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 238,
+      "segment_id": "B1-SEG-238",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 239,
+      "segment_id": "B1-SEG-239",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    },
+    {
+      "segment_number": 240,
+      "segment_id": "B1-SEG-240",
+      "duration_seconds": 60,
+      "scene_refs": [],
+      "shot_list": [],
+      "segment_status": "NOT_STARTED",
+      "review_status": "NOT_APPROVED",
+      "review_evidence": ""
+    }
+  ]
+}
