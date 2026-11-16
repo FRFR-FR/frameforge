@@ -32,7 +32,7 @@
     "approved_master_blend": "production/assets/BROWN_featurefilm_master.blend",
     "master_audio_mix": "production/audio/BROWN_featurefilm_master_mix.wav",
     "segment_output_directory": "output/featurefilm_segments",
-    "final_output": "output/BROWN_Book_One_Complete_4h_720p20.mp4",
+    "final_output": "external:final/BROWN_Book_One_Complete_4h_720p24.mp4",
     "source_provenance": "production/source/SOURCE_PROVENANCE.md"
   },
   "visual_direction": {
