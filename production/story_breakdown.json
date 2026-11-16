@@ -1,6 +1,23 @@
 {
   "schema_version": 1,
-  "source": "BROWN Book One publication interior and 72-chapter story bible",
+  "project": "BROWN — Book One",
+  "source_documents": [
+    {
+      "name": "BROWN_Book_One_Publication_Interior.pdf",
+      "sha256": "48c0a6873c42ed4c42157a76e87c071dda02da5eeb5d7d51e8f31ddc8cb3e6ae",
+      "source_location": "User Library; not copied into GitHub branch"
+    },
+    {
+      "name": "BROWN_Book_One_Story_Bible_and_72_Chapter_Plan.pdf",
+      "sha256": "1197820d4d150b6c105771c8379413aaec026a4b36a14dc0b428d320ba2910a0",
+      "source_location": "User Library; not copied into GitHub branch"
+    }
+  ],
+  "source_status": {
+    "prose_draft": "The publication interior currently contains the prologue and Chapters 1–8 as prose drafts.",
+    "roadmap": "Chapters 9–72 are chapter roadmap summaries in the story bible, not completed prose chapters.",
+    "adaptation_policy": "This is a chapter-level adaptation map, not a final screenplay or full shot list. Roadmap-only chapters require author validation against completed prose when available."
+  },
   "expected_chapters": [
     "PROLOGUE",
     "CHAPTER_01",
@@ -76,6 +93,1766 @@
     "CHAPTER_71",
     "CHAPTER_72"
   ],
-  "instructions": "Create one or more scene records for every chapter and the prologue. Scene records must be source-traceable and include cause/effect, dialogue beats, character IDs, location IDs, required asset IDs, and intended visual action. Do not invent events or simplify away consequences.",
-  "scenes": []
+  "scenes": [
+    {
+      "scene_id": "B1-PROLOGUE-SC01",
+      "chapter_id": "PROLOGUE",
+      "title": "The Register",
+      "story_part": "PROLOGUE",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "Vesper’s census begins as an apparently neutral service record, then determines access to ambulances, housing and exams. A clerk questions the claim that numbers are morally neutral.",
+      "action_plan": "Stage Vesper civic registry; public-service corridors. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Registry clerk"
+      ],
+      "location_ids": [
+        "VESPER_CIVIC_REGISTRY",
+        "PUBLIC_SERVICE_CORRIDORS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Make administrative procedure quietly ominous; seed the registry motif.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, world and premise sections; Prologue"
+    },
+    {
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "chapter_id": "CHAPTER_01",
+      "title": "The City That Counted Us",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "Kaylen navigates Vesper’s racial registry and security economy. The Grave Choir completes a job, receives neighbourhood praise and coded payment from an unknown sponsor; a broadcast brands the conflict as a product.",
+      "action_plan": "Stage Vesper streets; checkpoint; crew route; broadcast studio. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Eamon Voss",
+        "Lark Temba",
+        "Juno Saye",
+        "Kesh Ayo",
+        "Biko Nare",
+        "Amel Zori",
+        "Tovin Bell"
+      ],
+      "location_ids": [
+        "VESPER_STREETS",
+        "CHECKPOINT",
+        "CREW_ROUTE",
+        "BROADCAST_STUDIO"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Establish the crew’s ordinary ties and the commercial packaging of violence.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_02-SC01",
+      "chapter_id": "CHAPTER_02",
+      "title": "House of Brass",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "A domestic smell triggers Kaylen’s memories of Dorian’s abuse and the night Kaylen killed Nia. His memory is fragmented, but his responsibility remains intact.",
+      "action_plan": "Stage Atlee home; present room; memory fragments. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Nia Atlee",
+        "Dorian Atlee"
+      ],
+      "location_ids": [
+        "ATLEE_HOME",
+        "PRESENT_ROOM",
+        "MEMORY_FRAGMENTS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Use sensory transitions without excusing Nia’s murder or Dorian’s abuse.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_03-SC01",
+      "chapter_id": "CHAPTER_03",
+      "title": "Choir Practice",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "The crew’s relationships emerge through humour, debts, school forms, medical supplies and fear of leaving. Eamon orders a supposedly simple confrontation; Lark and Amel notice the instructions are too precise.",
+      "action_plan": "Stage Crew gathering place; workshop; neighbourhood. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Eamon Voss",
+        "Lark Temba",
+        "Juno Saye",
+        "Kesh Ayo",
+        "Biko Nare",
+        "Amel Zori",
+        "Tovin Bell",
+        "Rasha Deni",
+        "Sefu Malk"
+      ],
+      "location_ids": [
+        "CREW_GATHERING_PLACE",
+        "WORKSHOP",
+        "NEIGHBOURHOOD"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Humanise the crew before the ambush; seed Juno’s notebook and Tovin’s application.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_04-SC01",
+      "chapter_id": "CHAPTER_04",
+      "title": "The People in the Box",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "A recovered media file reveals crew movements were scheduled and labelled before they occurred. The word Delegation appears, but Kaylen mistakes it for a local committee.",
+      "action_plan": "Stage Media workstation; storage room; Vesper archive. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Amel Zori",
+        "Eamon Voss"
+      ],
+      "location_ids": [
+        "MEDIA_WORKSTATION",
+        "STORAGE_ROOM",
+        "VESPER_ARCHIVE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Use screen inserts and character reactions to reveal pre-packaging.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_05-SC01",
+      "chapter_id": "CHAPTER_05",
+      "title": "The Battle Banner",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "A network promotes an upcoming “Black-Powered Gang Battle” as evidence the registry keeps Vesper safe. The crew receives its route and timing; Juno notices the rival has the same information.",
+      "action_plan": "Stage Broadcast studio; crew staging area; route briefing. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Juno Saye",
+        "Eamon Voss",
+        "Amel Zori",
+        "Lark Temba"
+      ],
+      "location_ids": [
+        "BROADCAST_STUDIO",
+        "CREW_STAGING_AREA",
+        "ROUTE_BRIEFING"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Build dread through warning signs; avoid procedural detail about staging an attack.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_06-SC01",
+      "chapter_id": "CHAPTER_06",
+      "title": "Under the Living",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "The operation becomes an ambush. Kaylen survives beneath the bodies of his comrades; the experience is conveyed through confusion, muffled sound, pressure and guilt, not spectacle.",
+      "action_plan": "Stage Ambush site; ground-level perspective; emergency perimeter. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Lark Temba",
+        "Juno Saye",
+        "Kesh Ayo",
+        "Biko Nare",
+        "Amel Zori",
+        "Tovin Bell",
+        "Rasha Deni",
+        "Sefu Malk"
+      ],
+      "location_ids": [
+        "AMBUSH_SITE",
+        "GROUND_LEVEL_PERSPECTIVE",
+        "EMERGENCY_PERIMETER"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Kaylen is the sole survivor; every other crew member present is confirmed dead.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_07-SC01",
+      "chapter_id": "CHAPTER_07",
+      "title": "The Weight After",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "In hospital Kaylen experiences immobilising flashbacks, fragmented sleep and shame. A clinician offers language for trauma without implying diagnosis can undo loss.",
+      "action_plan": "Stage Hospital ward; examination room; night corridor. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Meron Zewde"
+      ],
+      "location_ids": [
+        "HOSPITAL_WARD",
+        "EXAMINATION_ROOM",
+        "NIGHT_CORRIDOR"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Portray PTSD with variation and consequences, never as a superpower.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_08-SC01",
+      "chapter_id": "CHAPTER_08",
+      "title": "Names on the Dead",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "PROSE_DRAFT_REFERENCE",
+      "source_summary": "Leona fights to publish the crew’s names rather than anonymous gang statistics. Kaylen attends the memorial and learns Eamon has disappeared.",
+      "action_plan": "Stage Memorial; radio newsroom; discharge route. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Leona Saye",
+        "Kaylen Atlee",
+        "Juno Saye"
+      ],
+      "location_ids": [
+        "MEMORIAL",
+        "RADIO_NEWSROOM",
+        "DISCHARGE_ROUTE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Preserve each crew member’s identity and the start of Eamon’s disappearance.",
+      "requires_prose_validation": false,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_09-SC01",
+      "chapter_id": "CHAPTER_09",
+      "title": "The First Ledger",
+      "story_part": "PART_I_THE_CHOIR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Celia and Niko connect the ambush to an archive of staged conflicts. Kaylen receives Juno’s notebook and sees evidence Eamon sold the crew.",
+      "action_plan": "Stage Newsroom; archive room; Kaylen’s lodging. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Celia Marr",
+        "Niko Temba",
+        "Juno Saye",
+        "Eamon Voss"
+      ],
+      "location_ids": [
+        "NEWSROOM",
+        "ARCHIVE_ROOM",
+        "KAYLEN_S_LODGING"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Juno’s notebook becomes recurring evidence; the betrayal becomes concrete.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_10-SC01",
+      "chapter_id": "CHAPTER_10",
+      "title": "A Colour Not on the Form",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen asks Darius Quell to petition the fictional High Court to replace his imposed racial designation with Brown. The narrow claim exposes the state’s invented categories.",
+      "action_plan": "Stage Law office; registry records room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Darius Quell"
+      ],
+      "location_ids": [
+        "LAW_OFFICE",
+        "REGISTRY_RECORDS_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Frame the petition as self-definition and a challenge to institutional power.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_11-SC01",
+      "chapter_id": "CHAPTER_11",
+      "title": "Counsel of Empty Rooms",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Quell explains the legal risks and asks what Kaylen expects the court to do. Kaylen wants the record to admit that racial categories are choices, not natural facts.",
+      "action_plan": "Stage Law office; empty courthouse corridors. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Darius Quell"
+      ],
+      "location_ids": [
+        "LAW_OFFICE",
+        "EMPTY_COURTHOUSE_CORRIDORS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Clarify the petition’s limited remedy and symbolic force.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_12-SC01",
+      "chapter_id": "CHAPTER_12",
+      "title": "Four Minutes Before Lunch",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A court clerk leaks the petition to a news channel. Public debate turns Kaylen into a joke before the judges have read the argument.",
+      "action_plan": "Stage Clerk’s office; newsroom; public screens. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Celia Marr"
+      ],
+      "location_ids": [
+        "CLERK_S_OFFICE",
+        "NEWSROOM",
+        "PUBLIC_SCREENS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show how media spectacle strips a legal claim of context.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_13-SC01",
+      "chapter_id": "CHAPTER_13",
+      "title": "The Court of Blessed Humans",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The High Court hearing begins. Rusk’s contempt is explicit, Ward performs neutrality and Harker recognises the constitutional danger but stays silent.",
+      "action_plan": "Stage Fictional High Court courtroom; press gallery. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Darius Quell",
+        "Justice Helena Ward",
+        "Justice Everett Rusk",
+        "Justice Noel Harker",
+        "Jonah Fenn"
+      ],
+      "location_ids": [
+        "FICTIONAL_HIGH_COURT_COURTROOM",
+        "PRESS_GALLERY"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Reveal complicity through judicial performance and silence; keep law fictional.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_14-SC01",
+      "chapter_id": "CHAPTER_14",
+      "title": "Brown Is Not a Category",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The court dismisses the petition as frivolous and insults Kaylen. The transcript becomes propaganda for supremacists and opportunistic commentators.",
+      "action_plan": "Stage Courtroom; courthouse steps; broadcast control room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Darius Quell",
+        "Justice Everett Rusk",
+        "Justice Helena Ward",
+        "Justice Noel Harker"
+      ],
+      "location_ids": [
+        "COURTROOM",
+        "COURTHOUSE_STEPS",
+        "BROADCAST_CONTROL_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Humiliation is a turning point, not an excuse for later atrocities.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_15-SC01",
+      "chapter_id": "CHAPTER_15",
+      "title": "The Handcuff Choir",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A confrontation outside court leads to Kaylen’s arrest. Ada Mercer notices the removal order was prepared before the hearing ended.",
+      "action_plan": "Stage Courthouse steps; holding area; deportation office. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Ada Mercer",
+        "Darius Quell"
+      ],
+      "location_ids": [
+        "COURTHOUSE_STEPS",
+        "HOLDING_AREA",
+        "DEPORTATION_OFFICE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Seed the pre-arranged administrative removal and Ada’s unease.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_16-SC01",
+      "chapter_id": "CHAPTER_16",
+      "title": "The Removal Code",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen learns his citizenship is administratively conditional. Quell’s emergency appeal fails; Celia finds the same removal code in other files.",
+      "action_plan": "Stage Detention office; law office; records archive. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Ada Mercer",
+        "Darius Quell",
+        "Celia Marr"
+      ],
+      "location_ids": [
+        "DETENTION_OFFICE",
+        "LAW_OFFICE",
+        "RECORDS_ARCHIVE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Preserve the fictional Civic Standing Act and External Resettlement Compact.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_17-SC01",
+      "chapter_id": "CHAPTER_17",
+      "title": "Flight 118",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "During deportation Kaylen has a severe flashback and is helped by a passenger who refuses to treat him as a symbol. He arrives angry and unwilling to call Ethiopia home.",
+      "action_plan": "Stage Airport corridor; Flight 118 cabin; arrival terminal. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "AIRPORT_CORRIDOR",
+        "FLIGHT_118_CABIN",
+        "ARRIVAL_TERMINAL"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show ordinary human help without turning the passenger into a saviour.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_18-SC01",
+      "chapter_id": "CHAPTER_18",
+      "title": "The Country Without a Landlord",
+      "story_part": "PART_II_THE_PETITION",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "At the Ethiopian reception centre, officials explain asylum is a beginning, not a blank cheque. Kaylen hears Avara and feels estranged from a free but unfamiliar country.",
+      "action_plan": "Stage Reception centre; intake room; courtyard. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Gennet Woldemariam"
+      ],
+      "location_ids": [
+        "RECEPTION_CENTRE",
+        "INTAKE_ROOM",
+        "COURTYARD"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Kaylen is an asylum applicant, not a returning citizen or a prophet.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_19-SC01",
+      "chapter_id": "CHAPTER_19",
+      "title": "Serekh",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The capital appears through crowded buses, clinics, old stone and new construction. Kaylen sees dignity and scarcity side by side.",
+      "action_plan": "Stage Serekh streets; bus interchange; clinic; old quarter. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Gennet Woldemariam"
+      ],
+      "location_ids": [
+        "SEREKH_STREETS",
+        "BUS_INTERCHANGE",
+        "CLINIC",
+        "OLD_QUARTER"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Make Serekh a lived-in, plural city, not a flawless refuge.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_20-SC01",
+      "chapter_id": "CHAPTER_20",
+      "title": "A Nation of Unfinished Walls",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Samira’s coalition is shown through competing ministries and regional demands. Kaylen reads disagreement as weakness; the audience sees how a plural republic works.",
+      "action_plan": "Stage Government complex; parliamentary corridor; public works site. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "President Samira Tadesse",
+        "Prime Minister Dawit Araya",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "GOVERNMENT_COMPLEX",
+        "PARLIAMENTARY_CORRIDOR",
+        "PUBLIC_WORKS_SITE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Treat political disagreement as part of civic survival.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_21-SC01",
+      "chapter_id": "CHAPTER_21",
+      "title": "Samira’s Peace",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Samira offers Kaylen protection, work and a chance to testify about the network. He rejects the offer because it requires living without revenge.",
+      "action_plan": "Stage Presidential reception room; garden; guest quarters. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "President Samira Tadesse"
+      ],
+      "location_ids": [
+        "PRESIDENTIAL_RECEPTION_ROOM",
+        "GARDEN",
+        "GUEST_QUARTERS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Samira remains pragmatic and imperfect; Kaylen’s refusal is a choice.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_22-SC01",
+      "chapter_id": "CHAPTER_22",
+      "title": "The Dead Leaders Archive",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Tesfaye and Niko reveal the distinct histories of Amara Kinde, Tunde Afolayan, Nuru Sissoko, Nyasha Mbeku and Kofi Amani.",
+      "action_plan": "Stage Archive room; exhibit wall; recorded testimony. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Tesfaye Mekonnen",
+        "Niko Temba",
+        "Kaylen Atlee",
+        "Amara Kinde",
+        "Tunde Afolayan",
+        "Nuru Sissoko",
+        "Nyasha Mbeku",
+        "Kofi Amani"
+      ],
+      "location_ids": [
+        "ARCHIVE_ROOM",
+        "EXHIBIT_WALL",
+        "RECORDED_TESTIMONY"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Preserve the organisers’ different political visions and routes to resistance.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_23-SC01",
+      "chapter_id": "CHAPTER_23",
+      "title": "The Language of Welcome",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Saba’s classroom teaches Avara as a civic language. Kaylen refuses to learn, signalling that he wants refuge without reciprocity.",
+      "action_plan": "Stage Classroom; school courtyard. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Saba Nuru",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "CLASSROOM",
+        "SCHOOL_COURTYARD"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Language is a shared civic practice, not an ethnic authenticity test.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_24-SC01",
+      "chapter_id": "CHAPTER_24",
+      "title": "The Price of Asylum",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Gennet negotiates refugee returns from occupied territories while foreign media depicts Ethiopia as a threat. Kaylen sees old power in the paperwork.",
+      "action_plan": "Stage Diplomatic office; border reception centre; media room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Gennet Woldemariam",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "DIPLOMATIC_OFFICE",
+        "BORDER_RECEPTION_CENTRE",
+        "MEDIA_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show external pressure and refugee obligations through concrete choices.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_25-SC01",
+      "chapter_id": "CHAPTER_25",
+      "title": "A Man Who Cannot Sleep",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen’s trauma worsens. Meron and a clinician help build routines, but he misses appointments and lies about what he remembers.",
+      "action_plan": "Stage Clinic; temporary apartment; night interior. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Meron Zewde"
+      ],
+      "location_ids": [
+        "CLINIC",
+        "TEMPORARY_APARTMENT",
+        "NIGHT_INTERIOR"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Treatment may help but is not an instant cure; symptoms remain varied.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_26-SC01",
+      "chapter_id": "CHAPTER_26",
+      "title": "The Table Reaches Africa",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A former delegate’s evidence links the Directorate to political brokers and private media in African protectorates. The network has rivalries and weak points.",
+      "action_plan": "Stage Secure briefing room; archive table; testimony room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Felix Marrow",
+        "Niko Temba",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "SECURE_BRIEFING_ROOM",
+        "ARCHIVE_TABLE",
+        "TESTIMONY_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "The Directorate is powerful but neither omniscient nor unified.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_27-SC01",
+      "chapter_id": "CHAPTER_27",
+      "title": "The First Lie",
+      "story_part": "PART_III_THE_EXILE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen edits a small piece of evidence before handing it to the government because he wants a stronger response. The alteration has consequences.",
+      "action_plan": "Stage Archive workstation; evidence office; lodging. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Yonas Fikre"
+      ],
+      "location_ids": [
+        "ARCHIVE_WORKSTATION",
+        "EVIDENCE_OFFICE",
+        "LODGING"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Mark Kaylen’s turn toward deliberate manipulation.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_28-SC01",
+      "chapter_id": "CHAPTER_28",
+      "title": "The Council of Seven",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The coalition debates public exposure versus quiet diplomacy. Kaylen calls caution cowardice; Lulit explains risks to civilians beyond Ethiopia.",
+      "action_plan": "Stage Council chamber; diplomacy corridor; public gallery. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Lulit Bekele",
+        "Kaylen Atlee",
+        "President Samira Tadesse"
+      ],
+      "location_ids": [
+        "COUNCIL_CHAMBER",
+        "DIPLOMACY_CORRIDOR",
+        "PUBLIC_GALLERY"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Present a serious policy disagreement, not a simple courage/cowardice binary.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_29-SC01",
+      "chapter_id": "CHAPTER_29",
+      "title": "Testimony of the Missing",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Survivors from several countries describe assassinations, forced removals and recruitment of local collaborators. Their accounts differ in detail.",
+      "action_plan": "Stage Hearing room; testimony booths; archive. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Niko Temba",
+        "Lulit Bekele",
+        "Aster Oda"
+      ],
+      "location_ids": [
+        "HEARING_ROOM",
+        "TESTIMONY_BOOTHS",
+        "ARCHIVE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show corroboration, gaps and individual moral complexity.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_30-SC01",
+      "chapter_id": "CHAPTER_30",
+      "title": "How to Break a Peaceful State",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The Directorate spreads claims that Ethiopia’s asylum system is a terrorist pipeline. Muna traces the campaign to a private media contractor.",
+      "action_plan": "Stage Newsroom; media monitoring room; press office. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Muna Guta",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "NEWSROOM",
+        "MEDIA_MONITORING_ROOM",
+        "PRESS_OFFICE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show propaganda as procurement and media operations, not mind control.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_31-SC01",
+      "chapter_id": "CHAPTER_31",
+      "title": "The School of Memory",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kedir and Saba organise a public history event. Kaylen moves the audience from grief toward punishment.",
+      "action_plan": "Stage School hall; classroom; community square. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kedir Asfaw",
+        "Saba Nuru",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "SCHOOL_HALL",
+        "CLASSROOM",
+        "COMMUNITY_SQUARE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Make the rhetorical shift visible and morally consequential.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_32-SC01",
+      "chapter_id": "CHAPTER_32",
+      "title": "The Enemy in the Mirror",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen learns Dorian’s family history includes victimisation and collaboration. He is tempted to use context to avoid examining his own actions.",
+      "action_plan": "Stage Family archive; interview room; memory fragments. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Dorian Atlee"
+      ],
+      "location_ids": [
+        "FAMILY_ARCHIVE",
+        "INTERVIEW_ROOM",
+        "MEMORY_FRAGMENTS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Contextualise inherited violence without absolving Dorian or Kaylen.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_33-SC01",
+      "chapter_id": "CHAPTER_33",
+      "title": "The Glass Delegation",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Felix testifies about the Delegation’s private spectacles and political leverage. His evidence is valuable but self-serving.",
+      "action_plan": "Stage Testimony chamber; guarded residence; evidence room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Felix Marrow",
+        "Gideon Sloane",
+        "Miriam Crest"
+      ],
+      "location_ids": [
+        "TESTIMONY_CHAMBER",
+        "GUARDED_RESIDENCE",
+        "EVIDENCE_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Felix remains compromised; testimony does not redeem him.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_34-SC01",
+      "chapter_id": "CHAPTER_34",
+      "title": "A Vote in a Burning Room",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Parliament rejects Kaylen’s demand for immediate military action. The close vote prompts him to build a parallel organisation.",
+      "action_plan": "Stage Parliament; protest outside; private organising room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Biniam Desta",
+        "President Samira Tadesse"
+      ],
+      "location_ids": [
+        "PARLIAMENT",
+        "PROTEST_OUTSIDE",
+        "PRIVATE_ORGANISING_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Break Kaylen from lawful process through his own decision.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_35-SC01",
+      "chapter_id": "CHAPTER_35",
+      "title": "The Night the Gate Opened",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A staged border incident creates panic and casualties. Kaylen’s followers blame government before investigators establish what happened.",
+      "action_plan": "Stage Border crossing; shelter; investigation perimeter. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Yonas Fikre",
+        "Gennet Woldemariam"
+      ],
+      "location_ids": [
+        "BORDER_CROSSING",
+        "SHELTER",
+        "INVESTIGATION_PERIMETER"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Focus on uncertainty, civilian impact and rushed accusations, not attack mechanics.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_36-SC01",
+      "chapter_id": "CHAPTER_36",
+      "title": "The Republic Falls",
+      "story_part": "PART_IV_THE_REPUBLIC_OF_PATIENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen’s movement seizes control during a constitutional crisis. Samira refuses to sign a surrender; the republic is overthrown, not peacefully transferred.",
+      "action_plan": "Stage Government district; parliament; presidential office; streets. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "President Samira Tadesse",
+        "Prime Minister Dawit Araya",
+        "General Kassa Hailu"
+      ],
+      "location_ids": [
+        "GOVERNMENT_DISTRICT",
+        "PARLIAMENT",
+        "PRESIDENTIAL_OFFICE",
+        "STREETS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Treat the takeover as a rupture and preserve Samira’s refusal.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_37-SC01",
+      "chapter_id": "CHAPTER_37",
+      "title": "The New President",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen announces emergency rule and promises no African child will live under foreign rule. His first orders contradict the promise.",
+      "action_plan": "Stage Broadcast studio; government chamber; public square. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "BROADCAST_STUDIO",
+        "GOVERNMENT_CHAMBER",
+        "PUBLIC_SQUARE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Place liberation rhetoric beside the immediate costs of his orders.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_38-SC01",
+      "chapter_id": "CHAPTER_38",
+      "title": "The Clean Hands Doctrine",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The security bureaucracy brands dissent as collaboration. Yonas resigns, Hana refuses an unlawful order and Kaylen calls them traitors.",
+      "action_plan": "Stage Security headquarters; command room; resignation office. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Yonas Fikre",
+        "Captain Hana Meles",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "SECURITY_HEADQUARTERS",
+        "COMMAND_ROOM",
+        "RESIGNATION_OFFICE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show authoritarian methods being reproduced by the new regime.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_39-SC01",
+      "chapter_id": "CHAPTER_39",
+      "title": "The Purge of the Patient",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Peace negotiators, journalists and opposition politicians are detained. Selam becomes a symbol of nonviolent resistance in prison.",
+      "action_plan": "Stage Detention facility; visiting room; shuttered newsroom. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Selam Girma",
+        "Kaylen Atlee",
+        "Muna Guta"
+      ],
+      "location_ids": [
+        "DETENTION_FACILITY",
+        "VISITING_ROOM",
+        "SHUTTERED_NEWSROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Portray repression through testimony and institutions, not spectacle.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_40-SC01",
+      "chapter_id": "CHAPTER_40",
+      "title": "Children of the Checkpoint",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Children’s school routes pass through security lines; their routines reveal the war before formal declaration.",
+      "action_plan": "Stage School route; checkpoint; classroom; home. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kedir Asfaw",
+        "Saba Nuru",
+        "Tigist Lema"
+      ],
+      "location_ids": [
+        "SCHOOL_ROUTE",
+        "CHECKPOINT",
+        "CLASSROOM",
+        "HOME"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Use child-scale observation to expose militarisation of daily life.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_41-SC01",
+      "chapter_id": "CHAPTER_41",
+      "title": "The Broadcast of Names",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The broadcaster reads names of assassinated organisers. The first broadcast remembers; the second calls for collective punishment.",
+      "action_plan": "Stage National studio; public listening spaces; control room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Leona Saye",
+        "Sanna Berg"
+      ],
+      "location_ids": [
+        "NATIONAL_STUDIO",
+        "PUBLIC_LISTENING_SPACES",
+        "CONTROL_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Separate remembrance from the regime’s shift to collective blame.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_42-SC01",
+      "chapter_id": "CHAPTER_42",
+      "title": "The Great Mobilisation",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The government drafts people, redirects food and converts civic infrastructure to military use. Tigist records shortages concealed in official reports.",
+      "action_plan": "Stage Infrastructure control room; depot; transport hub. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Tigist Lema",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "INFRASTRUCTURE_CONTROL_ROOM",
+        "DEPOT",
+        "TRANSPORT_HUB"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Make food, transport and utilities’ failures visible.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_43-SC01",
+      "chapter_id": "CHAPTER_43",
+      "title": "The Unwanted Allies",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen accepts support from regional commanders with territorial motives. Binyam warns that vengeance will demand new enemies.",
+      "action_plan": "Stage Military liaison compound; regional command meeting; supply yard. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Binyam Tola",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "MILITARY_LIAISON_COMPOUND",
+        "REGIONAL_COMMAND_MEETING",
+        "SUPPLY_YARD"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Allies are not a unified bloc; preserve the warning’s consequences.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_44-SC01",
+      "chapter_id": "CHAPTER_44",
+      "title": "The Siege of Marrow Plain",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The war reaches a fictional protectorate city. Focus on civilians, failed evacuation, frightened soldiers and collapsing services, not tactics.",
+      "action_plan": "Stage Marrow Plain; evacuation centre; hospital; utility works. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Binyam Tola",
+        "Meron Zewde",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "MARROW_PLAIN",
+        "EVACUATION_CENTRE",
+        "HOSPITAL",
+        "UTILITY_WORKS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Make civilian vulnerability central and avoid triumphant battle imagery.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_45-SC01",
+      "chapter_id": "CHAPTER_45",
+      "title": "The Last Hospital",
+      "story_part": "PART_V_THE_FIRST_FIRE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Meron treats patients from both sides. Kaylen’s forces demand priority for their own; Meron refuses and is arrested.",
+      "action_plan": "Stage Field hospital; triage ward; detention transport. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Meron Zewde",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "FIELD_HOSPITAL",
+        "TRIAGE_WARD",
+        "DETENTION_TRANSPORT"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Medical records remain evidence; the arrest marks moral collapse.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_46-SC01",
+      "chapter_id": "CHAPTER_46",
+      "title": "The War That Would Not Stay on Maps",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Alliances, embargoes, insurgencies and retaliation widen the conflict. No side controls the forces it has released.",
+      "action_plan": "Stage Civilian corridors; diplomatic rooms; broadcast maps. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Captain Hana Meles",
+        "Sanna Berg"
+      ],
+      "location_ids": [
+        "CIVILIAN_CORRIDORS",
+        "DIPLOMATIC_ROOMS",
+        "BROADCAST_MAPS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show escalation through people and institutions, not tactical instruction.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_47-SC01",
+      "chapter_id": "CHAPTER_47",
+      "title": "Civilians in the Arithmetic",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Priya and Meron show how hunger, infection, interrupted childbirth and lack of clean water compound deaths. Official military totals omit much of the suffering.",
+      "action_plan": "Stage Clinic; public-health data room; refugee shelter. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Priya Raman",
+        "Meron Zewde",
+        "Ines Volk"
+      ],
+      "location_ids": [
+        "CLINIC",
+        "PUBLIC_HEALTH_DATA_ROOM",
+        "REFUGEE_SHELTER"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Distinguish estimates, missing data and confirmed deaths while retaining human scale.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_48-SC01",
+      "chapter_id": "CHAPTER_48",
+      "title": "The Winter of Bread",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Food crisis reveals that agriculture, transport and trust are more decisive to survival than victory speeches.",
+      "action_plan": "Stage Farms; distribution depot; rail yard; market. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Tigist Lema",
+        "Rafael Costa",
+        "Élodie March"
+      ],
+      "location_ids": [
+        "FARMS",
+        "DISTRIBUTION_DEPOT",
+        "RAIL_YARD",
+        "MARKET"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show the labour and logistics of survival, not famine as background texture.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_49-SC01",
+      "chapter_id": "CHAPTER_49",
+      "title": "The False Flag Season",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Competing factions stage incidents and blame enemies. Sanna’s broadcasts reveal that certainty itself has become a weapon.",
+      "action_plan": "Stage Broadcast studio; damaged square; evidence archive. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Sanna Berg",
+        "Muna Guta"
+      ],
+      "location_ids": [
+        "BROADCAST_STUDIO",
+        "DAMAGED_SQUARE",
+        "EVIDENCE_ARCHIVE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Verify claims carefully; do not imply every account has equal support.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_50-SC01",
+      "chapter_id": "CHAPTER_50",
+      "title": "The Refugee Rail",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Rafael and Élodie help families move through a failing transport network. The train becomes a temporary home for people without documents.",
+      "action_plan": "Stage Rail station; crowded train; improvised shelter; border platform. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Rafael Costa",
+        "Élodie March",
+        "Oskar Dene"
+      ],
+      "location_ids": [
+        "RAIL_STATION",
+        "CROWDED_TRAIN",
+        "IMPROVISED_SHELTER",
+        "BORDER_PLATFORM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Keep displaced people individual; show mutual care in a fragile space.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_51-SC01",
+      "chapter_id": "CHAPTER_51",
+      "title": "The Delegates’ Last Joke",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The old Delegation loses control of proxies. Gideon and Miriam disagree about negotiating, fleeing or escalating.",
+      "action_plan": "Stage Private club; communications room; financial office. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Gideon Sloane",
+        "Miriam Crest"
+      ],
+      "location_ids": [
+        "PRIVATE_CLUB",
+        "COMMUNICATIONS_ROOM",
+        "FINANCIAL_OFFICE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "The network is fallible; show internal rivalry and competing self-preservation.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_52-SC01",
+      "chapter_id": "CHAPTER_52",
+      "title": "A Court in Exile",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Ada Okeke and Darius preserve the original Brown petition and evidence of later crimes. Law survives first as an archive.",
+      "action_plan": "Stage Exile courtroom; document repository; remote witness room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Ada Okeke",
+        "Darius Quell"
+      ],
+      "location_ids": [
+        "EXILE_COURTROOM",
+        "DOCUMENT_REPOSITORY",
+        "REMOTE_WITNESS_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Preserve the petition’s original meaning and the difference between evidence and power.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_53-SC01",
+      "chapter_id": "CHAPTER_53",
+      "title": "The Soldier Who Refused",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Hana leads soldiers who refuse orders to punish a civilian community. Their defiance creates a dangerous pause in fighting.",
+      "action_plan": "Stage Checkpoint; civilian settlement; temporary command post. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Captain Hana Meles"
+      ],
+      "location_ids": [
+        "CHECKPOINT",
+        "CIVILIAN_SETTLEMENT",
+        "TEMPORARY_COMMAND_POST"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Make refusal costly and complicated, not a simple heroic shortcut.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_54-SC01",
+      "chapter_id": "CHAPTER_54",
+      "title": "The City of Blank Windows",
+      "story_part": "PART_VI_THE_CONTINENTAL_WAR",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A European city empties through siege, disease and flight. Tomasz’s diary restores lives behind the phrase “strategic necessity.”",
+      "action_plan": "Stage European city; apartment; shelter; diary space. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Tomasz Wier",
+        "Ines Volk",
+        "Oskar Dene"
+      ],
+      "location_ids": [
+        "EUROPEAN_CITY",
+        "APARTMENT",
+        "SHELTER",
+        "DIARY_SPACE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Give the European theatre a human scale beyond casualty numbers.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_55-SC01",
+      "chapter_id": "CHAPTER_55",
+      "title": "Victory Disease",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen’s regime confuses military success with moral truth. Dissent vanishes from official media and his inner circle becomes fearful.",
+      "action_plan": "Stage Presidential residence; state broadcaster; ceremony. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "PRESIDENTIAL_RESIDENCE",
+        "STATE_BROADCASTER",
+        "CEREMONY"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show isolation and loss of honest feedback as authoritarian deterioration.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_56-SC01",
+      "chapter_id": "CHAPTER_56",
+      "title": "The Black List",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A domestic registry targets alleged disloyalty, including Black Ethiopians, mixed families, religious minorities and former allies.",
+      "action_plan": "Stage Registry office; checkpoint; household interior. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Aster Oda",
+        "Selam Girma"
+      ],
+      "location_ids": [
+        "REGISTRY_OFFICE",
+        "CHECKPOINT",
+        "HOUSEHOLD_INTERIOR"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "The classification machinery returns under a new operator; no population is morally uniform.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_57-SC01",
+      "chapter_id": "CHAPTER_57",
+      "title": "The European Question",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Advisers debate who counts as an enemy. The category expands from governments and armed groups to whole populations.",
+      "action_plan": "Stage War cabinet; policy room; controlled broadcast. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Gideon Sloane"
+      ],
+      "location_ids": [
+        "WAR_CABINET",
+        "POLICY_ROOM",
+        "CONTROLLED_BROADCAST"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Expose genocidal logic clearly and condemn expansion to collective targets.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_58-SC01",
+      "chapter_id": "CHAPTER_58",
+      "title": "The Children Who Carried Water",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Children move between shelters; their conversations cut through commanders’ abstractions.",
+      "action_plan": "Stage Shelter district; water route; damaged neighbourhood. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kedir Asfaw",
+        "Saba Nuru",
+        "Rafael Costa"
+      ],
+      "location_ids": [
+        "SHELTER_DISTRICT",
+        "WATER_ROUTE",
+        "DAMAGED_NEIGHBOURHOOD"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Restore individual childhoods and show survival work without sentimentality.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_59-SC01",
+      "chapter_id": "CHAPTER_59",
+      "title": "The Quiet Camps",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Survivors and aid workers describe detention, disappearance and deliberate destruction of civilian life.",
+      "action_plan": "Stage Camp perimeter; aid station; testimony room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Ines Volk",
+        "Oskar Dene",
+        "Meron Zewde"
+      ],
+      "location_ids": [
+        "CAMP_PERIMETER",
+        "AID_STATION",
+        "TESTIMONY_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Portray atrocities through testimony and consequences, never spectacle.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_60-SC01",
+      "chapter_id": "CHAPTER_60",
+      "title": "The Doctor’s Count",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Priya and Ines build a mortality estimate from incomplete records and explain why counts are uncertain yet morally necessary.",
+      "action_plan": "Stage Medical archive; improvised lab; data review room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Priya Raman",
+        "Ines Volk"
+      ],
+      "location_ids": [
+        "MEDICAL_ARCHIVE",
+        "IMPROVISED_LAB",
+        "DATA_REVIEW_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show method, uncertainty and the ethical importance of counting.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_61-SC01",
+      "chapter_id": "CHAPTER_61",
+      "title": "Ninety Percent",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Independent estimates conclude roughly nine-tenths of Europe’s pre-war residents are dead after violence, famine, epidemic disease and service collapse. The regime calls this victory; survivors see catastrophe.",
+      "action_plan": "Stage Counting centre; survivor shelter; state announcement. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Priya Raman",
+        "Ines Volk",
+        "Ruth Stein"
+      ],
+      "location_ids": [
+        "COUNTING_CENTRE",
+        "SURVIVOR_SHELTER",
+        "STATE_ANNOUNCEMENT"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "This fictional figure includes civilians and diverse groups; it is atrocity, never a score.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_62-SC01",
+      "chapter_id": "CHAPTER_62",
+      "title": "The Silence After the Statistic",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen watches a celebration but cannot tolerate ordinary sounds. His trauma returns while others fear telling him the truth.",
+      "action_plan": "Stage Victory square; private residence; corridor. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "VICTORY_SQUARE",
+        "PRIVATE_RESIDENCE",
+        "CORRIDOR"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "His PTSD remains consequential but does not absolve his choices or rule.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_63-SC01",
+      "chapter_id": "CHAPTER_63",
+      "title": "Atlee’s Mirror",
+      "story_part": "PART_VII_THE_ARITHMETIC",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A private recording shows Kaylen has become the administrator he once challenged. He tries to destroy it but copies have spread.",
+      "action_plan": "Stage Private archive; secure office; relay site. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Miriam Weiss"
+      ],
+      "location_ids": [
+        "PRIVATE_ARCHIVE",
+        "SECURE_OFFICE",
+        "RELAY_SITE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Turn the mirror theme into a concrete record of his choices.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_64-SC01",
+      "chapter_id": "CHAPTER_64",
+      "title": "The Triumph Broadcast",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A victory ceremony is interrupted by Leona’s recordings and Sanna’s broadcasts, restoring names and testimony to the spectacle.",
+      "action_plan": "Stage Ceremony plaza; broadcast studio; remote relay rooms. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Leona Saye",
+        "Sanna Berg",
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "CEREMONY_PLAZA",
+        "BROADCAST_STUDIO",
+        "REMOTE_RELAY_ROOMS"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Contrast state spectacle with evidence and remembrance.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_65-SC01",
+      "chapter_id": "CHAPTER_65",
+      "title": "The Survivors’ Congress",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Representatives from devastated communities discuss rebuilding and reject both the old Delegation and Kaylen’s demand for unconditional loyalty.",
+      "action_plan": "Stage Congress hall; side rooms; relief courtyard. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Aster Oda",
+        "Lulit Bekele",
+        "Selam Girma",
+        "Biniam Desta"
+      ],
+      "location_ids": [
+        "CONGRESS_HALL",
+        "SIDE_ROOMS",
+        "RELIEF_COURTYARD"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Let survivors disagree; reconstruction is plural and contested.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_66-SC01",
+      "chapter_id": "CHAPTER_66",
+      "title": "The Mother Tongue of War",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen dreams of Nia and recalls the full circumstances of her death. The truth deepens understanding but does not absolve him.",
+      "action_plan": "Stage Dream-space rooted in the Atlee home; present room. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee",
+        "Nia Atlee"
+      ],
+      "location_ids": [
+        "DREAM_SPACE_ROOTED_IN_THE_ATLEE_HOME",
+        "PRESENT_ROOM"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Reveal Nia’s murder without retroactive exoneration.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_67-SC01",
+      "chapter_id": "CHAPTER_67",
+      "title": "A Sentence for the Living",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A provisional tribunal considers crimes by the old system and Kaylen’s regime. Justice is slow, compromised and necessary.",
+      "action_plan": "Stage Tribunal chamber; witness room; evidence archive. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Ada Okeke",
+        "Darius Quell",
+        "Ruth Stein",
+        "Ada Mercer"
+      ],
+      "location_ids": [
+        "TRIBUNAL_CHAMBER",
+        "WITNESS_ROOM",
+        "EVIDENCE_ARCHIVE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Distinguish perpetrators, beneficiaries, resisters and civilians; justice remains imperfect.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_68-SC01",
+      "chapter_id": "CHAPTER_68",
+      "title": "The Brown Flag",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Kaylen’s government makes Brown a compulsory national identity. His original petition for self-definition becomes another imposed classification.",
+      "action_plan": "Stage State ceremony; registry centre; public square. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "STATE_CEREMONY",
+        "REGISTRY_CENTRE",
+        "PUBLIC_SQUARE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Complete the reversal from self-definition to state coercion.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_69-SC01",
+      "chapter_id": "CHAPTER_69",
+      "title": "No One Gets Clean",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "Former allies confess, deny, bargain and protect their families. The narrative rejects a simple division between innocent survivors and guilty villains.",
+      "action_plan": "Stage Reconciliation hearing; private homes; evidence office. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Ada Mercer",
+        "Binyam Tola",
+        "Felix Marrow"
+      ],
+      "location_ids": [
+        "RECONCILIATION_HEARING",
+        "PRIVATE_HOMES",
+        "EVIDENCE_OFFICE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Moral complexity must not erase responsibility.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_70-SC01",
+      "chapter_id": "CHAPTER_70",
+      "title": "The Archive Opens",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The full record of assassinated organisers and staged gang battles is released. Their different visions expose the cost of Kaylen’s single-mindedness.",
+      "action_plan": "Stage Public archive; broadcast rooms; memorial display. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Niko Temba",
+        "Leona Saye",
+        "Miriam Weiss"
+      ],
+      "location_ids": [
+        "PUBLIC_ARCHIVE",
+        "BROADCAST_ROOMS",
+        "MEMORIAL_DISPLAY"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Return Juno’s notebook, the crew names and the organisers’ distinct visions.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_71-SC01",
+      "chapter_id": "CHAPTER_71",
+      "title": "The Second Ledger",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "A cross-border network adopts tools resembling the old Directorate while claiming to oppose every empire.",
+      "action_plan": "Stage Secure data room; relay sites; archive table. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Niko Temba",
+        "Miriam Weiss"
+      ],
+      "location_ids": [
+        "SECURE_DATA_ROOM",
+        "RELAY_SITES",
+        "ARCHIVE_TABLE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Show the machinery adapting; do not invent Book Two plot.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    },
+    {
+      "scene_id": "B1-CHAPTER_72-SC01",
+      "chapter_id": "CHAPTER_72",
+      "title": "The Door Still Burning",
+      "story_part": "PART_VIII_WHITE_SILENCE",
+      "adaptation_status": "STORY_BIBLE_ROADMAP_ONLY",
+      "source_summary": "The immediate war appears concluded, but an unknown transmission reveals the old system anticipated Kaylen’s rise and prepared a second phase.",
+      "action_plan": "Stage Post-war archive; communications room; transmission interface. Use performance-led acting, motivated coverage, readable screen direction and clear emotional beats. Build the scene from the source summary; do not add unsupported plot actions.",
+      "dialogue_beats": [],
+      "character_ids": [
+        "Kaylen Atlee"
+      ],
+      "location_ids": [
+        "POST_WAR_ARCHIVE",
+        "COMMUNICATIONS_ROOM",
+        "TRANSMISSION_INTERFACE"
+      ],
+      "asset_ids": [],
+      "continuity_notes": "Close Book One’s immediate arc while leaving only the defined threat unresolved.",
+      "requires_prose_validation": true,
+      "source_reference": "Story Bible, Book One chapter architecture"
+    }
+  ],
+  "continuity_rules": [
+    "Kaylen is the sole survivor of the Grave Choir ambush; every other crew member present is confirmed dead.",
+    "Juno’s notebook, Tovin’s unfinished school application and Leona’s naming campaign return with consequences.",
+    "Nia’s murder is revealed in stages; Kaylen’s responsibility is never erased.",
+    "PTSD is varied, non-linear and consequential; it is not a superpower and does not make people inherently violent.",
+    "Ethiopia is plural, imperfect and politically contested, not a flawless refuge.",
+    "No population is morally uniform; distinguish institutions, leaders, collaborators, resisters and civilians.",
+    "The fictional ninety-percent European resident-population death figure is mass atrocity, never a victory score.",
+    "Do not expand Book Two beyond the defined unresolved transmission at the end of Book One."
+  ]
 }
