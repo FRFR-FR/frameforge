@@ -1,4 +1,5 @@
 name: FrameForge — Windows IP Privacy Explainer (90s)
+run-name: Build Windows IP Privacy video
 
 on:
   push:
