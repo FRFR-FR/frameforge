@@ -2,7 +2,7 @@
 
 ## Superseding delivery target
 
-This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **240 × 1-minute segments**, which equals **4 hours** total. At 20 fps and 1280 × 720, that is 288,000 frames. The queue permits a maximum of **three segment renders at once**.
+This production plan supersedes the earlier 24 × 5-minute / 2-hour delivery layout. The latest detailed instruction is **240 × 1-minute segments**, which equals **4 hours** total. At 24 fps and 1280 × 720, that is 345,600 frames. The queue permits a maximum of **three segment renders at once**.
 
 The phrase “2-minute segments” conflicted with “240 one-minute segments”; the exact requested count is being treated as authoritative. The resulting master filename is:
 
@@ -30,7 +30,7 @@ Do not reproduce shots or character designs from reference films. Borrow only br
 3. Complete production/asset_registry.json from the asset-registry template. Every source-required asset must have a unique ID, an actual file, a review-evidence file and approved status.
 4. Design and review the complete recurring-character library. The story bible lists 65 named characters. Each character needs a model sheet, turntable, full model, full-body rig and facial test before animation begins. Use distinct identities, accurate proportions, layered clothing, detailed hair, expressive facial topology and reusable controls.
 5. Design all story-required locations and environments, interiors/exteriors, vehicles, props and objects, food/tableware, costumes, vegetation/terrain/water, skies/clouds/weather, crowds, effects, voices, music and sound. Reuse a designed asset only when continuity supports doing so.
-6. Build and validate the full-length Blender master scene and audio mix at the paths in featurefilm_manifest.json. Every referenced asset must be linked and checked. The master scene must cover frames 1–288000 and have a camera for every shot.
+6. Build and validate the full-length Blender master scene and audio mix at the paths in featurefilm_manifest.json. Every referenced asset must be linked and checked. The master scene must cover frames 1–345600 and have a camera for every shot.
 7. Approve full-body/facial deformation rigs and action tests. The animation library must support acting, handling props, sitting/standing, gestures, dialogue, conflict, recovery, facial expression and secondary motion—not just locomotion.
 8. Produce and review a 60–90-second dialogue/action proof, then a five-minute pilot. Check the actual rendered playback, not only a technical report.
 9. Record the required signed visual-QC approvals in production/approvals.json, with real evidence files. Do not set approval booleans merely to bypass the gate.
