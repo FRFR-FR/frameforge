@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "blender_pipeline/windows_ip_explainer.py.gz"
+      - "blender_pipeline/windows_ip_explainer.py"
       - "blender_pipeline/windows_ip_narration.txt"
       - ".github/workflows/windows-ip-explainer.yml"
   workflow_dispatch:
@@ -23,8 +23,8 @@ jobs:
       - name: Install Blender and unpack scene script
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender gzip
-          gzip -dc blender_pipeline/windows_ip_explainer.py.gz > blender_pipeline/windows_ip_explainer.py
+          sudo apt-get install --yes blender
+          python3 -m py_compile blender_pipeline/windows_ip_explainer.py
           blender --version
       - name: Audit all 2,700 frames
         run: |
@@ -53,8 +53,8 @@ jobs:
       - name: Install Blender and unpack scene script
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender gzip
-          gzip -dc blender_pipeline/windows_ip_explainer.py.gz > blender_pipeline/windows_ip_explainer.py
+          sudo apt-get install --yes blender
+          python3 -m py_compile blender_pipeline/windows_ip_explainer.py
           blender --version
       - name: Render 15-second section at 720 x 1280, 30 FPS
         run: |
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: FrameForge-Windows-IP-part-${{ matrix.segment }}
-          path: output/windows_ip_explainer/segment_${{ matrix.segment }}.mp4
+          path: output/windows_ip_explainer/segment_0${{ matrix.segment }}.mp4
           if-no-files-found: error
           retention-days: 14
 
