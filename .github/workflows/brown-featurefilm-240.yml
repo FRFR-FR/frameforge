@@ -152,7 +152,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: brown-featurefilm-segment-${{ matrix.segment }}
-          path: output/featurefilm_segments/segment-${{ format('{0:000}', matrix.segment) }}/segment-${{ format('{0:000}', matrix.segment) }}.mp4
+          path: output/featurefilm_segments/segment-*/segment-*.mp4
           if-no-files-found: error
           retention-days: 30
           compression-level: 0
@@ -162,7 +162,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: brown-featurefilm-diagnostics-${{ matrix.segment }}
-          path: output/featurefilm_segments/segment-${{ format('{0:000}', matrix.segment) }}/*
+          path: |
+            output/featurefilm_segments/segment-*/blender-attempt-*.log
+            output/featurefilm_segments/segment-*/ffmpeg-attempt-*.log
+            output/featurefilm_segments/segment-*/qc-attempt-*.json
           if-no-files-found: warn
           retention-days: 30
           compression-level: 0
