@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT / "featurefilm_manifest.json"
+MANIFEST_PATH = Path(__file__).resolve().parent / "featurefilm_manifest.json"
 REQUIRED_CHARACTER_COUNT = 65
 
 def read_json(path: Path, errors: list[str]):
