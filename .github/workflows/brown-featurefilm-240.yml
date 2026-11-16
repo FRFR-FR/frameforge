@@ -111,10 +111,15 @@ jobs:
           success=0
 
           for attempt in 1 2 3; do
-            echo "Segment $PADDED attempt $attempt/3"
+            case "$attempt" in
+              1) THREAD_LIMIT=8 ;;
+              2) THREAD_LIMIT=4 ;;
+              3) THREAD_LIMIT=2 ;;
+            esac
+            echo "Segment $PADDED attempt $attempt/3 with Blender/encoder thread cap $THREAD_LIMIT"
             rm -rf "$WORK/frames"
             mkdir -p "$WORK/frames"
-            if blender --background "$MASTER" \
+            if blender --background --threads "$THREAD_LIMIT" "$MASTER" \
                 --python featurefilm_pipeline/render_segment.py -- \
                 --segment "$SEGMENT" --work-dir "$WORK" \
                 > "$WORK/blender-attempt-$attempt.log" 2>&1; then
@@ -123,7 +128,7 @@ jobs:
                   -i "$WORK/frames/frame_%06d.png" \
                   -ss "$AUDIO_OFFSET" -i "$AUDIO" \
                   -map 0:v:0 -map 1:a:0 -t 60 -frames:v 1440 \
-                  -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r 24 \
+                  -threads "$THREAD_LIMIT" -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r 24 \
                   -c:a aac -b:a 192k -ar 48000 -ac 2 \
                   -movflags +faststart "$VIDEO" \
                   > "$WORK/ffmpeg-attempt-$attempt.log" 2>&1; then
@@ -135,7 +140,7 @@ jobs:
                 fi
               fi
             fi
-            echo "Attempt $attempt did not pass; clearing only generated scratch frames/video and retrying."
+            echo "Attempt $attempt did not pass; retrying with a lower thread cap while preserving approved scene quality settings. Clearing only scratch frames and partial video."
             rm -rf "$WORK/frames"
             rm -f "$VIDEO"
             sleep $((attempt * 15))
