@@ -54,8 +54,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dir", type=Path, required=True,
                         help="rclone-mounted remote root/segments")
-    parser.add_argument("--output", required=True,
-                        help="Remote rclone destination, e.g. remote:root/final/film.mp4")
+    parser.add_argument("--remote-root", required=True,
+                        help="Configured rclone root, e.g. remote:root/project")
+    parser.add_argument("--output-relative", default="final/BROWN_Book_One_Complete_4h_720p24.mp4",
+                        help="Output path relative to the configured remote root")
     parser.add_argument("--rclone-config", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
     args = parser.parse_args()
@@ -78,6 +80,7 @@ def main() -> int:
     concat.write_text("".join(f"file '{quote_concat(p)}'\n" for p in ordered),
                       encoding="utf-8")
 
+    remote_output = args.remote_root.rstrip("/") + "/" + args.output_relative.lstrip("/")
     ffmpeg_cmd = [
         "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
         "-f", "concat", "-safe", "0", "-i", str(concat),
@@ -86,7 +89,7 @@ def main() -> int:
         "-f", "mp4", "pipe:1"
     ]
     rclone_cmd = [
-        "rclone", "rcat", "--config", str(args.rclone_config), args.output
+        "rclone", "rcat", "--config", str(args.rclone_config), remote_output
     ]
     log = (work / "final-assembly-ffmpeg.log").open("w", encoding="utf-8")
     uploader = subprocess.Popen(rclone_cmd, stdin=subprocess.PIPE,
@@ -106,10 +109,9 @@ def main() -> int:
     # Verify the uploaded object through the mounted remote. The fragmented MP4
     # stores stream metadata and duration up front, so this probe need not scan
     # all 4 hours of encoded packets again.
-    remote_final = args.output.split(":", 1)[1]
-    # The supplied mount root represents the same rclone remote root.
+    # The supplied mount root represents exactly the configured remote root.
     mount_root = source.parent
-    final_path = mount_root / remote_final.lstrip("/")
+    final_path = mount_root / args.output_relative
     for _ in range(30):
         if final_path.is_file() and final_path.stat().st_size > 0:
             break
@@ -143,7 +145,7 @@ def main() -> int:
         "fps": "24/1",
         "video_codec": v.get("codec_name"),
         "audio_codec": a.get("codec_name"),
-        "remote_output": args.output,
+        "remote_output": remote_output,
         "remote_bytes": final_path.stat().st_size
     }, indent=2))
     return 0
