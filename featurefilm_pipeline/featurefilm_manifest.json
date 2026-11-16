@@ -32,7 +32,9 @@
     "approved_master_blend": "production/assets/BROWN_featurefilm_master.blend",
     "master_audio_mix": "production/audio/BROWN_featurefilm_master_mix.wav",
     "segment_output_directory": "output/featurefilm_segments",
-    "final_output": "output/BROWN_Book_One_Complete_4h_720p20.mp4"
+    "final_output": "output/BROWN_Book_One_Complete_4h_720p20.mp4",
+    "source_book_pdf": "production/source/BROWN_Book_One_Publication_Interior.pdf",
+    "story_bible_pdf": "production/source/BROWN_Book_One_Story_Bible_and_72_Chapter_Plan.pdf"
   },
   "visual_direction": {
     "brief": "Original stylised feature-animation direction: expressive anatomically coherent characters; fluid, fast, physically readable action; strong pose design and anticipation; layered secondary motion in hair, cloth and accessories; expressive facial acting and precise lip sync; bold but controlled camera movement; dynamic action geography; rich painterly surface treatment; dramatic colour scripting; atmospheric depth, volumetric light, carefully designed skies and clouds; cinematic composition and deliberate shot rhythm.",
