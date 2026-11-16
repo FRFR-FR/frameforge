@@ -2,10 +2,10 @@ Your IP address is your internet connection's public return address. Websites ca
 
 Windows includes settings for connecting to a VPN, but it does not give every app a free built-in VPN service. One option already included in Microsoft Edge is called Secure Network.
 
-Open Edge. Select the three dots in the top right, choose More tools, then Secure Network. Sign in with your personal Microsoft account. Select Get VPN for free and switch it on.
+Open Edge. Select the three dots in the top right, choose More tools, then Secure Network. Sign in with your personal Microsoft account and enable the feature. If Secure Network is unavailable on your device or in your region, this option may not appear.
 
 Now choose how much browsing to protect. Optimized is the recommended automatic option. Select Sites lets you choose specific websites. All Sites applies protection more broadly, and can use your data allowance faster.
 
 When the shield appears beside the address bar, Secure Network is active. You can compare your public IP before and after on a supported website.
 
-Remember, this is browser protection, not a VPN for every Windows app. The free allowance is five gigabytes per month. Availability may vary by region, browser version, and managed device. A VPN also does not make you anonymous. Use it as one privacy layer, not your whole security plan.
+Remember, this is browser protection, not a VPN for every Windows app. The included allowance is five gigabytes per month and resets monthly. Availability may vary by region, browser version, and managed-device policy. A VPN also does not make you anonymous. Use it as one privacy layer, not your whole security plan.
