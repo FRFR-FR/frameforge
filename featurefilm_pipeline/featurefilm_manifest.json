@@ -33,7 +33,8 @@
     "master_audio_mix": "production/audio/BROWN_featurefilm_master_mix.wav",
     "segment_output_directory": "output/featurefilm_segments",
     "final_output": "external:final/BROWN_Book_One_Complete_4h_720p24.mp4",
-    "source_provenance": "production/source/SOURCE_PROVENANCE.md"
+    "source_provenance": "production/source/SOURCE_PROVENANCE.md",
+    "screenplay_and_shotlist": "production/screenplay_and_shotlist.json"
   },
   "visual_direction": {
     "brief": "Original stylised feature-animation direction: expressive anatomically coherent characters; fluid, fast, physically readable action; strong pose design and anticipation; layered secondary motion in hair, cloth and accessories; expressive facial acting and precise lip sync; bold but controlled camera movement; dynamic action geography; rich painterly surface treatment; dramatic colour scripting; atmospheric depth, volumetric light, carefully designed skies and clouds; cinematic composition and deliberate shot rhythm.",
@@ -77,6 +78,7 @@
     "voices_music_and_sound"
   ],
   "approvals_required": [
+    "full_screenplay_and_shotlist_approved",
     "source_breakdown_complete",
     "all_character_model_sheets_approved",
     "all_asset_categories_approved",
