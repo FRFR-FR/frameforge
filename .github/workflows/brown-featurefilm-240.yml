@@ -7,6 +7,7 @@ on:
     paths:
       - "featurefilm_pipeline/**"
       - "production/**"
+      - ".github/workflows/brown-featurefilm-240.yml"
   workflow_dispatch:
     inputs:
       operation:
@@ -80,6 +81,7 @@ jobs:
             echo "::error::BROWN_STORAGE_REMOTE does not reference a remote configured in BROWN_RCLONE_CONFIG."
             exit 1
           fi
+          rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "$BROWN_STORAGE_REMOTE"
           rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/segments"
           rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/final"
           echo "ready=true" >> "$GITHUB_OUTPUT"
