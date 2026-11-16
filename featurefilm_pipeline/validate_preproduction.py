@@ -104,7 +104,7 @@ def validate() -> dict:
         if screenplay.get("status") != "APPROVED":
             errors.append("Complete screenplay and shot schedule is not approved")
         if screenplay.get("runtime_seconds") != 7200 or screenplay.get("segment_count") != 120:
-            errors.append("Screenplay schedule must cover exactly 240 one-minute segments")
+            errors.append("Screenplay schedule must cover exactly 120 one-minute segments")
         segments = screenplay.get("segments", [])
         if not isinstance(segments, list) or len(segments) != 120:
             errors.append(f"Screenplay schedule must contain exactly 120 segments; found {len(segments) if isinstance(segments, list) else 'invalid'}")
@@ -114,7 +114,7 @@ def validate() -> dict:
             label = f"screenplay.segments[{index}]"
             number = segment.get("segment_number")
             if not isinstance(number, int) or number < 1 or number > 120 or number in seen_segments:
-                errors.append(f"{label}: segment_number must be unique from 1 to 240")
+                errors.append(f"{label}: segment_number must be unique from 1 to 120")
             else:
                 seen_segments.add(number)
             if segment.get("duration_seconds") != 60:
