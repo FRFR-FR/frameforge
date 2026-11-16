@@ -43,6 +43,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Compile all pipeline Python scripts
+        run: |
+          python -m py_compile \
+            featurefilm_pipeline/validate_preproduction.py \
+            featurefilm_pipeline/render_segment.py \
+            featurefilm_pipeline/validate_segment.py \
+            featurefilm_pipeline/assemble_featurefilm.py \
+            featurefilm_pipeline/assemble_external.py
+
       - name: Validate all pre-animation gates
         id: gate
         shell: bash
@@ -113,6 +122,7 @@ jobs:
             exit 1
           fi
           rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/segments"
+          rclone mkdir --config "$RUNNER_TEMP/rclone.conf" "${BROWN_STORAGE_REMOTE%/}/final"
 
       - name: Render, encode and verify this one-minute segment (up to three safe attempts)
         id: render
@@ -250,6 +260,7 @@ jobs:
             exit 1
           fi
           test -d "$RUNNER_TEMP/brown-storage/segments"
+          mkdir -p "$RUNNER_TEMP/brown-storage/final" || true
 
       - name: Verify all 240 remote segments and stream the final film to external storage
         env:
