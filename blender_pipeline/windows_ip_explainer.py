@@ -326,7 +326,7 @@ def build_scene():
     camera_x.driver.expression = "28*floor((frame-1)/270)"
     scene.frame_start = 1
     scene.frame_end = TOTAL_FRAMES
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = WIDTH
     scene.render.resolution_y = HEIGHT
     scene.render.resolution_percentage = 100
@@ -344,7 +344,7 @@ def build_scene():
     scene.render.resolution_percentage = 100
     scene.render.image_settings.color_depth = "8"
     scene.render.film_transparent = False
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     scene.frame_set(1)
     bpy.context.view_layer.update()
     return scene
