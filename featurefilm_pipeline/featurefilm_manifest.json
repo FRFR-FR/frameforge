@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "project": "BROWN — Book One feature-film adaptation",
+  "status": "PREPRODUCTION_BLOCKED",
+  "runtime_seconds": 14400,
+  "segment_count": 240,
+  "segment_duration_seconds": 60,
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "fps": 20,
+    "frames_per_segment": 1200,
+    "total_frames": 288000,
+    "container": "mp4",
+    "video_codec": "h264",
+    "pixel_format": "yuv420p",
+    "video_quality": "CRF 20 / slow preset",
+    "audio_codec": "aac",
+    "audio_bitrate": "192k",
+    "audio_sample_rate": 48000
+  },
+  "scheduling": {
+    "max_parallel_segments": 3,
+    "fail_fast": false,
+    "max_attempts_per_segment": 3,
+    "final_assembly_only_after_all_segments_pass": true
+  },
+  "paths": {
+    "story_breakdown": "production/story_breakdown.json",
+    "asset_registry": "production/asset_registry.json",
+    "approvals": "production/approvals.json",
+    "approved_master_blend": "production/assets/BROWN_featurefilm_master.blend",
+    "master_audio_mix": "production/audio/BROWN_featurefilm_master_mix.wav",
+    "segment_output_directory": "output/featurefilm_segments",
+    "final_output": "output/BROWN_Book_One_Complete_4h_720p20.mp4"
+  },
+  "visual_direction": {
+    "brief": "Original stylised feature-animation direction: expressive anatomically coherent characters; fluid, fast, physically readable action; strong pose design and anticipation; layered secondary motion in hair, cloth and accessories; expressive facial acting and precise lip sync; bold but controlled camera movement; dynamic action geography; rich painterly surface treatment; dramatic colour scripting; atmospheric depth, volumetric light, carefully designed skies and clouds; cinematic composition and deliberate shot rhythm.",
+    "disallowed": "Minecraft/block characters, blob figures, primitive-only people, low-poly placeholders, static walk-cycle filler, repeated footage, random camera shake, unmotivated slow motion, unreviewed procedural substitutes.",
+    "principles": [
+      "character performance before spectacle",
+      "clear staging and screen direction",
+      "anticipation, impact, follow-through and recovery",
+      "overlapping action and secondary motion",
+      "specific facial expression and eye-line",
+      "camera movement motivated by story",
+      "painterly materials with readable silhouettes",
+      "location and prop continuity across shots",
+      "story-accurate violence with consequences, not glorification"
+    ]
+  },
+  "preproduction_order": [
+    "source_breakdown",
+    "character_model_sheets",
+    "environment_and_location_design",
+    "vehicles_props_food_costumes_and_weather_design",
+    "approved_asset_library",
+    "full_body_and_facial_rigs",
+    "action_and_dialogue_tests",
+    "five_minute_pilot",
+    "human_visual_qc",
+    "full_segment_render"
+  ],
+  "required_asset_categories": [
+    "characters",
+    "costumes_hair_and_grooming",
+    "locations",
+    "environments_and_sets",
+    "vehicles",
+    "props_and_objects",
+    "food_and_tableware",
+    "sky_clouds_and_weather",
+    "vegetation_terrain_and_water",
+    "crowds_and_background_characters",
+    "visual_effects",
+    "voices_music_and_sound"
+  ],
+  "approvals_required": [
+    "source_breakdown_complete",
+    "all_character_model_sheets_approved",
+    "all_asset_categories_approved",
+    "all_production_rigs_and_facial_tests_approved",
+    "dialogue_and_lipsync_test_approved",
+    "action_dialogue_proof_approved",
+    "five_minute_pilot_approved",
+    "visual_qc_signoff",
+    "master_scene_and_audio_approved"
+  ]
+}
