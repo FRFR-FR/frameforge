@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "project": "BROWN — Book One",
+  "instructions": "Populate every category with source-derived assets. Each asset needs a unique asset_id, review_status=approved, a file path tracked in the repository (or Git LFS), and review evidence. Do not start animation until every required category is complete. Character assets also require model_sheet, turntable, model_blend, rig_blend and facial_test files.",
+  "categories": [
+    {
+      "category_id": "characters",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "costumes_hair_and_grooming",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "locations",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "environments_and_sets",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "vehicles",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "props_and_objects",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "food_and_tableware",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "sky_clouds_and_weather",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "vegetation_terrain_and_water",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "crowds_and_background_characters",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "visual_effects",
+      "status": "not_started",
+      "items": []
+    },
+    {
+      "category_id": "voices_music_and_sound",
+      "status": "not_started",
+      "items": []
+    }
+  ]
+}
