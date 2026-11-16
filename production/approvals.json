@@ -55,6 +55,12 @@
       "evidence_file": "",
       "reviewer": "",
       "reviewed_at": ""
+    },
+    "full_screenplay_and_shotlist_approved": {
+      "approved": false,
+      "evidence_file": "",
+      "reviewer": "",
+      "reviewed_at": ""
     }
   }
 }
