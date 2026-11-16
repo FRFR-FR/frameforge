@@ -189,13 +189,7 @@ def stage(index, mats, camera):
     h.keyframe_insert(data_path="scale", frame=index*SHOT_FRAMES+1)
     h.scale = (1.0, 1.0, 1.0)
     h.keyframe_insert(data_path="scale", frame=index*SHOT_FRAMES+13)
-    # Camera makes clean, deliberate hard cuts between chapters.
-    frame = index * SHOT_FRAMES + 1
-    camera.location = (x, -24.5, 12.6)
-    target = Vector((x, 0.0, 4.7))
-    camera.rotation_euler = (target - camera.location).to_track_quat("-Z", "Y").to_euler()
-    camera.keyframe_insert(data_path="location", frame=frame)
-    camera.keyframe_insert(data_path="rotation_euler", frame=frame)
+    # The chapter camera is driven to the matching stage at each 9-second cut.
     return x
 
 def build_scene():
@@ -325,6 +319,11 @@ def build_scene():
 
     scene = bpy.context.scene
     scene.camera = camera
+    camera.location = (0, -24.5, 12.6)
+    target = Vector((0.0, 0.0, 4.7))
+    camera.rotation_euler = (target - camera.location).to_track_quat("-Z", "Y").to_euler()
+    camera_x = camera.driver_add("location", 0)
+    camera_x.driver.expression = "28*floor((frame-1)/270)"
     scene.frame_start = 1
     scene.frame_end = TOTAL_FRAMES
     scene.render.engine = "BLENDER_EEVEE_NEXT"
@@ -345,7 +344,6 @@ def build_scene():
     scene.render.resolution_percentage = 100
     scene.render.image_settings.color_depth = "8"
     scene.render.film_transparent = False
-    scene.render.use_motion_blur = True
     scene.render.engine = "BLENDER_EEVEE_NEXT"
     scene.frame_set(1)
     bpy.context.view_layer.update()
