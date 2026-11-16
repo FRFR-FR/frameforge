@@ -70,7 +70,7 @@ jobs:
           retention-days: 30
 
   render-segment:
-    name: Render segment MATRIX_SEGMENT
+    name: Render segment ${{ matrix.segment }}
     needs: preflight
     if: ${{ needs.preflight.outputs.render_ready == 'true' && ((github.event_name == 'push' && contains(toJson(github.event.commits), 'production/approvals.json')) || (github.event_name == 'workflow_dispatch' && inputs.operation == 'render')) }}
     runs-on: ubuntu-latest
