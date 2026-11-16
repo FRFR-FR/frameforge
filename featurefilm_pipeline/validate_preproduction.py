@@ -51,8 +51,8 @@ def validate() -> dict:
         if manifest.get(key) != value:
             errors.append(f"Manifest {key} must be {value}; found {manifest.get(key)!r}")
     render = manifest.get("render", {})
-    for key, value in {"width": 1280, "height": 720, "fps": 20,
-                       "frames_per_segment": 1200, "total_frames": 288000}.items():
+    for key, value in {"width": 1280, "height": 720, "fps": 24,
+                       "frames_per_segment": 1440, "total_frames": 345600}.items():
         if render.get(key) != value:
             errors.append(f"Render setting {key} must be {value}; found {render.get(key)!r}")
     if manifest.get("scheduling", {}).get("max_parallel_segments") != 3:
@@ -147,7 +147,7 @@ def validate() -> dict:
         existing_repo_file(paths.get(key), label, errors)
 
     notes.append("All model sheets, rigs, environment packs and prop packs must be reviewed as actual visual assets; a filename alone is not a quality approval.")
-    notes.append("The 240 one-minute segments equal 4 hours and 288,000 frames at 20 fps.")
+    notes.append("The 240 one-minute segments equal 4 hours and 345,600 frames at 24 fps.")
     notes.append("Technical checks cannot guarantee studio-level artistry; human visual QC remains a hard gate.")
     return {
         "ready": not errors,
