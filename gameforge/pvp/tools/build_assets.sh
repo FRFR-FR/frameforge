@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 CHAR_SCRIPT="$ROOT/character-source/gameforge/characters/build_character_test.py"
 WORLD_SCRIPT="$ROOT/world-source/gameforge/worlds/build_world.py"
-BLENDER="${BLENDER_BIN:-blender}"
+BLENDER="$BLENDER_BIN"
 cd "$ROOT"
 test -s "$CHAR_SCRIPT"
 test -s "$WORLD_SCRIPT"
+test -x "$BLENDER"
 
 build_once() (
   set -euo pipefail

@@ -171,7 +171,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Upload failure logs and QA state
+      - name: Upload failure QA state
         if: failure()
         uses: actions/upload-artifact@v4
         with:
