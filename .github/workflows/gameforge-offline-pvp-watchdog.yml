@@ -1,0 +1,14 @@
+name: GAMEFORGE Offline PvP — Daily Prototype Health Check
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  daily-prototype-check:
+    name: Rebuild and verify Android PvP prototype
+    uses: FRFR-FR/frameforge/.github/workflows/gameforge-offline-pvp.yml@gameforge-offline-pvp-prototype
