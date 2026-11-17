@@ -210,9 +210,9 @@ def character(name,pos,skin,hair,jacket,trousers,hairstyle="short",height=1.0):
 def animate(root,f0,f1,p0,p1):
     for f,p in ((f0,p0),(f1,p1)):
         root.location=p; root.keyframe_insert(data_path="location",frame=f)
-    if root.animation_data and root.animation_data.action:
-        for fc in root.animation_data.action.fcurves:
-            for k in fc.keyframe_points: k.interpolation="BEZIER"
+    # Blender 5 uses layered Action data instead of the legacy Action.fcurves
+    # collection. Newly inserted keyframes already default to BEZIER interpolation,
+    # so avoid touching the removed legacy API here.
 
 def camera(name,loc,target,lens=45):
     d=bpy.data.cameras.new(name); d.lens=lens; d.dof.use_dof=True; d.dof.aperture_fstop=4.5
