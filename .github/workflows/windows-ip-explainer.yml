@@ -53,7 +53,7 @@ jobs:
       - name: Install Blender and unpack scene script
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender ffmpeg
+          sudo apt-get install --yes blender ffmpeg libegl1 libegl-mesa0 libgl1-mesa-dri xvfb
           python3 -m py_compile blender_pipeline/windows_ip_explainer.py
           blender --version
       - name: Render 15-second section at 720 x 1280, 30 FPS
