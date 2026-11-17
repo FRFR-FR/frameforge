@@ -137,7 +137,7 @@ func _add_fallback_body() -> void:
 func _create_weapon_mount() -> void:
 	weapon_mount = Node3D.new()
 	weapon_mount.name = "WeaponMount"
-	weapon_mount.position = Vector3(0.37, 1.16, -0.25)
+	weapon_mount.position = Vector3(0.37, 0.68, -0.25)
 	weapon_mount.rotation.y = PI * 0.5
 	add_child(weapon_mount)
 

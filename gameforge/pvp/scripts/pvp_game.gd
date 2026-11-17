@@ -1,4 +1,5 @@
 extends Node3D
+class_name PVPGame
 
 const ActorScript = preload("res://scripts/pvp_actor.gd")
 const BotScript = preload("res://scripts/pvp_bot_brain.gd")
@@ -56,9 +57,10 @@ func _build_combat_map() -> void:
 	if ResourceLoader.exists(world_path):
 		var world_packed := load(world_path) as PackedScene
 		if world_packed:
-			var world := world_packed.instantiate()
+			var world := world_packed.instantiate() as Node3D
 			world.name = "LoomwildWorldVisuals"
-			world.position.y = -1.0
+			world.position.y = 0.7
+			world.rotation_degrees.x = 90.0
 			world.scale = Vector3.ONE * 0.55
 			add_child(world)
 
