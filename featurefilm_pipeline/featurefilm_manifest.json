@@ -2,15 +2,15 @@
   "schema_version": 1,
   "project": "BROWN — Book One feature-film adaptation",
   "status": "PREPRODUCTION_BLOCKED",
-  "runtime_seconds": 14400,
-  "segment_count": 240,
+  "runtime_seconds": 7200,
+  "segment_count": 120,
   "segment_duration_seconds": 60,
   "render": {
     "width": 1280,
     "height": 720,
     "fps": 24,
     "frames_per_segment": 1440,
-    "total_frames": 345600,
+    "total_frames": 172800,
     "container": "mp4",
     "video_codec": "h264",
     "pixel_format": "yuv420p",
@@ -32,7 +32,7 @@
     "approved_master_blend": "production/assets/BROWN_featurefilm_master.blend",
     "master_audio_mix": "production/audio/BROWN_featurefilm_master_mix.wav",
     "segment_output_directory": "output/featurefilm_segments",
-    "final_output": "external:final/BROWN_Book_One_Complete_4h_720p24.mp4",
+    "final_output": "external:final/BROWN_Book_One_Complete_2h_720p24.mp4",
     "source_provenance": "production/source/SOURCE_PROVENANCE.md",
     "screenplay_and_shotlist": "production/screenplay_and_shotlist.json"
   },
@@ -94,8 +94,8 @@
     "config_secret": "BROWN_RCLONE_CONFIG",
     "remote_variable": "BROWN_STORAGE_REMOTE",
     "remote_layout": {
-      "segments": "segments/segment-001.mp4 ... segments/segment-240.mp4",
-      "final": "final/BROWN_Book_One_Complete_4h_720p24.mp4"
+      "segments": "segments/segment-001.mp4 ... segments/segment-120.mp4",
+      "final": "final/BROWN_Book_One_Complete_2h_720p24.mp4"
     },
     "note": "Video payloads are never stored as GitHub Actions artifacts. Configure a private rclone remote (Drive/Dropbox/S3-compatible/other supported backend) and a remote root path in GitHub Actions secrets/variables."
   }

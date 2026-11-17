@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Verify 240 remote-mounted segments and stream-copy them into external storage.
+"""Verify 120 remote-mounted segments and stream-copy them into external storage.
 
-The output is fragmented MP4 sent directly to rclone rcat. The four-hour file
+The output is fragmented MP4 sent directly to rclone rcat. The two-hour file
 never has to be staged on the GitHub runner's local disk.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-COUNT = 240
+COUNT = 120
 FPS = 24
 WIDTH = 1280
 HEIGHT = 720
@@ -56,7 +56,7 @@ def main() -> int:
                         help="rclone-mounted remote root/segments")
     parser.add_argument("--remote-root", required=True,
                         help="Configured rclone root, e.g. remote:root/project")
-    parser.add_argument("--output-relative", default="final/BROWN_Book_One_Complete_4h_720p24.mp4",
+    parser.add_argument("--output-relative", default="final/BROWN_Book_One_Complete_2h_720p24.mp4",
                         help="Output path relative to the configured remote root")
     parser.add_argument("--rclone-config", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
@@ -130,10 +130,10 @@ def main() -> int:
         raise RuntimeError(f"Final video metadata failed: {v}")
     duration = float(final.get("format", {}).get("duration", 0))
     if not EXPECTED_SECONDS - 1 <= duration <= EXPECTED_SECONDS + 1:
-        raise RuntimeError(f"Final duration {duration:.2f}s does not equal four hours")
+        raise RuntimeError(f"Final duration {duration:.2f}s does not equal two hours")
     if a.get("codec_name") != "aac":
         raise RuntimeError(f"Final audio metadata failed: {a}")
-    if (COUNT, EXPECTED_FRAMES) != (240, 345600):
+    if (COUNT, EXPECTED_FRAMES) != (120, 172800):
         raise RuntimeError("Internal expected runtime/frame count inconsistency")
 
     print(json.dumps({

@@ -43,8 +43,8 @@ def validate() -> dict:
         return {"ready": False, "errors": errors, "notes": notes}
 
     expected = {
-        "runtime_seconds": 14400,
-        "segment_count": 240,
+        "runtime_seconds": 7200,
+        "segment_count": 120,
         "segment_duration_seconds": 60,
     }
     for key, value in expected.items():
@@ -52,7 +52,7 @@ def validate() -> dict:
             errors.append(f"Manifest {key} must be {value}; found {manifest.get(key)!r}")
     render = manifest.get("render", {})
     for key, value in {"width": 1280, "height": 720, "fps": 24,
-                       "frames_per_segment": 1440, "total_frames": 345600}.items():
+                       "frames_per_segment": 1440, "total_frames": 172800}.items():
         if render.get(key) != value:
             errors.append(f"Render setting {key} must be {value}; found {render.get(key)!r}")
     if manifest.get("scheduling", {}).get("max_parallel_segments") != 3:
@@ -103,18 +103,18 @@ def validate() -> dict:
     if screenplay:
         if screenplay.get("status") != "APPROVED":
             errors.append("Complete screenplay and shot schedule is not approved")
-        if screenplay.get("runtime_seconds") != 14400 or screenplay.get("segment_count") != 240:
-            errors.append("Screenplay schedule must cover exactly 240 one-minute segments")
+        if screenplay.get("runtime_seconds") != 7200 or screenplay.get("segment_count") != 120:
+            errors.append("Screenplay schedule must cover exactly 120 one-minute segments")
         segments = screenplay.get("segments", [])
-        if not isinstance(segments, list) or len(segments) != 240:
-            errors.append(f"Screenplay schedule must contain exactly 240 segments; found {len(segments) if isinstance(segments, list) else 'invalid'}")
+        if not isinstance(segments, list) or len(segments) != 120:
+            errors.append(f"Screenplay schedule must contain exactly 120 segments; found {len(segments) if isinstance(segments, list) else 'invalid'}")
             segments = segments if isinstance(segments, list) else []
         seen_segments: set[int] = set()
         for index, segment in enumerate(segments):
             label = f"screenplay.segments[{index}]"
             number = segment.get("segment_number")
-            if not isinstance(number, int) or number < 1 or number > 240 or number in seen_segments:
-                errors.append(f"{label}: segment_number must be unique from 1 to 240")
+            if not isinstance(number, int) or number < 1 or number > 120 or number in seen_segments:
+                errors.append(f"{label}: segment_number must be unique from 1 to 120")
             else:
                 seen_segments.add(number)
             if segment.get("duration_seconds") != 60:
@@ -168,7 +168,7 @@ def validate() -> dict:
                         screenplay_cast.update(values)
             if shots and abs(previous_end - 60.0) > 0.01:
                 errors.append(f"{label}: shot timings cover {previous_end:.2f}s, not 60 seconds")
-        missing_segments = sorted(set(range(1, 241)) - seen_segments)
+        missing_segments = sorted(set(range(1, 121)) - seen_segments)
         if missing_segments:
             errors.append("Screenplay schedule is missing segment numbers: " + ", ".join(map(str, missing_segments[:30])))
 
@@ -241,7 +241,7 @@ def validate() -> dict:
         existing_repo_file(paths.get(key), label, errors)
 
     notes.append("All model sheets, rigs, environment packs and prop packs must be reviewed as actual visual assets; a filename alone is not a quality approval.")
-    notes.append("The 240 one-minute segments equal 4 hours and 345,600 frames at 24 fps.")
+    notes.append("The 120 one-minute segments equal 2 hours and 172,800 frames at 24 fps.")
     notes.append("Technical checks cannot guarantee studio-level artistry; human visual QC remains a hard gate.")
     return {
         "ready": not errors,

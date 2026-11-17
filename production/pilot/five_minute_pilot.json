@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "project": "BROWN — Book One",
+  "title": "Five-minute visual pilot — The Register / The City That Counted Us",
+  "status": "DRAFT_RENDER_WORKFLOW_CONFIGURED_AUTHOR_REVIEW_REQUIRED",
+  "runtime_seconds": 300,
+  "frame_rate": 24,
+  "resolution": [
+    1280,
+    720
+  ],
+  "total_frames": 7200,
+  "source_policy": "Adapt only the Prologue and Chapter 1 source passages. Visual metaphors are marked as adaptation choices. Verify exact manuscript passages and dialogue before lock.",
+  "style": "Grounded realistic 3D character and environment modelling; physically based skin, hair, fabric, glass, metal, concrete and painted surfaces; cinematic 720p lighting and depth of field; expressive but restrained acting; carefully motivated camera movement. All unsourced appearance details remain provisional pending author approval.",
+  "segments": [
+    {
+      "segment_id": "PILOT-SEG-001",
+      "start_seconds": 0,
+      "duration_seconds": 300,
+      "shot_ids": [
+        "PILOT-SHOT-001",
+        "PILOT-SHOT-002",
+        "PILOT-SHOT-003",
+        "PILOT-SHOT-004",
+        "PILOT-SHOT-005",
+        "PILOT-SHOT-006",
+        "PILOT-SHOT-007",
+        "PILOT-SHOT-008",
+        "PILOT-SHOT-009",
+        "PILOT-SHOT-010",
+        "PILOT-SHOT-011",
+        "PILOT-SHOT-012"
+      ],
+      "status": "DRAFT_NOT_APPROVED"
+    }
+  ],
+  "shots": [
+    {
+      "shot_id": "PILOT-SHOT-001",
+      "start_seconds": 0,
+      "duration_seconds": 25,
+      "chapter_id": "PROLOGUE",
+      "scene_id": "B1-PROLOGUE-SC01",
+      "title": "The first list",
+      "visual_action": "Slow aerial drift into a monumental civic registry hall; a long queue is organised by floor markings and counters. The camera descends toward a clerk's hands aligning paper records.",
+      "camera_plan": "Wide to macro insert; slow push; no spectacle. Establish geometry and institutional scale.",
+      "performance_or_action": "A clerk squares a stack of census sheets; pauses over a category column. No invented dialogue.",
+      "character_asset_ids": [
+        "CHAR-REGISTRY-CLERK"
+      ],
+      "location_asset_ids": [
+        "LOC-VESPER-CIVIC-REGISTRY"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-001-01",
+        "PROP-PROVISIONAL-001-02",
+        "PROP-PROVISIONAL-001-03"
+      ],
+      "sound_plan": "Low room tone, paper movement, distant ventilation",
+      "continuity_and_review_notes": "Opening image must feel ordinary before it feels threatening.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-002",
+      "start_seconds": 25,
+      "duration_seconds": 25,
+      "chapter_id": "PROLOGUE",
+      "scene_id": "B1-PROLOGUE-SC01",
+      "title": "Only numbers",
+      "visual_action": "Macro details: a finger follows a column; a stamp lands; a file slides into a tray. The clerk's hand hesitates before the next record.",
+      "camera_plan": "Macro inserts with graphic match cuts; controlled shallow focus.",
+      "performance_or_action": "The clerk's hand stops for a beat, then continues. The question is carried by narration, not invented dialogue.",
+      "character_asset_ids": [
+        "CHAR-REGISTRY-CLERK"
+      ],
+      "location_asset_ids": [
+        "LOC-VESPER-CIVIC-REGISTRY"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-002-01",
+        "PROP-PROVISIONAL-002-02",
+        "PROP-PROVISIONAL-002-03"
+      ],
+      "sound_plan": "Stamp transients become a measured pulse; no music cue locked yet",
+      "continuity_and_review_notes": "The system is built from mundane actions.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-003",
+      "start_seconds": 50,
+      "duration_seconds": 25,
+      "chapter_id": "PROLOGUE",
+      "scene_id": "B1-PROLOGUE-SC01",
+      "title": "The category becomes a gate",
+      "visual_action": "A corridor of service doors; a family waits as one door opens for another group. Keep faces and outcomes restrained; show access as spatial choreography.",
+      "camera_plan": "Symmetrical wide; lateral track; doorframe wipes.",
+      "performance_or_action": "No new plot event: visualise the source's account of categories shaping access to services.",
+      "character_asset_ids": [
+        "CHAR-REGISTRY-CLERK"
+      ],
+      "location_asset_ids": [
+        "LOC-PUBLIC-SERVICE-CORRIDORS"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-003-01",
+        "PROP-PROVISIONAL-003-02",
+        "PROP-PROVISIONAL-003-03"
+      ],
+      "sound_plan": "Air tone and distant footsteps; restrained low-frequency texture",
+      "continuity_and_review_notes": "Avoid depicting an unmentioned specific family or invented denial incident as canon; use anonymous background staging.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-004",
+      "start_seconds": 75,
+      "duration_seconds": 25,
+      "chapter_id": "PROLOGUE",
+      "scene_id": "B1-PROLOGUE-SC01",
+      "title": "A door that opens one way",
+      "visual_action": "Close on a one-way turnstile and a category-marked card. The card is accepted on one side; the camera holds on the locked reverse side.",
+      "camera_plan": "Low-angle close-up; rack focus from card to barrier; deliberate hold.",
+      "performance_or_action": "Metaphorical insert only; label design and exact interface remain provisional.",
+      "character_asset_ids": [
+        "CHAR-REGISTRY-CLERK"
+      ],
+      "location_asset_ids": [
+        "LOC-PUBLIC-SERVICE-CORRIDORS"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-004-01",
+        "PROP-PROVISIONAL-004-02",
+        "PROP-PROVISIONAL-004-03"
+      ],
+      "sound_plan": "A soft mechanical click; music remains undecided",
+      "continuity_and_review_notes": "Graphic metaphor must not imply a new plot mechanism.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-005",
+      "start_seconds": 100,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "Vesper at street level",
+      "visual_action": "Hard cut to Vesper in 2044: layered street depth, public screens, transit, checkpoints in the distance. Kaylen moves through the city as one person inside a vast system.",
+      "camera_plan": "Wide moving master; foreground parallax; purposeful tracking.",
+      "performance_or_action": "Kaylen navigates his ordinary route. Keep the city grounded and inhabited, not a generic cyberpunk skyline.",
+      "character_asset_ids": [
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-VESPER-STREETS"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-005-01",
+        "PROP-PROVISIONAL-005-02",
+        "PROP-PROVISIONAL-005-03"
+      ],
+      "sound_plan": "City bed, distant traffic, soft broadcast bleed",
+      "continuity_and_review_notes": "Architecture and political signage require source bible continuity check.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-006",
+      "start_seconds": 125,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "The morning after",
+      "visual_action": "Kaylen sits with cold coffee while a broadcast speaks in polished phrases about community resilience. Camera observes the gap between public language and his private fatigue.",
+      "camera_plan": "Medium profile; restrained push-in; cutaway to cold cup and TV glow.",
+      "performance_or_action": "Kaylen drinks cold coffee; broadcast omits names pending official release. Do not add broadcaster dialogue beyond the source's described content.",
+      "character_asset_ids": [
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-VESPER-INTERIOR-TO-BE-VERIFIED"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-006-01",
+        "PROP-PROVISIONAL-006-02",
+        "PROP-PROVISIONAL-006-03"
+      ],
+      "sound_plan": "Muffled broadcast texture; cup set-down; restrained room tone",
+      "continuity_and_review_notes": "Interior location and exact broadcast copy need source-page verification.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-007",
+      "start_seconds": 150,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "Glass has a clean voice",
+      "visual_action": "A memory fragment: a bottle breaks on pavement. Show the shard scatter and Kaylen's stillness, not a choreographed fight or glamorised violence.",
+      "camera_plan": "Close handheld drift; one sharp insert; sound-led cut.",
+      "performance_or_action": "Use the source memory of the broken bottle as sensory recollection. Do not depict extra blows or weapon use.",
+      "character_asset_ids": [
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-VESPER-STREETS"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-007-01",
+        "PROP-PROVISIONAL-007-02"
+      ],
+      "sound_plan": "Single glass break with brief subjective muffling; no music stinger",
+      "continuity_and_review_notes": "Non-graphic, subjective memory; avoid adding action detail.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-008",
+      "start_seconds": 175,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "Come through",
+      "visual_action": "Phone vibrates. The message from Eamon appears; Kaylen deletes it, then retrieves it from the deleted folder. The smallest decision becomes a visible struggle.",
+      "camera_plan": "Over-shoulder phone insert; locked frame; rack to Kaylen's eyes.",
+      "performance_or_action": "Use only the source message wording if the author approves exact on-screen text; otherwise show sender and abstracted message.",
+      "character_asset_ids": [
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-VESPER-INTERIOR-TO-BE-VERIFIED"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-008-01",
+        "PROP-PROVISIONAL-008-02"
+      ],
+      "sound_plan": "Phone vibration, thumb contact, room tone",
+      "continuity_and_review_notes": "Phone interface is a designed asset and must be approved.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-009",
+      "start_seconds": 200,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "The print shop",
+      "visual_action": "Exterior-to-interior transition into the disused print shop; black-painted windows; the crew's hand-drawn name and music note on the wall.",
+      "camera_plan": "Tracking move through doorway; reveal group tableau with layered depth.",
+      "performance_or_action": "Introduce the gathering place exactly as described. No new gang insignia beyond the source's marker drawing.",
+      "character_asset_ids": [
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-DISUSED-PRINT-SHOP"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-009-01",
+        "PROP-PROVISIONAL-009-02",
+        "PROP-PROVISIONAL-009-03"
+      ],
+      "sound_plan": "Street bed falls away into room tone, kettle and distant voices",
+      "continuity_and_review_notes": "Crew mark lettering and set dressing require design review.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-010",
+      "start_seconds": 225,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "Ordinary lives",
+      "visual_action": "A series of connected holds: Kesh asleep with phone; Amel at two screens; Rasha mending a sleeve; Sefu working on a kettle; Tovin's school application.",
+      "camera_plan": "Short lateral dolly with motivated inserts; each insert held long enough to read.",
+      "performance_or_action": "Show the specific activities from the manuscript. Avoid inventing extra props or character backstory.",
+      "character_asset_ids": [
+        "CHAR-KESH-AYO",
+        "CHAR-AMEL-ZORI",
+        "CHAR-RASHA-DENI",
+        "CHAR-SEFU-MALK",
+        "CHAR-TOVIN-BELL"
+      ],
+      "location_asset_ids": [
+        "LOC-DISUSED-PRINT-SHOP"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-010-01",
+        "PROP-PROVISIONAL-010-02",
+        "PROP-PROVISIONAL-010-03",
+        "PROP-PROVISIONAL-010-04",
+        "PROP-PROVISIONAL-010-05"
+      ],
+      "sound_plan": "Kettle metal ticks, paper, soft room chatter",
+      "continuity_and_review_notes": "Five distinct performances; no repeated generic idle loops.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-011",
+      "start_seconds": 250,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "Care without demand",
+      "visual_action": "Juno approaches Kaylen with a medical pouch and cleans his split lip. He looks down; she does not force eye contact.",
+      "camera_plan": "Intimate two-shot; hand insert; slow push; no melodramatic close-up.",
+      "performance_or_action": "Use the source interaction and its quiet care. Preserve the understated tone.",
+      "character_asset_ids": [
+        "CHAR-JUNO-SAYE",
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-DISUSED-PRINT-SHOP"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-011-01",
+        "PROP-PROVISIONAL-011-02",
+        "PROP-PROVISIONAL-011-03"
+      ],
+      "sound_plan": "Soft cloth movement, cap click, low room tone",
+      "continuity_and_review_notes": "Injury continuity: split lip visible from prior scene.",
+      "review_status": "NOT_APPROVED"
+    },
+    {
+      "shot_id": "PILOT-SHOT-012",
+      "start_seconds": 275,
+      "duration_seconds": 25,
+      "chapter_id": "CHAPTER_01",
+      "scene_id": "B1-CHAPTER_01-SC01",
+      "title": "The room changes",
+      "visual_action": "Biko and Amel exchange their clock joke; the door opens and Eamon enters in a dark coat. Lark's voice from the back punctures the claim that everyone is present. End on Kaylen's reaction.",
+      "camera_plan": "Group master to doorway reveal; slow dolly; final close-up held to cut black.",
+      "performance_or_action": "Use only dialogue verified in the manuscript. The final beat is Lark's correction, not an invented confrontation.",
+      "character_asset_ids": [
+        "CHAR-BIKO-NARE",
+        "CHAR-AMEL-ZORI",
+        "CHAR-EAMON-VOSS",
+        "CHAR-LARK-TEMBA",
+        "CHAR-KAYLEN-ATLEE"
+      ],
+      "location_asset_ids": [
+        "LOC-DISUSED-PRINT-SHOP"
+      ],
+      "prop_asset_ids": [
+        "PROP-PROVISIONAL-012-01",
+        "PROP-PROVISIONAL-012-02",
+        "PROP-PROVISIONAL-012-03"
+      ],
+      "sound_plan": "Door hinge, room chatter drops, final breath then cut",
+      "continuity_and_review_notes": "End on unresolved tension; do not reveal the stranger or later plot early.",
+      "review_status": "NOT_APPROVED"
+    }
+  ],
+  "qc_gates": [
+    "Source-line verification for every shot",
+    "Author approval of character appearance and environment concepts",
+    "Model-sheet and rig tests for every visible character",
+    "Timing and continuity check at 24 fps",
+    "Pilot render visual QC at 100% and mobile scale",
+    "Sound/dialogue/music clearance and mix review",
+    "Author approval before feature-segment rendering"
+  ],
+  "render_target": {
+    "resolution": "1280x720",
+    "frame_rate": 24,
+    "runtime_seconds": 300,
+    "frames": 7200,
+    "renderer": "Blender Cycles CPU with denoising",
+    "samples": 20,
+    "parallel_segments": 3,
+    "segment_count": 5,
+    "segment_duration_seconds": 60,
+    "audio": "silent visual pilot draft"
+  }
+}
