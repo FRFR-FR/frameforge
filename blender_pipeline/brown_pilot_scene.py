@@ -171,6 +171,40 @@ def character(name,pos,skin,hair,jacket,trousers,hairstyle="short",height=1.0):
         part("pocket "+str(s),(s*.23,-.22,1.34),(.07,.018,.06),jk)
     root["character_name"]=name
     root["asset_status"]="PROCEDURAL CONCEPT MODEL — NOT AN APPROVED LIKENESS"
+    # Shot-local performance: subtle breathing/head attention for dialogue scenes,
+    # and a restrained alternating gait for Kaylen's street crossing.
+    scene_index=max(0,min(11,int(round(pos[0]/40.0))))
+    f0=scene_index*SHOT_SECONDS*FPS+1
+    f1=f0+SHOT_SECONDS*FPS-1
+    if "Kaylen Atlee — street" in name:
+        limbs=[o for o in root.children if ("thigh " in o.name or "upper sleeve " in o.name)]
+        for j,o in enumerate(limbs):
+            amp=0.22 if "thigh" in o.name else 0.13
+            for k in range(26):
+                frame=f0+k*24
+                if frame>f1: break
+                phase=(2*math.pi*k/2.0)+(0 if j%2==0 else math.pi)
+                o.rotation_euler[1]=math.sin(phase)*amp
+                o.keyframe_insert(data_path="rotation_euler",frame=frame)
+    else:
+        torso=next((o for o in root.children if o.name.endswith(" jacket")),None)
+        head=next((o for o in root.children if o.name.endswith(" head")),None)
+        for k in range(9):
+            frame=f0+k*75
+            if frame>f1: break
+            breath=1.0+0.006*math.sin(k*math.pi/2)
+            if torso:
+                torso.scale.z=breath
+                torso.keyframe_insert(data_path="scale",frame=frame)
+            if head:
+                head.rotation_euler[2]=0.018*math.sin(k*math.pi/2)
+                head.keyframe_insert(data_path="rotation_euler",frame=frame)
+    if name.startswith("Juno Saye — treatment"):
+        hands=[o for o in root.children if "hand " in o.name]
+        for hand in hands:
+            for frame,angle in ((f0,0.0),(f0+150,0.10),(f0+300,-0.06),(f1,0.0)):
+                hand.rotation_euler[0]=angle
+                hand.keyframe_insert(data_path="rotation_euler",frame=frame)
     return root
 
 def animate(root,f0,f1,p0,p1):
