@@ -129,10 +129,11 @@ jobs:
             rm -rf gameforge/pvp/.godot
             godot --headless --verbose --path gameforge/pvp --editor --quit
             godot --headless --verbose --path gameforge/pvp --script res://tests/pvp_smoke_test.gd
-            mkdir -p build/android
-            godot --headless --verbose --path gameforge/pvp --export-debug "Android" build/android/LOOMWILD_Offline_PvP_A.apk
-            test -s build/android/LOOMWILD_Offline_PvP_A.apk
-            unzip -t build/android/LOOMWILD_Offline_PvP_A.apk
+            APK_PATH="$PWD/build/android/LOOMWILD_Offline_PvP_A.apk"
+            mkdir -p "$(dirname "$APK_PATH")"
+            godot --headless --verbose --path gameforge/pvp --export-debug "Android" "$APK_PATH"
+            test -s "$APK_PATH"
+            unzip -t "$APK_PATH"
           }
           for attempt in 1 2; do
             echo "Godot import, gameplay and Android export attempt $attempt/2"
