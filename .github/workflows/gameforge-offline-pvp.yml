@@ -1,0 +1,183 @@
+name: GAMEFORGE Offline PvP — Android A Prototype
+
+on:
+  push:
+    branches: [gameforge-offline-pvp-prototype]
+    paths:
+      - "gameforge/pvp/**"
+      - ".github/workflows/gameforge-offline-pvp.yml"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gameforge-offline-pvp-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test-android:
+    name: Generate assets, test offline match and export Android APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - name: Checkout isolated PvP prototype
+        uses: actions/checkout@v4
+        with:
+          ref: gameforge-offline-pvp-prototype
+          path: prototype
+
+      - name: Checkout Loomglass character source
+        uses: actions/checkout@v4
+        with:
+          ref: gameforge-character-lab
+          path: prototype/character-source
+
+      - name: Checkout Loomwild world source
+        uses: actions/checkout@v4
+        with:
+          ref: gameforge-world-lab
+          path: prototype/world-source
+
+      - name: Install Blender runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xz-utils libegl1 libgl1 libglx0 libopengl0 libglu1-mesa libglib2.0-0 libsm6 libxkbcommon0 libxrender1 libxi6 libxfixes3 libxext6 libx11-6 libxrandr2 libxcursor1 libxinerama1
+
+      - name: Install pinned Blender 4.5.16
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender4.5/blender-4.5.16-linux-x64.tar.xz --output "$RUNNER_TEMP/blender.tar.xz"
+          mkdir -p "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+          echo "$RUNNER_TEMP/blender" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/blender/blender" --version
+
+      - name: Build and audit all character, weapon and map assets
+        working-directory: prototype
+        run: |
+          python3 -m py_compile gameforge/pvp/tools/*.py
+          BLENDER_BIN="$RUNNER_TEMP/blender/blender" bash gameforge/pvp/tools/build_assets.sh
+          test -s gameforge/pvp/ASSET_VALIDATION.json
+          test "$(find gameforge/pvp/assets/characters -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10
+          test "$(find gameforge/pvp/assets/weapons -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10
+          test -s gameforge/pvp/assets/map/GAMEFORGE_Loomwild_Environment.glb
+
+      - name: Install Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android command-line tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install pinned Android SDK, build tools and NDK
+        run: |
+          set +o pipefail
+          yes | sdkmanager --licenses
+          set -o pipefail
+          sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
+
+      - name: Install Godot 4.4.1 and Android export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: true
+          cache: false
+
+      - name: Configure ephemeral Android debug signing
+        run: |
+          mkdir -p "$HOME/.config/godot" "$HOME/.android" "$GITHUB_WORKSPACE/prototype/build/android"
+          keytool -genkeypair -noprompt -v -keyalg RSA -keysize 2048             -keystore "$HOME/.android/gameforge-debug.keystore"             -storetype JKS -storepass android -alias androiddebugkey -keypass android             -dname "CN=GAMEFORGE Offline PvP,O=GAMEFORGE,C=US" -validity 10000
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/debug_keystore = "$HOME/.android/gameforge-debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$HOME/.android/gameforge-debug.keystore" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
+
+      - name: Verify installed Android toolchain
+        run: |
+          set -euxo pipefail
+          java -version
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          test -d "$ANDROID_HOME/platforms/android-34"
+          test -d "$ANDROID_HOME/build-tools/34.0.0"
+          test -d "$ANDROID_HOME/ndk/23.2.8568313"
+          test -f "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_debug.apk"
+          test -f "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_release.apk"
+
+      - name: Import, run gameplay smoke tests and export APK with one clean retry
+        working-directory: prototype
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/gameforge-debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          run_godot_pipeline() {
+            rm -rf gameforge/pvp/.godot
+            godot --headless --verbose --path gameforge/pvp --editor --quit
+            godot --headless --verbose --path gameforge/pvp --script res://tests/pvp_smoke_test.gd
+            mkdir -p build/android
+            godot --headless --verbose --path gameforge/pvp --export-debug "Android" build/android/LOOMWILD_Offline_PvP_A.apk
+            test -s build/android/LOOMWILD_Offline_PvP_A.apk
+            unzip -t build/android/LOOMWILD_Offline_PvP_A.apk
+          }
+          for attempt in 1 2; do
+            echo "Godot import, gameplay and Android export attempt $attempt/2"
+            if run_godot_pipeline; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "Clearing generated Godot import cache and retrying once."
+            fi
+          done
+          echo "Godot smoke test or Android export failed twice." >&2
+          exit 1
+
+      - name: Package QA summary
+        if: always()
+        working-directory: prototype
+        run: |
+          mkdir -p build/qa
+          cp gameforge/pvp/ASSET_VALIDATION.json build/qa/ 2>/dev/null || true
+          cp gameforge/pvp/assets/characters/CHARACTER_RIG_AUDIT.json build/qa/ 2>/dev/null || true
+          cp gameforge/pvp/assets/weapons/WEAPON_AUDIT.json build/qa/ 2>/dev/null || true
+          printf 'branch=%s\ncommit=%s\nresolution=1280x720\nrender_cap=30fps\nplatform=Android only\nmode=offline 1v1\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > build/qa/BUILD_METADATA.txt
+
+      - name: Upload Android prototype and verified asset pack
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LOOMWILD-OFFLINE-PVP-A-Prototype-${{ github.sha }}
+          path: |
+            prototype/build/android/LOOMWILD_Offline_PvP_A.apk
+            prototype/gameforge/pvp/ASSET_VALIDATION.json
+            prototype/gameforge/pvp/assets/characters/CHARACTER_RIG_AUDIT.json
+            prototype/gameforge/pvp/assets/weapons/WEAPON_AUDIT.json
+            prototype/gameforge/pvp/assets/previews/*.png
+            prototype/build/qa/BUILD_METADATA.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload failure logs and QA state
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LOOMWILD-OFFLINE-PVP-FAILURE-LOGS-${{ github.run_id }}
+          path: |
+            prototype/gameforge/pvp/ASSET_VALIDATION.json
+            prototype/build/qa/
+          if-no-files-found: ignore
+          retention-days: 90
