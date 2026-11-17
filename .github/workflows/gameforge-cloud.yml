@@ -177,7 +177,7 @@ jobs:
           name: GAMEFORGE-Design-Pack
           path: build/game-design/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
 
   build-cutscene:
     name: Render characters and cutscene on GitHub CPU
@@ -294,7 +294,7 @@ jobs:
             build/gameforge-cutscene/subtitles.srt
             build/gameforge-cutscene/subtitles.ass
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
 
   build-android:
     name: Export Android APK on GitHub
@@ -358,7 +358,7 @@ jobs:
           name: GAMEFORGE-Android-APK
           path: build/android/GAMEFORGE.apk
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
 
   build-windows:
     name: Export Windows EXE on GitHub
@@ -402,4 +402,4 @@ jobs:
           name: GAMEFORGE-Windows-EXE
           path: build/windows/GAMEFORGE.exe
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
