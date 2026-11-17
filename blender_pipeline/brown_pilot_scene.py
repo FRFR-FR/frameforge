@@ -358,6 +358,8 @@ def printshop(center):
 
 def materials():
     mat("limestone",(.46,.43,.36),.84,noise=85)
+    mat("concrete",(.12,.13,.13),.9,noise=55,bump=.12)
+    mat("black glass",(.008,.014,.018),.18,.24)
     mat("marble",(.59,.57,.50),.34,noise=120,bump=.04)
     mat("brass",(.42,.27,.10),.28,.78)
     mat("metal",(.035,.045,.052),.33,.75,noise=115)
