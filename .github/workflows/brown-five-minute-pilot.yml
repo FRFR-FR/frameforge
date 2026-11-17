@@ -1,0 +1,165 @@
+name: BROWN Five-Minute Pilot — Realistic 3D 720p24
+
+on:
+  push:
+    branches:
+      - fix/two-hour-feature-film
+    paths:
+      - "blender_pipeline/brown_pilot_scene.py"
+      - ".github/workflows/brown-five-minute-pilot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brown-five-minute-pilot-\${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-scene:
+    name: Build editable Blender scene and lighting proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender ffmpeg
+          blender --version
+          ffmpeg -version | head -n 2
+      - name: Compile and validate pilot script
+        run: python3 -m py_compile blender_pipeline/brown_pilot_scene.py
+      - name: Build five-minute 3D scene and render lighting proof
+        run: |
+          mkdir -p output/brown_pilot
+          blender --background --python-exit-code 1 \
+            --python blender_pipeline/brown_pilot_scene.py -- \
+            --mode build --output-dir output/brown_pilot
+      - name: Upload editable scene and build proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Pilot-Scene
+          path: |
+            output/brown_pilot/BROWN_Five_Minute_Pilot.blend
+            output/brown_pilot/pilot_build_report.json
+            output/brown_pilot/build_still/pilot_frame_000001.png
+          if-no-files-found: error
+          retention-days: 14
+
+  render-part:
+    name: Render 720p24 pilot part \${{ matrix.part }}
+    needs: build-scene
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        part: [1, 2, 3, 4, 5]
+    steps:
+      - name: Check out FrameForge render script
+        uses: actions/checkout@v4
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender ffmpeg
+          blender --version
+      - name: Download editable scene
+        uses: actions/download-artifact@v4
+        with:
+          name: BROWN-Pilot-Scene
+          path: output/brown_pilot
+      - name: Render 60 seconds at 1280x720, 24 fps
+        env:
+          PART: \${{ matrix.part }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output/brown_pilot/frames output/pilot_parts
+          blender --background output/brown_pilot/BROWN_Five_Minute_Pilot.blend \
+            --python-exit-code 1 \
+            --python blender_pipeline/brown_pilot_scene.py -- \
+            --mode render --segment "$PART" --output-dir output/brown_pilot
+          START=$(( (PART - 1) * 1440 + 1 ))
+          PADDED=$(printf "%02d" "$PART")
+          ffmpeg -y -hide_banner -loglevel warning \
+            -framerate 24 -start_number "$START" \
+            -i output/brown_pilot/frames/frame_%06d.png \
+            -frames:v 1440 -an -c:v libx264 -preset medium -crf 17 \
+            -pix_fmt yuv420p -r 24 -movflags +faststart \
+            "output/pilot_parts/BROWN_Pilot_Part_\${PADDED}.mp4"
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=width,height,r_frame_rate \
+            -show_entries format=duration \
+            -of json "output/pilot_parts/BROWN_Pilot_Part_\${PADDED}.mp4" \
+            > "output/pilot_parts/BROWN_Pilot_Part_\${PADDED}_qc.json"
+      - name: Upload rendered part and technical QC
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Pilot-Part-\${{ matrix.part }}
+          path: |
+            output/pilot_parts/BROWN_Pilot_Part_*.mp4
+            output/pilot_parts/BROWN_Pilot_Part_*_qc.json
+          if-no-files-found: error
+          retention-days: 14
+
+  assemble-pilot:
+    name: Assemble and verify five-minute pilot
+    needs: render-part
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - name: Download all five verified parts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: BROWN-Pilot-Part-*
+          path: output/pilot_parts
+          merge-multiple: true
+      - name: Concatenate parts and validate final runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd output/pilot_parts
+          for i in 01 02 03 04 05; do
+            test -s "BROWN_Pilot_Part_\${i}.mp4"
+            printf "file '%s'\n" "BROWN_Pilot_Part_\${i}.mp4"
+          done > concat.txt
+          ffmpeg -y -hide_banner -loglevel warning \
+            -f concat -safe 0 -i concat.txt -c copy \
+            BROWN_Five_Minute_Pilot_720p24_SILENT.mp4
+          ffprobe -v error \
+            -show_entries stream=width,height,r_frame_rate \
+            -show_entries format=duration \
+            -of json BROWN_Five_Minute_Pilot_720p24_SILENT.mp4 > final_qc.json
+          python3 - <<'PY'
+          import json
+          q=json.load(open("final_qc.json",encoding="utf-8"))
+          v=next(s for s in q["streams"] if s.get("codec_type","video")=="video")
+          d=float(q["format"]["duration"])
+          assert (v["width"],v["height"])==(1280,720),v
+          assert v["r_frame_rate"]=="24/1",v
+          assert 299.8 <= d <= 300.2,d
+          print("PASS: 1280x720, 24 fps, five-minute runtime; silent visual pilot.")
+          PY
+          ffmpeg -y -hide_banner -loglevel warning \
+            -ss 255 -i BROWN_Five_Minute_Pilot_720p24_SILENT.mp4 \
+            -frames:v 1 -q:v 2 BROWN_Pilot_Final_Frame.jpg
+      - name: Upload assembled visual pilot
+        uses: actions/upload-artifact@v4
+        with:
+          name: BROWN-Five-Minute-Pilot-720p24
+          path: |
+            output/pilot_parts/BROWN_Five_Minute_Pilot_720p24_SILENT.mp4
+            output/pilot_parts/final_qc.json
+            output/pilot_parts/BROWN_Pilot_Final_Frame.jpg
+          if-no-files-found: error
+          retention-days: 30
