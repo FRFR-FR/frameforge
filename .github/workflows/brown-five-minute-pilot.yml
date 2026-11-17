@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: brown-five-minute-pilot-\${{ github.ref }}
+  group: brown-five-minute-pilot-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -50,7 +50,7 @@ jobs:
           retention-days: 14
 
   render-part:
-    name: Render 720p24 pilot part \${{ matrix.part }}
+    name: Render 720p24 pilot part ${{ matrix.part }}
     needs: build-scene
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -74,7 +74,7 @@ jobs:
           path: output/brown_pilot
       - name: Render 60 seconds at 1280x720, 24 fps
         env:
-          PART: \${{ matrix.part }}
+          PART: ${{ matrix.part }}
         shell: bash
         run: |
           set -euo pipefail
@@ -90,16 +90,16 @@ jobs:
             -i output/brown_pilot/frames/frame_%06d.png \
             -frames:v 1440 -an -c:v libx264 -preset medium -crf 17 \
             -pix_fmt yuv420p -r 24 -movflags +faststart \
-            "output/pilot_parts/BROWN_Pilot_Part_\${PADDED}.mp4"
+            "output/pilot_parts/BROWN_Pilot_Part_${PADDED}.mp4"
           ffprobe -v error -select_streams v:0 \
             -show_entries stream=width,height,r_frame_rate \
             -show_entries format=duration \
-            -of json "output/pilot_parts/BROWN_Pilot_Part_\${PADDED}.mp4" \
-            > "output/pilot_parts/BROWN_Pilot_Part_\${PADDED}_qc.json"
+            -of json "output/pilot_parts/BROWN_Pilot_Part_${PADDED}.mp4" \
+            > "output/pilot_parts/BROWN_Pilot_Part_${PADDED}_qc.json"
       - name: Upload rendered part and technical QC
         uses: actions/upload-artifact@v4
         with:
-          name: BROWN-Pilot-Part-\${{ matrix.part }}
+          name: BROWN-Pilot-Part-${{ matrix.part }}
           path: |
             output/pilot_parts/BROWN_Pilot_Part_*.mp4
             output/pilot_parts/BROWN_Pilot_Part_*_qc.json
@@ -130,8 +130,8 @@ jobs:
           set -euo pipefail
           cd output/pilot_parts
           for i in 01 02 03 04 05; do
-            test -s "BROWN_Pilot_Part_\${i}.mp4"
-            printf "file '%s'\n" "BROWN_Pilot_Part_\${i}.mp4"
+            test -s "BROWN_Pilot_Part_${i}.mp4"
+            printf "file '%s'\n" "BROWN_Pilot_Part_${i}.mp4"
           done > concat.txt
           ffmpeg -y -hide_banner -loglevel warning \
             -f concat -safe 0 -i concat.txt -c copy \
