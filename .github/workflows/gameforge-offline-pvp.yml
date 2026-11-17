@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: gameforge-offline-pvp-${{ github.ref }}
+  group: gameforge-offline-pvp-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
