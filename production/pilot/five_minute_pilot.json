@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": "BROWN — Book One",
   "title": "Five-minute visual pilot — The Register / The City That Counted Us",
-  "status": "DRAFT_FOR_AUTHOR_REVIEW_NOT_RENDER_APPROVED",
+  "status": "DRAFT_RENDER_WORKFLOW_CONFIGURED_AUTHOR_REVIEW_REQUIRED",
   "runtime_seconds": 300,
   "frame_rate": 24,
   "resolution": [
@@ -11,7 +11,7 @@
   ],
   "total_frames": 7200,
   "source_policy": "Adapt only the Prologue and Chapter 1 source passages. Visual metaphors are marked as adaptation choices. Verify exact manuscript passages and dialogue before lock.",
-  "style": "Painterly, expressive 3D/2.5D; textured surfaces, graphic silhouettes, deliberate pose-to-pose acting, fluid camera choreography, strong composition, cinematic lighting; no photorealism, no Minecraft/blocky look, no generic AI imagery.",
+  "style": "Grounded realistic 3D character and environment modelling; physically based skin, hair, fabric, glass, metal, concrete and painted surfaces; cinematic 720p lighting and depth of field; expressive but restrained acting; carefully motivated camera movement. All unsourced appearance details remain provisional pending author approval.",
   "segments": [
     {
       "segment_id": "PILOT-SEG-001",
@@ -353,5 +353,17 @@
     "Pilot render visual QC at 100% and mobile scale",
     "Sound/dialogue/music clearance and mix review",
     "Author approval before feature-segment rendering"
-  ]
+  ],
+  "render_target": {
+    "resolution": "1280x720",
+    "frame_rate": 24,
+    "runtime_seconds": 300,
+    "frames": 7200,
+    "renderer": "Blender Cycles CPU with denoising",
+    "samples": 20,
+    "parallel_segments": 3,
+    "segment_count": 5,
+    "segment_duration_seconds": 60,
+    "audio": "silent visual pilot draft"
+  }
 }
