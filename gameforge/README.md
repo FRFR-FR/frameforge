@@ -22,7 +22,7 @@ The dedicated `gameforge/cutscenes/` subsystem is separate from the standalone F
 - The GitHub Actions workflow is the supported end-user build route. No local installation is required.
 - GitHub-hosted runners are temporary: tools are installed for the job, outputs are uploaded as artifacts, and the runner is discarded afterwards.
 - This repository is public, so standard GitHub-hosted runners are free to use. Standard public Ubuntu/Windows runners provide 4 CPUs and 16 GB RAM, not a GPU. Each hosted-runner job is limited to 6 hours.
-- GitHub still applies artifact and cache storage limits. The cloud pipeline retains build artifacts for 7 days; download important outputs before they expire.
+- GitHub still applies artifact and cache storage limits. Gameforge workflow uploads request 90-day artifact retention; previously uploaded artifacts keep their original expiry dates.
 - Android output is a debug APK for testing. The Windows EXE is not Authenticode-signed. A production Android release-signing flow still needs a release keystore stored as GitHub Actions Secrets.
 - Long CPU renders can hit runner time or storage limits. The cutscene format is capped at 1080p, 30 FPS and 10 minutes, but those caps are not a guarantee that every maximum-length render will finish within a hosted job.
 
