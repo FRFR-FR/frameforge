@@ -84,4 +84,4 @@ jobs:
             build/gameforge_world/GAMEFORGE_Loomwild_Audit.json
             build/gameforge_world/README.md
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
