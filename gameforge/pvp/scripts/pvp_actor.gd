@@ -4,6 +4,7 @@ class_name PVPActor
 signal defeated(actor: PVPActor)
 signal health_changed(actor: PVPActor, current: float, maximum: float)
 signal weapon_changed(actor: PVPActor, weapon_name: String)
+signal ammo_changed(actor: PVPActor, current: int, reserve: int)
 
 const WEAPONS := [
 	{"id":"Vesper9","name":"Vesper-9","damage":25.0,"rpm":390.0,"mag":16,"reload":1.25,"range":42.0,"spread":0.012,"pellets":1},
@@ -47,6 +48,12 @@ var weapon_visual: Node3D
 var character_visual: Node3D
 var shield_visual: MeshInstance3D
 var running := false
+var sprint_held := false
+var crouch_held := false
+var jump_requested := false
+var ground_grace := 0.0
+var reserve_ammunition := 150
+var movement_state := ""
 
 func _ready() -> void:
 	add_to_group("pvp_fighters")
@@ -71,7 +78,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if defeated_state:
-		velocity = Vector3.ZERO
+		velocity = velocity.move_toward(Vector3.ZERO, 28.0 * delta)
 		return
 	fire_cooldown = maxf(0.0, fire_cooldown - delta)
 	shield_cooldown = maxf(0.0, shield_cooldown - delta)
@@ -83,57 +90,77 @@ func _physics_process(delta: float) -> void:
 	if reload_seconds > 0.0:
 		reload_seconds = maxf(0.0, reload_seconds - delta)
 		if reload_seconds <= 0.0:
-			ammunition = int(WEAPONS[current_weapon]["mag"])
-	if not is_on_floor():
-		velocity.y -= 19.0 * delta
+			_finish_reload()
+	if is_on_floor():
+		ground_grace = 0.13
 	else:
-		velocity.y = -0.5
-	var direction := Vector3.ZERO
+		ground_grace = maxf(0.0, ground_grace - delta)
+		velocity.y -= 19.6 * delta
+	if jump_requested and ground_grace > 0.0 and not crouch_held:
+		velocity.y = 5.6
+		ground_grace = 0.0
+	jump_requested = false
+	var wish := Vector3.ZERO
+	var strength := 0.0
 	if is_player:
-		direction = Vector3(move_input.x, 0.0, move_input.y).rotated(Vector3.UP, camera_yaw)
+		var control := move_input.limit_length(1.0)
+		strength = control.length()
+		wish = Vector3(control.x, 0.0, control.y).rotated(Vector3.UP, camera_yaw)
 	else:
-		direction = ai_direction
-	direction.y = 0.0
-	direction = direction.normalized()
-	running = direction.length_squared() > 0.45
-	var speed := 5.9 if running else 4.1
+		wish = ai_direction
+		strength = minf(wish.length(), 1.0)
+	wish.y = 0.0
+	wish = wish.normalized() if strength > 0.001 else Vector3.ZERO
+	var top_speed := 5.4
+	if crouch_held:
+		top_speed = 2.65
+	elif sprint_held or strength > 0.88:
+		top_speed = 7.25
 	if not is_player:
-		speed = 5.3 if running else 3.8
-	velocity.x = move_toward(velocity.x, direction.x * speed, delta * (18.0 if running else 14.0))
-	velocity.z = move_toward(velocity.z, direction.z * speed, delta * (18.0 if running else 14.0))
+		top_speed = 5.9 if strength > 0.68 else 4.2
+	var target := wish * top_speed * strength
+	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
+	var acceleration := 30.0 if is_on_floor() else 8.0
+	if wish == Vector3.ZERO:
+		acceleration = 24.0 if is_on_floor() else 2.8
+	horizontal = horizontal.move_toward(target, acceleration * delta)
+	velocity.x = horizontal.x
+	velocity.z = horizontal.z
 	if is_player:
 		rotation.y = camera_yaw
-	elif direction.length_squared() > 0.002:
-		rotation.y = atan2(-direction.x, -direction.z)
+	elif wish.length_squared() > 0.002:
+		rotation.y = lerp_angle(rotation.y, atan2(-wish.x, -wish.z), minf(1.0, 13.0 * delta))
 	move_and_slide()
-
+	_update_locomotion_animation(horizontal.length(), wish)
 func _load_character() -> void:
 	var path := "res://assets/characters/%s.glb" % character_id
-	if ResourceLoader.exists(path):
-		var packed := load(path) as PackedScene
-		if packed:
-			character_visual = packed.instantiate()
-			character_visual.name = "RiggedCharacter_" + character_id
-			character_visual.scale = Vector3.ONE * 0.56
-			add_child(character_visual)
-			return
-	_add_fallback_body()
-
-func _add_fallback_body() -> void:
-	var mesh := MeshInstance3D.new()
-	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.36
-	capsule.height = 1.78
-	mesh.mesh = capsule
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.12, 0.7, 0.86) if is_player else Color(0.92, 0.38, 0.19)
-	mat.metallic = 0.28
-	mat.roughness = 0.34
-	mesh.material_override = mat
-	mesh.position.y = 0.9
-	add_child(mesh)
-	character_visual = mesh
-
+	if not ResourceLoader.exists(path):
+		push_error("Required rigged tactical operator is missing: " + path)
+		return
+	var packed := load(path) as PackedScene
+	if packed == null:
+		push_error("Tactical operator GLB is invalid: " + path)
+		return
+	character_visual = packed.instantiate()
+	character_visual.name = "RiggedOperator_" + character_id
+	character_visual.scale = Vector3.ONE * 0.60
+	add_child(character_visual)
+func apply_look_delta(delta: Vector2) -> void:
+	var sensitivity := 1.0
+	var invert := false
+	if game_root:
+		var sensitivity_setting = game_root.get("look_sensitivity")
+		var invert_setting = game_root.get("invert_look_y")
+		if sensitivity_setting != null:
+			sensitivity = float(sensitivity_setting)
+		if invert_setting != null:
+			invert = bool(invert_setting)
+	camera_yaw -= delta.x * 0.0036 * sensitivity
+	camera_pitch += delta.y * 0.0027 * sensitivity * (-1.0 if invert else 1.0)
+	camera_pitch = clampf(camera_pitch, -0.84, 0.38)
+	if camera_pivot:
+		camera_pivot.rotation.y = camera_yaw
+		camera_arm.rotation.x = camera_pitch)
 func _create_weapon_mount() -> void:
 	weapon_mount = Node3D.new()
 	weapon_mount.name = "WeaponMount"
@@ -166,53 +193,68 @@ func apply_look_delta(delta: Vector2) -> void:
 		camera_pivot.rotation.y = camera_yaw
 		camera_arm.rotation.x = camera_pitch
 
-func get_aim_point(distance: float = 100.0) -> Vector3:
+func get_aim_point(distance: float = 125.0) -> Vector3:
 	if camera:
 		return camera.global_position + (-camera.global_basis.z) * distance
-	return global_position + Vector3(0.0, 1.3, -distance)
-
+	return global_position + Vector3.UP * 1.4 + Vector3.FORWARD * distance
 func set_move_input(value: Vector2) -> void:
 	move_input = value.limit_length(1.0)
 
 func set_ai_direction(value: Vector3) -> void:
 	ai_direction = value.limit_length(1.0)
 
+func set_sprint(value: bool) -> void:
+	sprint_held = value
+
+func set_crouch(value: bool) -> void:
+	crouch_held = value
+
+func request_jump() -> void:
+	jump_requested = true
 func set_weapon(index: int) -> void:
 	current_weapon = posmod(index, WEAPONS.size())
 	var weapon: Dictionary = WEAPONS[current_weapon]
 	ammunition = int(weapon["mag"])
+	reserve_ammunition = int(weapon["mag"]) * 5
 	reload_seconds = 0.0
 	if is_instance_valid(weapon_visual):
 		weapon_visual.queue_free()
 	weapon_visual = null
 	var path := "res://assets/weapons/%s.glb" % weapon["id"]
-	if ResourceLoader.exists(path):
-		var packed := load(path) as PackedScene
-		if packed:
-			weapon_visual = packed.instantiate()
-			weapon_visual.scale = Vector3.ONE * 0.48
-			weapon_visual.position = Vector3(0.0, 0.0, -0.08)
-			weapon_mount.add_child(weapon_visual)
-	if weapon_visual == null:
-		var fallback := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		box.size = Vector3(0.8, 0.13, 0.18)
-		fallback.mesh = box
-		weapon_mount.add_child(fallback)
-		weapon_visual = fallback
+	if not ResourceLoader.exists(path):
+		push_error("Required detailed weapon model is missing: " + path)
+		weapon_changed.emit(self, str(weapon["name"]))
+		ammo_changed.emit(self, ammunition, reserve_ammunition)
+		return
+	var packed := load(path) as PackedScene
+	if packed == null:
+		push_error("Weapon GLB is invalid: " + path)
+		return
+	weapon_visual = packed.instantiate()
+	weapon_visual.name = "Weapon_" + str(weapon["id"])
+	weapon_visual.scale = Vector3.ONE * 0.52
+	weapon_visual.position = Vector3.ZERO
+	weapon_mount.add_child(weapon_visual)
 	weapon_changed.emit(self, str(weapon["name"]))
-
-func cycle_weapon() -> void:
-	set_weapon(current_weapon + 1)
-
+	ammo_changed.emit(self, ammunition, reserve_ammunition)
+func cycle_weapon(step: int = 1) -> void:
+	set_weapon(current_weapon + step)
 func reload_weapon() -> void:
 	if defeated_state or reload_seconds > 0.0:
 		return
 	var magazine := int(WEAPONS[current_weapon]["mag"])
-	if ammunition >= magazine:
+	if ammunition >= magazine or reserve_ammunition <= 0:
 		return
 	reload_seconds = float(WEAPONS[current_weapon]["reload"])
+	_play_locomotion("Reload")
 
+func _finish_reload() -> void:
+	var magazine := int(WEAPONS[current_weapon]["mag"])
+	var loaded := mini(magazine - ammunition, reserve_ammunition)
+	ammunition += loaded
+	reserve_ammunition -= loaded
+	ammo_changed.emit(self, ammunition, reserve_ammunition)
+	_play_locomotion("Idle")
 func fire_at_position(target_point: Vector3) -> bool:
 	if defeated_state or flash_seconds > 0.0 or fire_cooldown > 0.0 or reload_seconds > 0.0:
 		return false
@@ -221,12 +263,12 @@ func fire_at_position(target_point: Vector3) -> bool:
 		return false
 	var weapon: Dictionary = WEAPONS[current_weapon]
 	ammunition -= 1
+	ammo_changed.emit(self, ammunition, reserve_ammunition)
 	fire_cooldown = 60.0 / float(weapon["rpm"])
-	var origin := global_position + Vector3.UP * 1.32
+	var origin := global_position + Vector3.UP * 1.47
 	var direction := (target_point - origin).normalized()
 	var space := get_world_3d().direct_space_state
-	var pellets := int(weapon["pellets"])
-	for pellet in pellets:
+	for pellet in range(int(weapon["pellets"])):
 		var noisy := (direction
 			+ global_basis.x * randf_range(-float(weapon["spread"]), float(weapon["spread"]))
 			+ Vector3.UP * randf_range(-float(weapon["spread"]), float(weapon["spread"]))).normalized()
@@ -239,9 +281,9 @@ func fire_at_position(target_point: Vector3) -> bool:
 			if target is PVPActor:
 				(target as PVPActor).receive_damage(float(weapon["damage"]), global_position)
 	if game_root and game_root.has_method("show_shot_effect"):
-		game_root.show_shot_effect(origin, origin + direction * minf(14.0, float(weapon["range"])))
+		game_root.show_shot_effect(origin, origin + direction * minf(26.0, float(weapon["range"])))
+	_play_locomotion("Fire")
 	return true
-
 func receive_damage(amount: float, attacker_position: Vector3) -> void:
 	if defeated_state or amount <= 0.0:
 		return
@@ -317,14 +359,56 @@ func play_emote(keyword: String) -> bool:
 	return false
 
 func _play_idle() -> void:
-	if character_visual:
-		play_emote("idle")
+	_play_locomotion("Idle")
 
+func _play_locomotion(state: String) -> void:
+	if not character_visual or state == movement_state:
+		return
+	var names: Array[String] = []
+	match state:
+		"Idle": names = ["Idle", "idle"]
+		"Walk": names = ["Walk", "walk"]
+		"Sprint": names = ["Sprint", "Run", "sprint", "run"]
+		"StrafeLeft": names = ["Strafe_Left", "strafe_left"]
+		"StrafeRight": names = ["Strafe_Right", "strafe_right"]
+		"Reload": names = ["Reload", "reload"]
+		"Fire": names = ["Fire", "fire"]
+		"Crouch": names = ["Crouch", "crouch"]
+	for item in character_visual.find_children("*", "AnimationPlayer", true, false):
+		var animation_player := item as AnimationPlayer
+		for animation_name in names:
+			if animation_player.has_animation(animation_name):
+				animation_player.play(animation_name)
+				movement_state = state
+				return
+	movement_state = state
+
+func _update_locomotion_animation(speed: float, direction: Vector3) -> void:
+	if reload_seconds > 0.0 or fire_cooldown > 0.075:
+		return
+	if speed < 0.18:
+		_play_locomotion("Idle")
+	elif crouch_held:
+		_play_locomotion("Crouch")
+	elif sprint_held or speed > 6.15:
+		_play_locomotion("Sprint")
+	else:
+		var local_direction := global_transform.basis.inverse() * direction
+		if local_direction.x < -0.35:
+			_play_locomotion("StrafeLeft")
+		elif local_direction.x > 0.35:
+			_play_locomotion("StrafeRight")
+		else:
+			_play_locomotion("Walk")
 func reset_for_rematch(spawn_position: Vector3) -> void:
 	global_position = spawn_position
 	velocity = Vector3.ZERO
 	move_input = Vector2.ZERO
 	ai_direction = Vector3.ZERO
+	sprint_held = false
+	crouch_held = false
+	jump_requested = false
+	ground_grace = 0.0
 	health = maximum_health
 	shield_energy = 0.0
 	shield_seconds = 0.0
@@ -335,6 +419,9 @@ func reset_for_rematch(spawn_position: Vector3) -> void:
 	fire_cooldown = 0.0
 	defeated_state = false
 	ammunition = int(WEAPONS[current_weapon]["mag"])
+	reserve_ammunition = int(WEAPONS[current_weapon]["mag"]) * 5
 	_set_shield_visible(false)
 	health_changed.emit(self, health, maximum_health)
-	_play_idle()
+	ammo_changed.emit(self, ammunition, reserve_ammunition)
+	movement_state = ""
+	_play_locomotion("Idle")
