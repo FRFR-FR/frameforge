@@ -36,7 +36,23 @@ jobs:
           old = 'world.color=PAL["void"]'
           if old not in s:
               raise SystemExit("Expected Blender world RGB assignment was not found")
-          p.write_text(s.replace(old, 'world.color=PAL["void"][:3]'))
+          s = s.replace(old, 'world.color=PAL["void"][:3]')
+          old_nodes = '''    # Subtle glow pass for emissive neon elements.
+              scene.use_nodes=True
+              nt=scene.node_tree; nt.nodes.clear()
+              rl=nt.nodes.new("CompositorNodeRLayers")
+              glare=nt.nodes.new("CompositorNodeGlare"); glare.glare_type="FOG_GLOW"
+              safe_set(glare,"threshold",1.5); safe_set(glare,"quality","MEDIUM")
+              comp=nt.nodes.new("CompositorNodeComposite")
+              nt.links.new(rl.outputs["Image"],glare.inputs["Image"])
+              nt.links.new(glare.outputs["Image"],comp.inputs["Image"])
+          '''
+          new_nodes = '''    # Blender 5.x has no legacy Scene.node_tree property here.
+              # Neon remains visible from emissive materials and scene lighting.
+          '''
+          if old_nodes not in s:
+              raise SystemExit("Expected legacy compositor block was not found")
+          p.write_text(s.replace(old_nodes, new_nodes))
           PY
           python3 -m py_compile blender_pipeline/make_phishing_characters.py blender_pipeline/phishing_explainer.py
       - name: Create expressive character sprite pack
@@ -96,7 +112,23 @@ jobs:
           old = 'world.color=PAL["void"]'
           if old not in s:
               raise SystemExit("Expected Blender world RGB assignment was not found")
-          p.write_text(s.replace(old, 'world.color=PAL["void"][:3]'))
+          s = s.replace(old, 'world.color=PAL["void"][:3]')
+          old_nodes = '''    # Subtle glow pass for emissive neon elements.
+              scene.use_nodes=True
+              nt=scene.node_tree; nt.nodes.clear()
+              rl=nt.nodes.new("CompositorNodeRLayers")
+              glare=nt.nodes.new("CompositorNodeGlare"); glare.glare_type="FOG_GLOW"
+              safe_set(glare,"threshold",1.5); safe_set(glare,"quality","MEDIUM")
+              comp=nt.nodes.new("CompositorNodeComposite")
+              nt.links.new(rl.outputs["Image"],glare.inputs["Image"])
+              nt.links.new(glare.outputs["Image"],comp.inputs["Image"])
+          '''
+          new_nodes = '''    # Blender 5.x has no legacy Scene.node_tree property here.
+              # Neon remains visible from emissive materials and scene lighting.
+          '''
+          if old_nodes not in s:
+              raise SystemExit("Expected legacy compositor block was not found")
+          p.write_text(s.replace(old_nodes, new_nodes))
           PY
           python3 -m py_compile blender_pipeline/make_phishing_characters.py blender_pipeline/phishing_explainer.py
       - name: Rebuild the character assets on this render worker
