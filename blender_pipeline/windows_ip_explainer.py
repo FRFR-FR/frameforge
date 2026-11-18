@@ -297,11 +297,7 @@ def camera_rig(scene):
             root.location=(cx+SPACING*travel,-24.5+0.30*math.sin(i+frame*0.014),10.2+0.25*math.sin(frame*0.025+i))
             root.keyframe_insert(data_path="location",frame=frame)
             target.location=(cx+SPACING*travel,-0.2,6+bob);target.keyframe_insert(data_path="location",frame=frame)
-    for ob in (root,target):
-        if ob.animation_data and ob.animation_data.action:
-            for fc in ob.animation_data.action.fcurves:
-                for kp in fc.keyframe_points:
-                    kp.interpolation="BEZIER";kp.handle_left_type="AUTO_CLAMPED";kp.handle_right_type="AUTO_CLAMPED"
+    # Blender 5 uses layered actions; retain its default smooth Bezier interpolation.
     for ax,amp,freq,phase in ((1,0.09,0.021,0),(2,0.07,0.017,1.1)):
         fc=root.driver_add("location",ax);fc.driver.expression="%.6f*sin(frame*%.6f+%.4f)"%(amp,freq,phase)
     for ax,amp,freq,phase in ((0,0.015,0.019,0.3),(1,0.018,0.016,1.8),(2,0.012,0.022,2.4)):
