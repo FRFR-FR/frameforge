@@ -28,11 +28,14 @@ jobs:
       - name: Check out FrameForge
         uses: actions/checkout@v4
 
-      - name: Install Blender and video support
+      - name: Install Blender, NumPy and video support
         run: |
+          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install --yes blender
+          sudo apt-get install --yes blender python3-numpy
           blender --version
+          # Verify the module inside Blender itself, not only system Python.
+          blender --background --python-expr "import numpy; print('BLENDER_NUMPY_OK', numpy.__version__)"
 
       - name: Build and audit all 2,700 frames
         if: github.event_name == 'push' || inputs.mode == 'audit'
