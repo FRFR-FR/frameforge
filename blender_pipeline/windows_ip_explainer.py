@@ -305,11 +305,9 @@ def camera_rig(scene):
     return cam,root,target
 
 def compositor(scene):
-    scene.use_nodes=True;nt=scene.node_tree;nt.nodes.clear()
-    rl=nt.nodes.new("CompositorNodeRLayers");g=nt.nodes.new("CompositorNodeGlare")
-    g.glare_type="FOG_GLOW";safe_set(g,"quality","HIGH");safe_set(g,"threshold",1.25);safe_set(g,"size",7)
-    out=nt.nodes.new("CompositorNodeComposite")
-    nt.links.new(rl.outputs["Image"],g.inputs["Image"]);nt.links.new(g.outputs["Image"],out.inputs["Image"])
+    # Blender 5.0 moved compositor setup away from the legacy Scene.node_tree API.
+    # This scene uses emissive materials and cinematic lights without compositor nodes.
+    return None
 
 def build_scene():
     bpy.ops.object.select_all(action="SELECT");bpy.ops.object.delete(use_global=False)
@@ -351,7 +349,8 @@ def build_scene():
         safe_set(scene.eevee,"gtao_distance",3);safe_set(scene.eevee,"gtao_factor",1.25)
         safe_set(scene.eevee,"use_soft_shadows",True);safe_set(scene.eevee,"use_motion_blur",True)
     safe_set(scene.render,"use_motion_blur",True);safe_set(scene.render,"motion_blur_shutter",0.35)
-    compositor(scene);scene.frame_set(1);bpy.context.view_layer.update();return scene
+    # Avoid legacy Scene.node_tree access; Blender 5.0 does not expose that API.
+    scene.frame_set(1);bpy.context.view_layer.update();return scene
 
 def audit(scene,outdir):
     os.makedirs(outdir,exist_ok=True);cam=scene.camera
