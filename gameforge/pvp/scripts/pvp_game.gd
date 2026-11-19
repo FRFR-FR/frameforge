@@ -153,11 +153,11 @@ func _build_combat_map() -> void:
 func _create_map_collisions(root: Node) -> int:
 	var created := 0
 	for child in root.get_children():
-		if child is MeshInstance3D and String(child.name).begins_with("COLLISION_"):
-			var proxy := child as MeshInstance3D
-			proxy.create_trimesh_collision()
-			proxy.visible = false
-			created += 1
+		if child is MeshInstance3D:
+			var mesh := child as MeshInstance3D
+			if mesh.mesh != null:
+				mesh.create_trimesh_collision()
+				created += 1
 		created += _create_map_collisions(child)
 	return created
 func _add_cover(label: String, position: Vector3, dimensions: Vector3, tint: Color) -> void:
