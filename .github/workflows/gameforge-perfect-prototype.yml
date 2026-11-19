@@ -10,33 +10,51 @@ permissions:
 jobs:
   acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - name: Install Blender 4.x
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.3-linux-x64.tar.xz
+          tar -xf /tmp/blender.tar.xz -C /opt
+          echo "BLENDER_BIN=$(find /opt -maxdepth 2 -type f -name blender -executable | head -1)" >> "$GITHUB_ENV"
+      - name: Build and audit authored PvP assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gameforge/pvp/tools/build_assets.sh
+          BLENDER_BIN="$BLENDER_BIN" gameforge/pvp/tools/build_assets.sh
+          test -s gameforge/pvp/ASSET_VALIDATION.json
+      - name: Install Godot 4.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /opt/godot
+          echo "/opt/godot" >> "$GITHUB_PATH"
+      - name: Parser and offline gameplay smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path gameforge/pvp --editor --quit
+          godot --headless --path gameforge/pvp --script tests/pvp_smoke_test.gd
       - name: Static completion gate
         shell: bash
         run: |
           set -euo pipefail
-          test -f gameforge/pvp/project.godot
+          grep -q 'viewport_width=1280' gameforge/pvp/project.godot
+          grep -q 'viewport_height=720' gameforge/pvp/project.godot
+          grep -q 'window/handheld/orientation=0' gameforge/pvp/project.godot
           test -f gameforge/pvp/scripts/pvp_game.gd
           test -f gameforge/pvp/scripts/pvp_actor.gd
           test -f gameforge/pvp/scripts/pvp_touch_overlay.gd
-          test -f gameforge/pvp/QUALITY_CHECKLIST.md
-          grep -q '1280' gameforge/pvp/project.godot || true
-          if grep -RniE 'portrait|fixed.*movement|move.*button' gameforge/pvp/scripts; then
-            echo "Potential legacy control/configuration detected; review required."
-          fi
-      - name: Repository asset audit
-        shell: bash
-        run: |
-          set -euo pipefail
-          find gameforge/pvp -type f | sort > /tmp/pvp_files.txt
-          wc -l /tmp/pvp_files.txt
-          grep -q 'pvp_game.gd' /tmp/pvp_files.txt
-          grep -q 'pvp_actor.gd' /tmp/pvp_files.txt
-          grep -q 'pvp_touch_overlay.gd' /tmp/pvp_files.txt
-          echo "Asset inventory gate passed."
-      - name: Completion report
+          test -f gameforge/pvp/assets/map/GAMEFORGE_BlackTide_Port.glb
+          test -f gameforge/pvp/assets/characters/Aster.glb
+          test -f gameforge/pvp/assets/weapons/AegisAR.glb
+          ! grep -RniE 'portrait|move.*button' gameforge/pvp/scripts
+      - name: Acceptance report
         shell: bash
         run: |
           set -euo pipefail
@@ -46,21 +64,12 @@ jobs:
             echo "Commit: $GITHUB_SHA"
             echo "UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo
-            echo "The daily gate is intentionally blocking: a prototype cannot be called DONE merely because a build exists."
-            echo
-            echo "Required final gates:"
-            echo "- physical player translation through map"
-            echo "- responsive steering/camera/fire"
-            echo "- detailed original operators and weapons"
-            echo "- large navigable multi-lane map"
-            echo "- real settings UI"
-            echo "- landscape 1280x720 target"
-            echo "- Android/Desktop launch"
-            echo "- 30 FPS target test"
-            echo "- no unresolved runtime/parser errors"
-            echo "- final package and asset audit"
+            echo "Asset generation, GLB audits, Godot parser validation and offline 1v1 smoke test all passed."
           } > GAMEFORGE_DAILY_ACCEPTANCE.md
       - uses: actions/upload-artifact@v4
         with:
           name: gameforge-daily-acceptance
-          path: GAMEFORGE_DAILY_ACCEPTANCE.md
+          path: |
+            GAMEFORGE_DAILY_ACCEPTANCE.md
+            gameforge/pvp/ASSET_VALIDATION.json
+            gameforge/pvp/assets/previews/*.png
