@@ -459,7 +459,7 @@ func _handle_screen_touch(touch: InputEventScreenTouch) -> void:
 					double_tap_time=now
 
 func _handle_screen_drag(drag: InputEventScreenDrag) -> void:
-	if drag.index==left_touch_index:
+	if drag.index == left_touch_index:
 		_update_thumb_stick(drag.position,true)
 	elif drag.index==right_touch_index and player:
 		if drag.position.distance_to(right_touch_origin)>12.0:
