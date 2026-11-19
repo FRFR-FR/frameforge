@@ -103,8 +103,8 @@ func _create_camera()->void:
  camera=Camera3D.new();camera.current=true;camera.fov=76.0;camera_arm.add_child(camera)
 
 func apply_look_delta(delta:Vector2)->void:
- var sensitivity:=float(game_root.get("look_sensitivity",1.0)) if game_root else 1.0
- var invert:=bool(game_root.get("invert_look_y",false)) if game_root else false
+ var sensitivity:=float(game_root.look_sensitivity) if game_root else 1.0
+ var invert:=bool(game_root.invert_look_y) if game_root else false
  camera_yaw-=delta.x*.0038*sensitivity;camera_pitch+=delta.y*.0028*sensitivity*(-1.0 if invert else 1.0);camera_pitch=clampf(camera_pitch,-.84,.38)
  if camera_pivot:camera_pivot.rotation.y=camera_yaw;camera_arm.rotation.x=camera_pitch
 
