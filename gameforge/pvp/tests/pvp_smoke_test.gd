@@ -18,6 +18,9 @@ func _run_test() -> void:
 		game.player.set_weapon(weapon_index)
 		assert(game.player.current_weapon == weapon_index, "Every authored gun must be selectable")
 	game.player.set_weapon(2)
+	game.rival.shield_cooldown = 0.0
+	game.rival.shield_seconds = 0.0
+	game.rival.shield_energy = 0.0
 	assert(game.rival.activate_cyber_shield(), "Bot cyber shield must activate")
 	var rival_health_before_shield_test := game.rival.health
 	game.rival.receive_damage(30.0, game.player.global_position)
