@@ -81,7 +81,8 @@ def main():
 
     for name in EXPECTED:
         rig = found[name]
-        mesh = next((o for o in bpy.data.objects if o.type == "MESH" and o.parent == rig), None)
+        meshes = [o for o in bpy.data.objects if o.type == "MESH" and o.parent == rig]
+        mesh = meshes[0] if meshes else None
         if mesh is None:
             raise RuntimeError(f"{name}: unified skinned mesh not found")
         bone_names = {b.name for b in rig.data.bones}
@@ -105,7 +106,8 @@ def main():
         rig.location = (0.0, 0.0, 0.0)
         bpy.ops.object.select_all(action="DESELECT")
         rig.select_set(True)
-        mesh.select_set(True)
+        for mesh_obj in meshes:
+            mesh_obj.select_set(True)
         bpy.context.view_layer.objects.active = rig
         target = out / f"{name}.glb"
         bpy.ops.export_scene.gltf(
