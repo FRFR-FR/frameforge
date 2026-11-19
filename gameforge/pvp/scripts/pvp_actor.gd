@@ -24,7 +24,10 @@ const CHARACTER_IDS := ["Aster", "Bront", "Koro", "Luma", "Miri", "Nyx", "Orin",
 @export var character_id := "Aster"
 var game_root: Node
 var move_input := Vector2.ZERO
-var ai_direction := Vector3.ZERO
+var velocity := Vector3.ZERO
+var sprinting := false
+var crouching := false
+var jump_requested := falsen := Vector3.ZERO
 var health := 100.0
 var maximum_health := 100.0
 var shield_energy := 0.0
