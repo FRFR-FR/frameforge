@@ -4,8 +4,8 @@ class_name PVPGame
 const ActorScript = preload("res://scripts/pvp_actor.gd")
 const BotScript = preload("res://scripts/pvp_bot_brain.gd")
 const TouchOverlayScript = preload("res://scripts/pvp_touch_overlay.gd")
-const CHARACTER_IDS := ["Rook", "Vanta", "Kestrel", "Morrow", "Sable", "Locke", "Rivet", "Nyx"]
-const MAP_PATH := "res://assets/map/GAMEFORGE_BLACKTIDE_Port.glb"
+const CHARACTER_IDS := ["Aster", "Bront", "Koro", "Luma", "Miri", "Nyx", "Orin", "Pika", "Sola", "Vey"]
+const MAP_PATH := "res://assets/map/GAMEFORGE_BlackTide_Port.glb"
 const PLAYER_SPAWN := Vector3(-84.0, 1.0, 0.0)
 const RIVAL_SPAWN := Vector3(84.0, 1.0, 0.0)
 
