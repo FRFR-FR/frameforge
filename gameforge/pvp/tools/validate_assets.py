@@ -64,14 +64,14 @@ def main():
         report["weapons"].append({"id": ident, "bytes": path.stat().st_size,
                                   "mesh_count": len(data.get("meshes", [])),
                                   "material_count": len(data.get("materials", []))})
-    world = map_dir / "GAMEFORGE_Loomwild_Environment.glb"
+    world = map_dir / "GAMEFORGE_BlackTide_Port.glb"
     if world.stat().st_size < 100000:
-        raise RuntimeError("Loomwild combat map GLB is missing or too small")
-    world_audit = json.loads((map_dir / "GAMEFORGE_Loomwild_Audit.json").read_text(encoding="utf-8"))
-    if world_audit.get("failures") or world_audit.get("terrain_vertices", 0) < 1000:
-        raise RuntimeError("Loomwild world audit failed")
+        raise RuntimeError("BLACKTIDE combat map GLB is missing or too small")
+    world_audit = json.loads((map_dir / "GAMEFORGE_BlackTide_Audit.json").read_text(encoding="utf-8"))
+    if world_audit.get("failures") or world_audit.get("dimensions_m", [0,0])[0] < 200 or world_audit.get("buildings", 0) < 10:
+        raise RuntimeError("BLACKTIDE world audit failed")
     report["map"] = {"file": world.name, "bytes": world.stat().st_size,
-                     "terrain_vertices": world_audit["terrain_vertices"],
+                     "terrain_vertices": world_audit.get("terrain_vertices", 0),
                      "objects": world_audit.get("counts", {})}
     previews = root / "assets" / "previews"
     preview_paths = sorted(previews.glob("*_720p.png"))
