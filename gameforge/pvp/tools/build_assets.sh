@@ -46,14 +46,14 @@ build_once() {
   "$BLENDER" --background --factory-startup --python-exit-code 1 \
     --python "$WORLD_SCRIPT" -- \
     --output-dir "$ROOT/build/pvp-assets/world" --seed 42017 --grid 129 --samples 32 || return 1
-  test -s "$ROOT/build/pvp-assets/world/GAMEFORGE_Loomwild_Environment.glb" || {
-    echo "World generator did not create the Loomwild GLB." >&2; return 1;
+  test -s "$ROOT/build/pvp-assets/world/GAMEFORGE_BlackTide_Port.glb" || {
+    echo "World generator did not create the BLACKTIDE GLB." >&2; return 1;
   }
-  test -s "$ROOT/build/pvp-assets/world/GAMEFORGE_Loomwild_Audit.json" || {
+  test -s "$ROOT/build/pvp-assets/world/GAMEFORGE_BlackTide_Audit.json" || {
     echo "World generator did not create its audit." >&2; return 1;
   }
   cp "$ROOT/build/pvp-assets/world/GAMEFORGE_Loomwild_Environment.glb" "$ROOT/gameforge/pvp/assets/map/" || return 1
-  cp "$ROOT/build/pvp-assets/world/GAMEFORGE_Loomwild_Audit.json" "$ROOT/gameforge/pvp/assets/map/" || return 1
+  cp "$ROOT/build/pvp-assets/world/GAMEFORGE_BLACKTIDE_Audit.json" "$ROOT/gameforge/pvp/assets/map/" || return 1
 
   "$BLENDER" --background --factory-startup --python-exit-code 1 \
     --python "$ROOT/gameforge/pvp/tools/build_weapons.py" -- \
