@@ -46,11 +46,14 @@ var ammo_label: Label
 var score_label: Label
 var rematch_button: Button
 var flash_overlay: ColorRect
+var emote_index := 0
 
 func _ready() -> void:
 	randomize()
 	_load_settings()
 	Engine.max_fps = target_fps
+	_apply_audio_volume()
+	_apply_quality_profile()
 	_build_combat_map()
 	_spawn_match()
 	_build_hud()
@@ -95,6 +98,8 @@ func _input(event: InputEvent) -> void:
 		player.cycle_weapon(-1)
 	elif event.is_action_pressed("jump") and player:
 		player.request_jump()
+	elif event.is_action_pressed("roll") and player:
+		player.request_roll()
 	elif event.is_action_pressed("sprint") and player:
 		player.set_sprint(true)
 	elif event.is_action_released("sprint") and player:
@@ -373,7 +378,7 @@ func _build_settings_panel() -> void:
 	)
 	layout.add_child(quality)
 	var help := Label.new()
-	help.text = "TOUCH: left thumb steers; right thumb aims and fires.\nSwipe up/down for abilities, swipe sideways to change weapon.\nDESKTOP: WASD, mouse, R reload, Q/E weapons, Shift sprint, C crouch, Space jump."
+	help.text = "TOUCH: left thumb steers; right thumb aims and fires.\nSwipe up/down for abilities, swipe sideways to change weapon.\nDESKTOP: WASD, mouse, R reload, Q/E weapons, Shift sprint, C crouch, Space jump, V roll."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.custom_minimum_size = Vector2(470,75)
 	help.add_theme_color_override("font_color",Color(0.59,0.74,0.76))
@@ -669,7 +674,6 @@ func _emote_victory() -> void:
 	if player:
 		player.play_emote("Emote_Victory")
 
-var emote_index := 0
 func _cycle_emote() -> void:
 	if not player:
 		return
