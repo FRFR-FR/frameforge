@@ -30,9 +30,6 @@ build_once() {
   test "$(find "$CHAR_OUTPUT/characters" -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10 || {
     echo "Character generator did not create exactly ten source GLBs." >&2; return 1;
   }
-  test "$(find "$CHAR_OUTPUT/previews" -maxdepth 1 -name '*_720p.png' -type f ! -name 'CHARACTERS_720p.png' | wc -l)" -eq 10 || {
-    echo "Character generator did not create ten individual 720p previews." >&2; return 1;
-  }
 
   # Blender 5 changed the animation Action API; the source generator already emits
   # the rigged operators with Idle animation, so use those authored GLBs directly.
@@ -40,7 +37,6 @@ build_once() {
   test "$(find "$ROOT/gameforge/pvp/assets/characters" -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10 || {
     echo "Character generation did not create ten final rigged character GLBs." >&2; return 1;
   }
-  cp "$CHAR_OUTPUT"/previews/*_720p.png "$ROOT/gameforge/pvp/assets/previews/" || return 1
 
   "$BLENDER" --background --factory-startup --python-exit-code 1 \
     --python "$WORLD_SCRIPT" -- \
