@@ -156,7 +156,17 @@ func _create_map_collisions(root: Node) -> int:
 		if child is MeshInstance3D:
 			var mesh := child as MeshInstance3D
 			if mesh.mesh != null:
-				mesh.create_trimesh_collision()
+				var body := StaticBody3D.new()
+				body.name = mesh.name + "_Collision"
+				body.global_transform = mesh.global_transform
+				var shape := CollisionShape3D.new()
+				var box := BoxShape3D.new()
+				var bounds := mesh.get_aabb()
+				box.size = bounds.size
+				shape.shape = box
+				shape.position = bounds.get_center()
+				body.add_child(shape)
+				add_child(body)
 				created += 1
 		created += _create_map_collisions(child)
 	return created
