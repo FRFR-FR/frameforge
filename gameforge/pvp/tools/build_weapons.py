@@ -23,7 +23,7 @@ WEAPONS = [
 
 def args():
     raw = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    import argparse
+    import argparse, os
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", required=True)
     p.add_argument("--preview", required=True)
