@@ -10,6 +10,8 @@ from pathlib import Path
 CHARACTERS = ("Aster", "Bront", "Koro", "Luma", "Miri", "Nyx", "Orin", "Pika", "Sola", "Vey")
 WEAPONS = ("Vesper9", "FluxSMG", "AegisAR", "KestrelBurst", "RangerDMR", "Longbow",
            "Breach12", "BastionLMG", "PulseCarbine", "ArcLance")
+REQUIRED_ANIMATIONS = ("idle", "walk", "sprint", "crouch", "jump", "roll", "fire",
+                       "reload", "emote_wave", "emote_guard", "emote_victory")
 
 def read_glb(path: Path):
     data = path.read_bytes()
@@ -44,6 +46,10 @@ def main():
             "humanoid_rig": bones >= 17,
             "idle": any("idle" in x.lower() for x in animations),
             "skinned_mesh": bool(data.get("meshes")) and bool(data.get("skins")),
+            "full_locomotion_and_emotes": all(
+                any(required in clip.lower() for clip in animations)
+                for required in REQUIRED_ANIMATIONS
+            ),
         }
         if not all(checks.values()):
             raise RuntimeError(f"{name} rig/animation validation failed: {checks}, animations={animations}")
@@ -66,20 +72,36 @@ def main():
     if world.stat().st_size < 100000:
         raise RuntimeError("BLACKTIDE combat map GLB is missing or too small")
     world_audit = json.loads((map_dir / "GAMEFORGE_BlackTide_Audit.json").read_text(encoding="utf-8"))
-    if world_audit.get("failures") or world_audit.get("dimensions_m", [0,0])[0] < 200 or world_audit.get("buildings", 0) < 10:
-        raise RuntimeError("BLACKTIDE world audit failed")
+    map_gates = {
+        "at_least_three_buildings": world_audit.get("buildings", 0) >= 3,
+        "at_least_twenty_five_cover_pieces": world_audit.get("cover", 0) >= 25,
+        "three_playable_interiors": world_audit.get("interior_spaces", 0) >= 3,
+        "two_vertical_routes": world_audit.get("vertical_routes", 0) >= 2,
+        "collision_geometry": world_audit.get("collision_proxy_candidates", 0) >= 80,
+        "large_240m_play_area": world_audit.get("dimensions_m", [0,0])[0] >= 200,
+        "no_world_generator_failures": not world_audit.get("failures"),
+    }
+    if not all(map_gates.values()):
+        raise RuntimeError("BLACKTIDE world audit failed: " + str(map_gates))
     report["map"] = {"file": world.name, "bytes": world.stat().st_size,
-                     "terrain_vertices": world_audit.get("terrain_vertices", 0),
-                     "objects": world_audit.get("counts", {})}
+                     "buildings": world_audit.get("buildings"),
+                     "cover": world_audit.get("cover"),
+                     "interior_spaces": world_audit.get("interior_spaces"),
+                     "vertical_routes": world_audit.get("vertical_routes"),
+                     "collision_proxy_candidates": world_audit.get("collision_proxy_candidates"),
+                     "objects": world_audit.get("counts", {}),
+                     "checks": map_gates}
     project = (root / "project.godot").read_text(encoding="utf-8")
     if "viewport_width=1280" not in project or "viewport_height=720" not in project:
         raise RuntimeError("Project resolution is not locked to 1280x720")
     if "network/limits" in project.lower() or "http://" in project.lower() or "https://" in project.lower():
         raise RuntimeError("Unexpected online dependency found in runtime project settings")
     report["summary"] = {"characters_ok": 10, "weapon_models_ok": 10, "map_ok": True,
-                         "all_rigs_have_idle_animation": True, "resolution": "1280x720"}
+                         "all_rigs_have_full_locomotion": True,
+                         "required_animation_clips": list(REQUIRED_ANIMATIONS),
+                         "resolution": "1280x720"}
     (root / "ASSET_VALIDATION.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print("PASS: 10 rigged characters with Idle animation, 10 unique weapon models, one map, 1280x720 runtime settings.")
+    print("PASS: 10 rigged operators with 11 animation states, 10 unique weapons, expanded combat map and 1280x720 settings.")
 
 if __name__ == "__main__":
     main()
