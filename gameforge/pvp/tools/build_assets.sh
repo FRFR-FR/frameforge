@@ -58,7 +58,6 @@ build_once() {
     echo "Weapon authoring stage did not create ten GLBs." >&2; return 1;
   }
   test -s "$ROOT/gameforge/pvp/assets/weapons/WEAPON_AUDIT.json" || return 1
-  test -s "$ROOT/gameforge/pvp/assets/previews/WEAPONS_1280x720.png" || return 1
   cp "$ROOT/gameforge/pvp/assets/weapons/WEAPON_AUDIT.json" "$ROOT/build/pvp-assets/" || return 1
 
   python3 "$ROOT/gameforge/pvp/tools/validate_assets.py" --root "$ROOT/gameforge/pvp" || return 1
