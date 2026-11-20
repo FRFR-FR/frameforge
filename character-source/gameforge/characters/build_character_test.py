@@ -43,7 +43,7 @@ def main():
   for o in meshes:o.select_set(True)
   bpy.context.view_layer.objects.active=r;bpy.ops.export_scene.gltf(filepath=str(out/"characters"/(name+".glb")),export_format="GLB",use_selection=True,export_animations=True,export_skins=True,export_materials="EXPORT",export_animation_mode="ACTIONS",export_force_sampling=True,export_cameras=False,export_lights=False);bpy.ops.object.select_all(action="DESELECT")
  bpy.ops.wm.save_as_mainfile(filepath=str(out/"GAMEFORGE_LOOMGLASS_10_Character_Lab.blend"))
- scene=bpy.context.scene;scene.render.engine="BLENDER_EEVEE_NEXT";scene.render.resolution_x=1280;scene.render.resolution_y=720;scene.render.resolution_percentage=50;scene.render.filepath=str(out/"previews/CHARACTERS_720p.png");bpy.ops.object.select_all(action="SELECT");bpy.ops.render.render(write_still=True)
+ scene=bpy.context.scene;scene.render.engine="BLENDER_EEVEE";scene.render.resolution_x=1280;scene.render.resolution_y=720;scene.render.resolution_percentage=50;scene.render.filepath=str(out/"previews/CHARACTERS_720p.png");bpy.ops.object.select_all(action="SELECT");bpy.ops.render.render(write_still=True)
  import shutil
  for n in NAMES:shutil.copy2(out/"previews/CHARACTERS_720p.png",out/"previews/"+n+"_720p.png")
 if __name__=="__main__":main()
