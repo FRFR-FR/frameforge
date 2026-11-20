@@ -20,7 +20,8 @@ jobs:
           sudo apt-get install -y libegl1 libgl1
           curl -L --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
           tar -xf /tmp/blender.tar.xz -C /opt
-          echo "BLENDER_BIN=$(find /opt -maxdepth 2 -type f -name blender -executable | head -1)" >> "$GITHUB_ENV"
+          BLENDER_BIN="$(find /opt -maxdepth 2 -type f -name blender -executable | head -1)"
+          echo "BLENDER_BIN=$BLENDER_BIN" >> "$GITHUB_ENV"
           "$BLENDER_BIN" --background --version
       - name: Build and audit authored PvP assets
         shell: bash
