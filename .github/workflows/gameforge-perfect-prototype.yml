@@ -52,7 +52,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          godot --headless --path gameforge/pvp --editor --quit
           godot --headless --path gameforge/pvp --script tests/pvp_smoke_test.gd
       - name: Export finished Android APK
         shell: bash
