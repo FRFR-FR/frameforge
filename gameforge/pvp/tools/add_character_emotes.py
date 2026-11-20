@@ -35,9 +35,6 @@ def make_action(rig, character, action_name, poses):
     rig.animation_data.action = action
     for frame, values in poses:
         set_pose(rig, frame, values)
-    for curve in action.fcurves:
-        for key in curve.keyframe_points:
-            key.interpolation = "BEZIER"
     return action
 
 def glb_json(path: Path):
