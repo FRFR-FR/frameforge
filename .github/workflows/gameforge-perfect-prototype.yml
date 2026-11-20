@@ -67,7 +67,7 @@ jobs:
           export JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")}"
           test -d "$ANDROID_HOME" || { echo "Android SDK not found at $ANDROID_HOME" >&2; exit 1; }
           test -n "$JAVA_HOME" || { echo "Java runtime not found" >&2; exit 1; }
-          godot --headless --path gameforge/pvp --export-release "Android" gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
+          godot --headless --path gameforge/pvp --export-release "Android" build/android/GAMEFORGE_BlackTide_PvP.apk
           test -s gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
           unzip -t gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk >/dev/null
       - name: Static completion gate
