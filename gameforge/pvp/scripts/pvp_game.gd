@@ -524,11 +524,12 @@ func _finish_match() -> void:
 	status_label.text="MATCH COMPLETE  •  DRAW" if player_score==rival_score else ("MATCH COMPLETE  •  VICTORY" if player_score>rival_score else "MATCH COMPLETE  •  DEFEAT")
 	rematch_button.visible=true
 
-func _make_label(parent: Control, value: String, position: Vector2, dimensions: Vector2, font_size: int) -> Label:
+func _make_label(parent: Control, value: String, position: Vector2, dimensions: Vector2, font_size: int, alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var label := Label.new()
 	label.text = value
 	label.position = position
 	label.size = dimensions
+	label.horizontal_alignment = alignment
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", Color(0.91, 0.96, 0.94))
 	label.add_theme_color_override("font_shadow_color", Color(0.01, 0.04, 0.05, 0.9))
