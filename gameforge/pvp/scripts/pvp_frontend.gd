@@ -75,7 +75,7 @@ func _build_shell() -> void:
  _label(self,"BUILD 0.3  /  BLACKTIDE PORT",Vector2(950,682),Vector2(270,20),11,Color(0.36,0.52,0.57),false,HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _build_preview() -> void:
- var frame := PanelContainer.new()
+ var frame := Panel.new()
  frame.position = Vector2(650,44)
  frame.size = Vector2(570,620)
  var style := StyleBoxFlat.new()
