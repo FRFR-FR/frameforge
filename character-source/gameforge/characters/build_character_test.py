@@ -46,5 +46,5 @@ def main():
  bpy.ops.wm.save_as_mainfile(filepath=str(out/"GAMEFORGE_LOOMGLASS_10_Character_Lab.blend"))
  scene=bpy.context.scene;scene.render.engine="BLENDER_EEVEE";scene.render.resolution_x=1280;scene.render.resolution_y=720;scene.render.resolution_percentage=100;scene.render.filepath=str(out/"previews/CHARACTERS_720p.png");bpy.ops.object.camera_add(location=(0,-18,7));cam=bpy.context.object;cam.data.type="ORTHO";cam.data.ortho_scale=15;cam.rotation_euler=(Vector((0,1.5,1.0))-cam.location).to_track_quat("-Z","Y").to_euler();scene.camera=cam;bpy.ops.object.light_add(type="AREA",location=(0,-8,10));bpy.context.object.data.energy=2200;bpy.context.object.data.size=10;bpy.ops.object.select_all(action="SELECT");bpy.ops.render.render(write_still=True)
  import shutil
- for n in NAMES:shutil.copy2(out/"previews/CHARACTERS_720p.png",out/"previews/"+n+"_720p.png")
+ for n in NAMES:shutil.copy2(out/"previews/CHARACTERS_720p.png",out/"previews"/(n+"_720p.png"))
 if __name__=="__main__":main()
