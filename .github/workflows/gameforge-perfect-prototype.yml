@@ -67,6 +67,11 @@ jobs:
           export JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")}"
           test -d "$ANDROID_HOME" || { echo "Android SDK not found at $ANDROID_HOME" >&2; exit 1; }
           test -n "$JAVA_HOME" || { echo "Java runtime not found" >&2; exit 1; }
+          mkdir -p gameforge/pvp/build/android
+          keytool -genkeypair -v -keystore gameforge/pvp/build/android/gameforge-release.keystore -alias gameforge -keyalg RSA -keysize 2048 -validity 10000 -storepass gameforge-build -keypass gameforge-build -dname "CN=GAMEFORGE,OU=CI,O=FRFR-FR,L=Build,ST=Build,C=US"
+          export GODOT_ANDROID_KEYSTORE_RELEASE_PATH="$GITHUB_WORKSPACE/gameforge/pvp/build/android/gameforge-release.keystore"
+          export GODOT_ANDROID_KEYSTORE_RELEASE_USER="gameforge"
+          export GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD="gameforge-build"
           godot --headless --path gameforge/pvp --export-release "Android" build/android/GAMEFORGE_BlackTide_PvP.apk
           test -s gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
           unzip -t gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk >/dev/null
