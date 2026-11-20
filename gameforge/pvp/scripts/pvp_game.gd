@@ -57,7 +57,7 @@ func _ready() -> void:
 	_update_hud()
 	set_process(true)
 func _process(delta: float) -> void:
-	if round_over or not is_instance_valid(player):
+	if settings_open or round_over or not is_instance_valid(player):
 		return
 	if fire_held:
 		player.fire_at_position(_get_aim_point_with_assist())
@@ -192,11 +192,17 @@ func _add_cover(label: String, position: Vector3, dimensions: Vector3, tint: Col
 	body.add_child(visual)
 
 func _spawn_match() -> void:
-	var player_id: String = CHARACTER_IDS[randi() % CHARACTER_IDS.size()]
+	var profile := ConfigFile.new()
+	profile.load("user://blacktide_profile.cfg")
+	var player_id := str(profile.get_value("profile","operator","Aster"))
+	if not CHARACTER_IDS.has(player_id):
+		player_id = "Aster"
+	var selected_weapon := clampi(int(profile.get_value("profile","weapon",2)),0,PVPActor.WEAPONS.size()-1)
 	var rival_id: String = CHARACTER_IDS[randi() % CHARACTER_IDS.size()]
 	while rival_id == player_id:
 		rival_id = CHARACTER_IDS[randi() % CHARACTER_IDS.size()]
 	player = _spawn_fighter("Player",player_id,true,PLAYER_SPAWN)
+	player.set_weapon(selected_weapon)
 	rival = _spawn_fighter("Rival",rival_id,false,RIVAL_SPAWN)
 	rival_brain = BotScript.new() as PVPBotBrain
 	rival_brain.actor = rival
@@ -238,7 +244,7 @@ func _build_hud() -> void:
 	settings_button = _add_tap_button(hud_root,"⚙",Vector2(1190,18),Vector2(58,58),_toggle_settings)
 	settings_button.add_theme_font_size_override("font_size",28)
 	var ammo_card := PanelContainer.new()
-	ammo_card.position = Vector2(953,614)
+	ammo_card.position = Vector2(685,606)
 	ammo_card.size = Vector2(280,76)
 	var card_style := StyleBoxFlat.new()
 	card_style.bg_color = Color(0.018,0.038,0.048,0.82)
@@ -252,8 +258,16 @@ func _build_hud() -> void:
 	hud_root.add_child(ammo_card)
 	weapon_label = _make_label(ammo_card,"AEGIS AR",Vector2(14,8),Vector2(245,25),17)
 	ammo_label = _make_label(ammo_card,"30 / 150",Vector2(14,37),Vector2(245,25),21)
-	_make_label(hud_root,"LEFT THUMB  MOVE      •      RIGHT THUMB  AIM + FIRE",Vector2(355,675),Vector2(570,22),13,HORIZONTAL_ALIGNMENT_CENTER)
-	_make_label(hud_root,"SWIPE ↑ FLASH   •   SWIPE ↓ SHIELD   •   SWIPE ← / → WEAPON",Vector2(373,648),Vector2(535,20),11,HORIZONTAL_ALIGNMENT_CENTER)
+	_make_label(hud_root,"LEFT THUMB  MOVE    •    RIGHT THUMB  AIM",Vector2(335,680),Vector2(330,18),11,HORIZONTAL_ALIGNMENT_CENTER)
+	_add_action_button(hud_root,"ROLL",Vector2(994,414),Vector2(82,56),Callable(self,"_request_roll"),Callable(self,"_release_action"))
+	_add_action_button(hud_root,"CROUCH",Vector2(1082,414),Vector2(88,56),Callable(self,"_set_crouch_button").bind(true),Callable(self,"_set_crouch_button").bind(false))
+	_add_tap_button(hud_root,"JUMP",Vector2(1176,414),Vector2(82,56),_request_jump)
+	_add_action_button(hud_root,"FIRE",Vector2(1090,486),Vector2(168,92),Callable(self,"_set_fire").bind(true),Callable(self,"_set_fire").bind(false))
+	_add_tap_button(hud_root,"FLASH",Vector2(994,486),Vector2(82,56),_activate_flash)
+	_add_tap_button(hud_root,"SHIELD",Vector2(994,550),Vector2(82,56),_activate_shield)
+	_add_tap_button(hud_root,"RELOAD",Vector2(1082,588),Vector2(88,54),_reload_weapon)
+	_add_tap_button(hud_root,"WEAPON",Vector2(1176,588),Vector2(82,54),_next_weapon)
+	_add_tap_button(hud_root,"EMOTE",Vector2(994,614),Vector2(82,46),_cycle_emote)
 	touch_hud = TouchOverlayScript.new() as Control
 	touch_hud.name = "TouchAimAndMovementOverlay"
 	touch_hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -370,6 +384,12 @@ func _build_settings_panel() -> void:
 	_style_button(close,Color(0.07,0.26,0.29,0.98))
 	close.pressed.connect(_toggle_settings)
 	layout.add_child(close)
+	var main_menu := Button.new()
+	main_menu.text = "EXIT TO MAIN MENU"
+	main_menu.custom_minimum_size = Vector2(470,42)
+	_style_button(main_menu,Color(0.10,0.18,0.22,0.98))
+	main_menu.pressed.connect(_return_to_main_menu)
+	layout.add_child(main_menu)
 
 func _toggle_settings() -> void:
 	settings_open = not settings_open
@@ -382,7 +402,12 @@ func _toggle_settings() -> void:
 		if player:
 			player.set_move_input(Vector2.ZERO)
 			player.set_sprint(false)
+		if is_instance_valid(rival_brain):
+			rival_brain.set_physics_process(false)
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	else:
+		if is_instance_valid(rival_brain):
+			rival_brain.set_physics_process(true)
 
 func _load_settings() -> void:
 	var config := ConfigFile.new()
@@ -423,6 +448,8 @@ func _physics_process(_delta: float) -> void:
 	player.set_move_input(Input.get_vector("move_left","move_right","move_forward","move_back"))
 
 func _handle_screen_touch(touch: InputEventScreenTouch) -> void:
+	if touch.position.x >= 980.0 and touch.position.y >= 400.0:
+		return
 	var view_size := get_viewport().get_visible_rect().size
 	if touch.pressed:
 		if touch.position.x > view_size.x-96.0 and touch.position.y < 92.0:
@@ -474,7 +501,7 @@ func _handle_screen_drag(drag: InputEventScreenDrag) -> void:
 	elif drag.index==right_touch_index and player:
 		if drag.position.distance_to(right_touch_origin)>12.0:
 			right_touch_moved=true
-		player.apply_look_delta(drag.relative)
+		player.apply_look_delta(drag.screen_relative)
 		if aim_assist_enabled:
 			_soft_aim_assist()
 
@@ -641,6 +668,32 @@ func _emote_guard() -> void:
 func _emote_victory() -> void:
 	if player:
 		player.play_emote("Emote_Victory")
+
+var emote_index := 0
+func _cycle_emote() -> void:
+	if not player:
+		return
+	var clips := ["Emote_Wave","Emote_Guard","Emote_Victory"]
+	player.play_emote(clips[emote_index])
+	emote_index = (emote_index + 1) % clips.size()
+
+func _request_jump() -> void:
+	if player and not round_over:
+		player.request_jump()
+
+func _request_roll() -> void:
+	if player and not round_over:
+		player.request_roll()
+
+func _set_crouch_button(pressed: bool) -> void:
+	if player and not round_over:
+		player.set_crouch(pressed)
+
+func _release_action() -> void:
+	pass
+
+func _return_to_main_menu() -> void:
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 func get_cover_positions() -> Array[Vector3]:
 	return cover_positions
