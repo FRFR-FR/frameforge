@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gameforge/pvp/tools/build_assets.sh
-          BLENDER_BIN="$BLENDER_BIN" gameforge/pvp/tools/build_assets.sh
+          BLENDER_BIN="$BLENDER_BIN" GAMEFORGE_SKIP_PREVIEWS=1 gameforge/pvp/tools/build_assets.sh
           test -s gameforge/pvp/ASSET_VALIDATION.json
       - name: Install Godot 4.4
         shell: bash
