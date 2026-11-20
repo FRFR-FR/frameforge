@@ -47,7 +47,7 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           curl -L --retry 3 -o /tmp/godot-templates.tpz https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
           unzip -q /tmp/godot-templates.tpz -d /tmp/godot-templates
-          find /tmp/godot-templates -type f -name "*.zip" -exec cp {} "$HOME/.local/share/godot/export_templates/4.4.1.stable/" \;
+          find /tmp/godot-templates -type f \( -name "android_debug.apk" -o -name "android_release.apk" -o -name "android_source.zip" \) -exec cp {} "$HOME/.local/share/godot/export_templates/4.4.1.stable/" \;
       - name: Parser and offline gameplay smoke test
         shell: bash
         run: |
