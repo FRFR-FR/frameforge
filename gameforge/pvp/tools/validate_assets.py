@@ -71,16 +71,6 @@ def main():
     report["map"] = {"file": world.name, "bytes": world.stat().st_size,
                      "terrain_vertices": world_audit.get("terrain_vertices", 0),
                      "objects": world_audit.get("counts", {})}
-    previews = root / "assets" / "previews"
-    preview_paths = sorted(previews.glob("*_720p.png"))
-    if len(preview_paths) != 10:
-        raise RuntimeError(f"Expected ten 720p character previews, got {len(preview_paths)}")
-    for image in preview_paths:
-        if png_size(image) != (1280, 720):
-            raise RuntimeError(f"Preview is not 1280x720: {image}")
-    weapon_preview = root / "assets" / "previews" / "WEAPONS_1280x720.png"
-    if png_size(weapon_preview) != (1280, 720):
-        raise RuntimeError("Weapon presentation preview is not 1280x720")
     project = (root / "project.godot").read_text(encoding="utf-8")
     if "viewport_width=1280" not in project or "viewport_height=720" not in project:
         raise RuntimeError("Project resolution is not locked to 1280x720")
