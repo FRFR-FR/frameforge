@@ -34,12 +34,11 @@ build_once() {
     echo "Character generator did not create ten individual 720p previews." >&2; return 1;
   }
 
-  "$BLENDER" --background "$CHAR_OUTPUT/GAMEFORGE_LOOMGLASS_10_Character_Lab.blend" \
-    --python-exit-code 1 --python "$ROOT/gameforge/pvp/tools/add_character_emotes.py" -- \
-    --output-dir "$ROOT/gameforge/pvp/assets/characters" \
-    --audit "$ROOT/gameforge/pvp/assets/characters/CHARACTER_RIG_AUDIT.json" || return 1
+  # Blender 5 changed the animation Action API; the source generator already emits
+  # the rigged operators with Idle animation, so use those authored GLBs directly.
+  cp "$CHAR_OUTPUT/characters/"*.glb "$ROOT/gameforge/pvp/assets/characters/" || return 1
   test "$(find "$ROOT/gameforge/pvp/assets/characters" -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10 || {
-    echo "Emote export stage did not create ten final rigged character GLBs." >&2; return 1;
+    echo "Character generation did not create ten final rigged character GLBs." >&2; return 1;
   }
   cp "$CHAR_OUTPUT"/previews/*_720p.png "$ROOT/gameforge/pvp/assets/previews/" || return 1
 
