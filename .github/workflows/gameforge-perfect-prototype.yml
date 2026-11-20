@@ -34,12 +34,33 @@ jobs:
           curl -L --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
           unzip -q /tmp/godot.zip -d /opt/godot
           echo "/opt/godot" >> "$GITHUB_PATH"
+      - name: Install Android export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          curl -L --retry 3 -o /tmp/godot-templates.tpz https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+          unzip -q /tmp/godot-templates.tpz -d /tmp/godot-templates
+          find /tmp/godot-templates -type f -name "*.zip" -exec cp {} "$HOME/.local/share/godot/export_templates/4.4.1.stable/" \;
       - name: Parser and offline gameplay smoke test
         shell: bash
         run: |
           set -euo pipefail
           godot --headless --path gameforge/pvp --editor --quit
           godot --headless --path gameforge/pvp --script tests/pvp_smoke_test.gd
+      - name: Export finished Android APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p gameforge/pvp/build/android
+          export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          export JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")}"
+          test -d "$ANDROID_HOME" || { echo "Android SDK not found at $ANDROID_HOME" >&2; exit 1; }
+          test -n "$JAVA_HOME" || { echo "Java runtime not found" >&2; exit 1; }
+          godot --headless --path gameforge/pvp --export-release "Android" gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
+          test -s gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
+          unzip -t gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk >/dev/null
       - name: Static completion gate
         shell: bash
         run: |
@@ -54,6 +75,12 @@ jobs:
           test -f gameforge/pvp/assets/characters/Aster.glb
           test -f gameforge/pvp/assets/weapons/AegisAR.glb
           ! grep -RniE 'portrait|move.*button' gameforge/pvp/scripts
+      - name: Upload finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameforge-finished-apk
+          path: gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
+          if-no-files-found: error
       - name: Acceptance report
         shell: bash
         run: |
@@ -73,3 +100,4 @@ jobs:
             GAMEFORGE_DAILY_ACCEPTANCE.md
             gameforge/pvp/ASSET_VALIDATION.json
             gameforge/pvp/assets/previews/*.png
+            gameforge/pvp/build/android/GAMEFORGE_BlackTide_PvP.apk
