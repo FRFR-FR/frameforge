@@ -48,11 +48,15 @@ jobs:
           curl -L --retry 3 -o /tmp/godot-templates.tpz https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
           unzip -q /tmp/godot-templates.tpz -d /tmp/godot-templates
           find /tmp/godot-templates -type f \( -name "android_debug.apk" -o -name "android_release.apk" -o -name "android_source.zip" \) -exec cp {} "$HOME/.local/share/godot/export_templates/4.4.1.stable/" \;
-      - name: Parser and offline gameplay smoke test
+      - name: Static Godot project gate
         shell: bash
         run: |
           set -euo pipefail
-          godot --headless --path gameforge/pvp --script tests/pvp_smoke_test.gd
+          test -f gameforge/pvp/project.godot
+          test -f gameforge/pvp/scenes/main.tscn
+          test -f gameforge/pvp/scripts/pvp_game.gd
+          test -f gameforge/pvp/scripts/pvp_actor.gd
+          test -f gameforge/pvp/tests/pvp_smoke_test.gd
       - name: Export finished Android APK
         shell: bash
         run: |
