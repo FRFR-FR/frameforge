@@ -1,4 +1,5 @@
 extends SceneTree
+const PVPActor = preload("res://scripts/pvp_actor.gd")
 
 func _initialize() -> void:
 	var main_scene := load("res://scenes/main.tscn") as PackedScene
