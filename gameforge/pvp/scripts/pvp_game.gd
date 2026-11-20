@@ -149,10 +149,15 @@ func _build_combat_map() -> void:
 	sun.directional_shadow_max_distance = 115.0
 	add_child(sun)
 	cover_positions = [
-		Vector3(-53,1,-38),Vector3(-37,1,43),Vector3(-18,1,-52),Vector3(-6,1,35),
-		Vector3(14,1,-39),Vector3(31,1,45),Vector3(51,1,-25),Vector3(60,1,27),
-		Vector3(-65,1,8),Vector3(70,1,-8),Vector3(-29,1,4),Vector3(28,1,-2),
-		Vector3(-88,1,-35),Vector3(90,1,17),Vector3(-42,1,82),Vector3(36,1,-96)
+		Vector3(-93,1,-35),Vector3(-78,1,-7),Vector3(-62,1,42),Vector3(-47,1,5),
+		Vector3(-27,1,-55),Vector3(-14,1,-7),Vector3(-4,1,53),Vector3(15,1,-48),
+		Vector3(29,1,-7),Vector3(42,1,48),Vector3(58,1,8),Vector3(77,1,40),
+		Vector3(93,1,-18),Vector3(-91,1,76),Vector3(-63,1,91),Vector3(-34,1,68),
+		Vector3(-20,1,94),Vector3(23,1,94),Vector3(48,1,78),Vector3(83,1,88),
+		Vector3(-89,1,-72),Vector3(-57,1,-88),Vector3(-29,1,-84),Vector3(12,1,-85),
+		Vector3(40,1,-90),Vector3(72,1,-78),Vector3(94,1,-62),Vector3(-50,1,50),
+		Vector3(-4,1,18),Vector3(39,1,22),Vector3(88,1,13),Vector3(-72,1,-42),
+		Vector3(70,1,-43)
 	]
 
 func _create_map_collisions(root: Node) -> int:
@@ -160,21 +165,35 @@ func _create_map_collisions(root: Node) -> int:
 	for child in root.get_children():
 		if child is MeshInstance3D:
 			var mesh := child as MeshInstance3D
-			if mesh.mesh != null:
-				var body := StaticBody3D.new()
-				body.name = mesh.name + "_Collision"
-				body.global_transform = mesh.global_transform
-				var shape := CollisionShape3D.new()
-				var box := BoxShape3D.new()
+			if mesh.mesh != null and _is_map_collision_mesh(mesh.name):
 				var bounds := mesh.get_aabb()
-				box.size = bounds.size
-				shape.shape = box
-				shape.position = bounds.get_center()
-				body.add_child(shape)
-				add_child(body)
-				created += 1
+				if bounds.size.length() > 0.04:
+					var body := StaticBody3D.new()
+					body.name = mesh.name + "_Collision"
+					var shape := CollisionShape3D.new()
+					var box := BoxShape3D.new()
+					box.size = bounds.size
+					shape.shape = box
+					shape.position = bounds.get_center()
+					body.add_child(shape)
+					add_child(body)
+					body.global_transform = mesh.global_transform
+					created += 1
 		created += _create_map_collisions(child)
 	return created
+
+func _is_map_collision_mesh(mesh_name: String) -> bool:
+	var collision_prefixes := [
+		"WORLD_FOUNDATION", "HARBOUR_BASIN", "PERIMETER_WALL",
+		"WEST_FREIGHT_WAREHOUSE_", "CENTRAL_MAINTENANCE_HALL_", "EAST_CONTROL_TERMINAL_",
+		"TOWER_", "NORTH_CATWALK_", "FREIGHT_CONTAINER_",
+		"TACTICAL_COVER_", "INTERIOR_COVER_", "SUPPLY_CRATE_", "FUEL_DRUM_",
+		"GANTRY_LEG_", "GANTRY_BEAM_", "GANTRY_CABLE_", "OBJECTIVE_PAD_", "OBJECTIVE_CORE_"
+	]
+	for prefix in collision_prefixes:
+		if mesh_name.begins_with(prefix):
+			return true
+	return "WALKABLE_RAMP" in mesh_name
 func _add_cover(label: String, position: Vector3, dimensions: Vector3, tint: Color) -> void:
 	var body := StaticBody3D.new()
 	body.name = label
