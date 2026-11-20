@@ -158,6 +158,11 @@ def main():
             raise RuntimeError(f"Weapon export failed: {ident}")
         audit["weapons"].append({"id": ident, "name": label, "file": target.name, "bytes": target.stat().st_size})
 
+    if os.environ.get("GAMEFORGE_SKIP_PREVIEWS") == "1":
+        (out / "WEAPON_AUDIT.json").write_text(json.dumps(audit, indent=2), encoding="utf-8")
+        print("Authored and exported ten unique weapon GLBs.")
+        return
+
     # Purpose-built 10-weapon presentation render, output fixed to 1280x720.
     stage_mat = material("Gallery stage", (0.018, 0.035, 0.055), 0.82, 0.12)
     bpy.ops.mesh.primitive_plane_add(size=30, location=(0, 0, -1.0))
