@@ -69,17 +69,26 @@ def cylinder(name, location, radius, depth, material, vertices=16):
     o.data.materials.append(material)
     return put_in_world(o)
 
-def staircase(name, start, end, rise, steps, width, material):
+def staircase(name, start, end, rise, steps, width, material, steel_mat, accent_mat):
     sx, sy, sz = start
     ex, ey, ez = end
     dx, dz = ex - sx, ez - sz
     run = math.sqrt(dx * dx + dz * dz)
+    # A sloped, continuous collision ramp makes this route physically climbable.
+    length_3d = math.sqrt(run * run + rise * rise)
+    ramp = box(f"{name}_WALKABLE_RAMP",
+               ((sx + ex) * 0.5, (sy + ey) * 0.5 + rise * 0.5, (sz + ez) * 0.5),
+               (width, 0.34, length_3d), material, 0.035)
+    ramp.rotation_mode = "QUATERNION"
+    ramp.rotation_quaternion = Vector((dx, rise, dz)).to_track_quat("Z", "Y")
+    plan_angle = math.atan2(dx, dz)
     for i in range(steps):
         t = (i + 0.5) / steps
         x, z = sx + dx * t, sz + dz * t
         h = rise * (i + 1) / steps
-        box(f"{name}_STEP_{i+1:02d}", (x, h * 0.5, z),
-            (width, h, run / steps + 0.12), material, 0.025)
+        tread = box(f"{name}_STEP_{i+1:02d}", (x, h - 0.10, z),
+                    (width, 0.18, run / steps + 0.12), material, 0.025)
+        tread.rotation_euler[1] = plan_angle
     # Railing posts and continuous top rails make the route readable.
     for side in (-1, 1):
         px = -dz / max(run, 0.001) * side * width * 0.52
@@ -87,18 +96,20 @@ def staircase(name, start, end, rise, steps, width, material):
         for i in range(0, steps + 1, 3):
             t = i / steps
             h = rise * t
-            cylinder(f"{name}_RAIL_POST_{side}_{i}", (sx + dx*t + px, h + 0.55, sz + dz*t + pz),
-                     0.055, 1.1, steel, 10)
-        rail = box(f"{name}_HANDRAIL_{side}", ((sx+ex)*0.5+px, rise+0.52, (sz+ez)*0.5+pz),
-                   (0.10, 0.10, run), orange, 0.02)
-        rail.rotation_euler[1] = math.atan2(dx, dz)
+            cylinder(f"{name}_RAIL_POST_{side}_{i}",
+                     (sx + dx*t + px, h + 0.55, sz + dz*t + pz),
+                     0.055, 1.1, steel_mat, 10)
+        rail = box(f"{name}_HANDRAIL_{side}",
+                   ((sx+ex)*0.5+px, rise+0.52, (sz+ez)*0.5+pz),
+                   (0.10, 0.10, run), accent_mat, 0.02)
+        rail.rotation_euler[1] = plan_angle
     COUNTS["vertical_routes"] += 1
 
 def open_building(name, center, width, depth, height, wall, concrete, steel_mat, accent,
                   mezzanine=False, door_width=9.0):
     x, z = center
     # The open floor and split front wall create a real playable interior, not a solid block.
-    box(name+"_INTERIOR_FLOOR", (x, 0.16, z), (width-wall, 0.32, depth-wall), concrete, 0.06)
+    box(name+"_INTERIOR_FLOOR", (x, 0.05, z), (width-wall, 0.10, depth-wall), concrete, 0.04)
     box(name+"_LEFT_WALL", (x-width/2+wall/2, height/2, z), (wall, height, depth), steel_mat, 0.08)
     box(name+"_RIGHT_WALL", (x+width/2-wall/2, height/2, z), (wall, height, depth), steel_mat, 0.08)
     box(name+"_REAR_WALL", (x, height/2, z-depth/2+wall/2), (width, height, wall), steel_mat, 0.08)
@@ -124,7 +135,7 @@ def open_building(name, center, width, depth, height, wall, concrete, steel_mat,
             box(name+"_UPPER_RAIL_"+str(edge), (x+edge*width*0.285, deck_y+0.55, z-depth*0.18),
                 (0.12, 1.1, depth*0.33), orange, 0.025)
         staircase(name+"_INTERIOR_STAIRS", (x-width*0.31, 0.0, z+depth*0.28),
-                  (x-width*0.05, 0.0, z-depth*0.35), deck_y, 13, 2.8, concrete)
+                  (x-width*0.05, 0.0, z-depth*0.35), deck_y, 13, 2.8, concrete, steel_mat, accent)
     # External labels, vent panels and wall ribs break up large surfaces.
     for i in range(5):
         xx = x-width*0.38 + i*width*0.19
@@ -188,7 +199,7 @@ def main():
     box("TOWER_BALCONY", (0, 8.2, 79), (21, 0.4, 18), concrete, 0.05)
     for x in (-10, 10):
         box("TOWER_BALCONY_RAIL_"+str(x), (x, 8.9, 79), (0.18, 1.0, 18), orange)
-    staircase("TOWER_EXTERNAL_STAIR", (-8.5, 0.0, 91), (-8.5, 0.0, 79), 8.0, 20, 3.1, concrete)
+    staircase("TOWER_EXTERNAL_STAIR", (-8.5, 0.0, 91), (-8.5, 0.0, 79), 8.0, 20, 3.1, concrete, steel_mat, orange)
     COUNTS["major_buildings"] += 1
     COUNTS["vertical_routes"] += 1
 
@@ -196,7 +207,7 @@ def main():
     box("NORTH_CATWALK_DECK", (16, 5.3, 64), (40, 0.45, 3.2), steel_mat, 0.05)
     box("NORTH_CATWALK_RAIL_A", (16, 6.0, 62.45), (40, 1.2, 0.14), orange)
     box("NORTH_CATWALK_RAIL_B", (16, 6.0, 65.55), (40, 1.2, 0.14), orange)
-    staircase("NORTH_CATWALK_STAIRS", (-6, 0.0, 68), (-6, 0.0, 60), 5.0, 14, 2.5, concrete)
+    staircase("NORTH_CATWALK_STAIRS", (-6, 0.0, 68), (-6, 0.0, 60), 5.0, 14, 2.5, concrete, steel_mat, orange)
     COUNTS["vertical_routes"] += 1
 
     # Shipping containers in staggered stacks. The breaks create three distinct approach lanes.
