@@ -13,14 +13,15 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Install Blender
+      - name: Install Blender 4.3.2
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y blender python3-numpy libegl1 libgl1
-          blender --background --version
-          echo "BLENDER_BIN=$(command -v blender)" >> "$GITHUB_ENV"
+          sudo apt-get install -y libegl1 libgl1
+          curl -L --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
+          tar -xf /tmp/blender.tar.xz -C /opt
+          echo "BLENDER_BIN=$(find /opt -maxdepth 2 -type f -name blender -executable | head -1)" >> "$GITHUB_ENV"
+          "$BLENDER_BIN" --background --version
       - name: Build and audit authored PvP assets
         shell: bash
         run: |
