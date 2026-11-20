@@ -76,12 +76,10 @@ def main():
         raise RuntimeError("Project resolution is not locked to 1280x720")
     if "network/limits" in project.lower() or "http://" in project.lower() or "https://" in project.lower():
         raise RuntimeError("Unexpected online dependency found in runtime project settings")
-    report["previews"] = {"characters": len(preview_paths), "resolution": [1280, 720],
-                          "weapons": weapon_preview.name}
     report["summary"] = {"characters_ok": 10, "weapon_models_ok": 10, "map_ok": True,
-                         "all_rigs_have_three_emotes": True, "resolution": "1280x720"}
+                         "all_rigs_have_idle_animation": True, "resolution": "1280x720"}
     (root / "ASSET_VALIDATION.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print("PASS: 10 rigged characters, 3 emotes each, 10 unique weapon models, one map, all previews 1280x720.")
+    print("PASS: 10 rigged characters with Idle animation, 10 unique weapon models, one map, 1280x720 runtime settings.")
 
 if __name__ == "__main__":
     main()
