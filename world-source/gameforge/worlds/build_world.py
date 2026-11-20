@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import bpy,sys,json
+import bpy,sys,json,os
 from pathlib import Path
 from mathutils import Vector
 def arg():
@@ -23,6 +23,7 @@ def main():
  for z in (-96,-32,32,96):box("ROAD",(0,.03,z),(220,.04,10),glass,col)
  for i,(x,z) in enumerate([(-84,-25),(-60,35),(-34,-8),(-8,48),(20,-35),(46,8),(70,-22),(88,38),(-88,58)]):box("COVER_"+str(i),(x,1,z),(7,2,3.2),steel,col);box("COVER_TOP_"+str(i),(x,2.1,z),(7.5,.2,3.7),orange,col)
  audit={"name":"BLACKTIDE PORT","dimensions_m":[240,240],"buildings":13,"lanes":8,"cover":9,"objectives":3,"terrain_vertices":2500,"original":True}
+ if os.environ.get("GAMEFORGE_SKIP_PREVIEWS") != "1":
  scene=bpy.context.scene;scene.render.engine="BLENDER_EEVEE";scene.render.resolution_x=1280;scene.render.resolution_y=720;scene.render.resolution_percentage=100
  scene.render.filepath=str(out/"BLACKTIDE_PORT_720p.png");bpy.ops.object.camera_add(location=(0,-115,105));cam=bpy.context.object;cam.data.type="ORTHO";cam.data.ortho_scale=260;cam.rotation_euler=(Vector((0,0,0))-cam.location).to_track_quat("-Z","Y").to_euler();scene.camera=cam;bpy.ops.object.light_add(type="AREA",location=(0,0,100));bpy.context.object.data.energy=8000;bpy.context.object.data.size=80;bpy.ops.render.render(write_still=True)
  bpy.ops.object.select_all(action="DESELECT")
