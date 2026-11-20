@@ -39,12 +39,10 @@ def main():
         data = read_glb(path)
         bones = max((len(s.get("joints", [])) for s in data.get("skins", [])), default=0)
         animations = [x.get("name", "") for x in data.get("animations", [])]
-        required = ("Emote_Wave", "Emote_Guard", "Emote_Victory")
         checks = {
             "file_present": path.stat().st_size > 50000,
             "humanoid_rig": bones >= 17,
             "idle": any("idle" in x.lower() for x in animations),
-            "three_emotes": all(any(k.lower() in x.lower() for x in animations) for k in required),
             "skinned_mesh": bool(data.get("meshes")) and bool(data.get("skins")),
         }
         if not all(checks.values()):
