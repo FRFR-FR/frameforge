@@ -13,13 +13,14 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Install Blender 4.x
+      - name: Install Blender
         shell: bash
         run: |
           set -euo pipefail
-          curl -L --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.3-linux-x64.tar.xz
-          tar -xf /tmp/blender.tar.xz -C /opt
-          echo "BLENDER_BIN=$(find /opt -maxdepth 2 -type f -name blender -executable | head -1)" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y blender
+          blender --background --version
+          echo "BLENDER_BIN=$(command -v blender)" >> "$GITHUB_ENV"
       - name: Build and audit authored PvP assets
         shell: bash
         run: |
