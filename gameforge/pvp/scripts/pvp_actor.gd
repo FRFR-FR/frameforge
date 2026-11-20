@@ -29,6 +29,8 @@ var jump_requested := false
 var roll_seconds := 0.0
 var roll_cooldown := 0.0
 var roll_direction := Vector3.ZERO
+var roll_restore_crouch := false
+var fire_animation_seconds := 0.0
 var jump_animation_seconds := 0.0
 var emote_lock_seconds := 0.0
 var capsule_shape: CapsuleShape3D
@@ -72,7 +74,10 @@ func _physics_process(delta:float)->void:
  shield_cooldown=maxf(0.0,shield_cooldown-delta)
  flash_seconds=maxf(0.0,flash_seconds-delta)
  roll_cooldown=maxf(0.0,roll_cooldown-delta)
+ var was_rolling:=roll_seconds>0.0
  roll_seconds=maxf(0.0,roll_seconds-delta)
+ if was_rolling and roll_seconds<=0.0:crouch_held=roll_restore_crouch
+ fire_animation_seconds=maxf(0.0,fire_animation_seconds-delta)
  jump_animation_seconds=maxf(0.0,jump_animation_seconds-delta)
  emote_lock_seconds=maxf(0.0,emote_lock_seconds-delta)
  if shield_seconds>0.0:
@@ -115,7 +120,7 @@ func _physics_process(delta:float)->void:
  if emote_lock_seconds<=0.0:
   if roll_seconds>0.0:
    _play_locomotion("Roll")
-  elif jump_animation_seconds>0.0:
+  elif jump_animation_seconds>0.0 or fire_animation_seconds>0.0:
    pass
   else:
    _update_locomotion(horizontal.length())
@@ -147,6 +152,7 @@ func set_ai_direction(v:Vector3)->void:ai_direction=v.limit_length(1.0)
 func set_sprint(v:bool)->void:sprint_held=v
 func set_crouch(v:bool)->void:
  crouch_held=v
+ if roll_seconds>0.0:roll_restore_crouch=v
 func request_jump()->void:
  jump_requested=true
 func request_roll()->bool:
@@ -160,6 +166,7 @@ func request_roll()->bool:
  if direction.length()<0.12:
   direction=-global_basis.z
  roll_direction=direction.normalized()
+ roll_restore_crouch=crouch_held
  roll_seconds=0.64
  roll_cooldown=1.45
  crouch_held=true
@@ -200,6 +207,8 @@ func fire_at_position(target_point:Vector3)->bool:
  if defeated_state or fire_cooldown>0 or reload_seconds>0:return false
  if ammunition<=0:reload_weapon();return false
  var w:Dictionary=WEAPONS[current_weapon];ammunition-=1;ammo_changed.emit(self,ammunition,reserve_ammunition);fire_cooldown=60.0/float(w["rpm"])
+ fire_animation_seconds=0.11
+ _play_locomotion("Fire")
  var origin:=global_position+Vector3.UP*1.47;var direction:=(target_point-origin).normalized();var space:=get_world_3d().direct_space_state
  for i in range(int(w["pellets"])):
   var noisy:=(direction+global_basis.x*randf_range(-float(w["spread"]),float(w["spread"]))+Vector3.UP*randf_range(-float(w["spread"]),float(w["spread"]))).normalized()
@@ -263,6 +272,6 @@ func _update_locomotion(speed:float)->void:
  else:_play_locomotion("Walk")
 
 func reset_for_rematch(spawn:Vector3)->void:
- position=spawn;velocity=Vector3.ZERO;health=maximum_health;shield_energy=0.0;shield_seconds=0.0;shield_cooldown=0.0;flash_seconds=0.0;flash_grenades=2;defeated_state=false;roll_seconds=0.0;roll_cooldown=0.0;crouch_held=false;emote_lock_seconds=0.0;jump_animation_seconds=0.0
+ position=spawn;velocity=Vector3.ZERO;health=maximum_health;shield_energy=0.0;shield_seconds=0.0;shield_cooldown=0.0;flash_seconds=0.0;flash_grenades=2;defeated_state=false;roll_seconds=0.0;roll_cooldown=0.0;crouch_held=false;roll_restore_crouch=false;emote_lock_seconds=0.0;jump_animation_seconds=0.0;fire_animation_seconds=0.0
  _update_crouch_shape(1.0)
  set_weapon(current_weapon);health_changed.emit(self,health,maximum_health)
