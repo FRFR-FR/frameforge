@@ -30,7 +30,7 @@ build_once() {
   test "$(find "$CHAR_OUTPUT/characters" -maxdepth 1 -name '*.glb' -type f | wc -l)" -eq 10 || {
     echo "Character generator did not create exactly ten source GLBs." >&2; return 1;
   }
-  test "$(find "$CHAR_OUTPUT/previews" -maxdepth 1 -name '*_720p.png' -type f | wc -l)" -eq 10 || {
+  test "$(find "$CHAR_OUTPUT/previews" -maxdepth 1 -name '*_720p.png' -type f ! -name 'CHARACTERS_720p.png' | wc -l)" -eq 10 || {
     echo "Character generator did not create ten individual 720p previews." >&2; return 1;
   }
 
