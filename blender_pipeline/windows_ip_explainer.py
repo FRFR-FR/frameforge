@@ -39,7 +39,7 @@ def args_parse():
     a=sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
     p=argparse.ArgumentParser()
     p.add_argument("--mode",choices=("audit","render"),default="audit")
-    p.add_argument("--segment-index",type=int,default=0)
+    p.add_argument("--chunk-index",type=int,default=0)
     p.add_argument("--output-dir",default="output/windows_ip_explainer")
     return p.parse_args(a)
 
@@ -379,29 +379,33 @@ def audit(scene,outdir):
     with open(os.path.join(outdir,"audit.json"),"w",encoding="utf-8") as f:json.dump(report,f,indent=2)
     print("AAA_AUDIT_PASS",ratio*100,"percent frame-to-frame object movement",flush=True)
 
-def render_segment(scene,seg,outdir):
-    if seg<0 or seg>5:raise ValueError("segment-index must be 0..5")
-    os.makedirs(outdir,exist_ok=True);start=seg*SEGMENT_FRAMES+1;end=start+SEGMENT_FRAMES-1
-    fd=os.path.join(outdir,"segment_%02d_frames"%seg);os.makedirs(fd,exist_ok=True)
+def render_chunk(scene,chunk,outdir):
+    # 30 independently restartable 3-second chunks keep each GitHub job below
+    # the hosted-runner six-hour ceiling while preserving the full 90s timeline.
+    if chunk<0 or chunk>29:raise ValueError("chunk-index must be 0..29")
+    os.makedirs(outdir,exist_ok=True)
+    start=chunk*90+1
+    end=start+89
+    fd=os.path.join(outdir,"chunk_%02d_frames"%chunk);os.makedirs(fd,exist_ok=True)
     prefix=os.path.join(fd,"frame_");scene.render.filepath=prefix
     scene.render.image_settings.file_format="PNG";scene.render.image_settings.color_mode="RGB"
     scene.render.image_settings.color_depth="8";scene.render.fps=FPS
     scene.render.resolution_x=WIDTH;scene.render.resolution_y=HEIGHT;scene.render.resolution_percentage=100
     scene.frame_start=start;scene.frame_end=end;scene.frame_set(start)
-    print("AAA_RENDER_START",seg,start,end,WIDTH,HEIGHT,flush=True)
+    print("AAA_CHUNK_RENDER_START",chunk,start,end,WIDTH,HEIGHT,flush=True)
     bpy.ops.render.render(animation=True)
-    path=os.path.join(outdir,"segment_%02d.mp4"%seg)
+    path=os.path.join(outdir,"chunk_%02d.mp4"%chunk)
     cmd=["ffmpeg","-y","-framerate",str(FPS),"-start_number",str(start),"-i",prefix+"%04d.png",
-         "-frames:v",str(SEGMENT_FRAMES),"-c:v","libx264","-preset","slow","-crf","16",
+         "-frames:v","90","-c:v","libx264","-preset","slow","-crf","16",
          "-pix_fmt","yuv420p","-movflags","+faststart",path]
     subprocess.run(cmd,check=True)
-    if not os.path.exists(path) or os.path.getsize(path)<200000:
+    if not os.path.exists(path) or os.path.getsize(path)<100000:
         raise RuntimeError("Render output missing or too small: "+path)
-    print("AAA_SECTION_VERIFIED",path,os.path.getsize(path),flush=True)
+    print("AAA_CHUNK_VERIFIED",path,os.path.getsize(path),flush=True)
 
 def main():
     a=args_parse();s=build_scene()
     if a.mode=="audit":audit(s,a.output_dir)
-    else:render_segment(s,a.segment_index,a.output_dir)
+    else:render_chunk(s,a.chunk_index,a.output_dir)
 
 if __name__=="__main__":main()
