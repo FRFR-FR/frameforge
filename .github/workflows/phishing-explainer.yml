@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'blender_pipeline/phishing_explainer.py.gz'
+      - 'blender_pipeline/prepare_resumable_render.py'
       - 'blender_pipeline/make_phishing_characters.py.gz'
       - 'blender_pipeline/phishing_narration.txt'
       - 'blender_pipeline/assets/**'
@@ -33,6 +34,7 @@ jobs:
           sudo apt-get install --yes blender python3-pil ffmpeg xvfb libegl1 libegl-mesa0 libgl1 libgl1-mesa-dri libx11-6 libxext6 libxrender1 libxi6 libxxf86vm1 libsm6 libxkbcommon0 libdbus-1-3 libfontconfig1 libfreetype6 fonts-dejavu-core
           blender --version
           gunzip -kf blender_pipeline/make_phishing_characters.py.gz blender_pipeline/phishing_explainer.py.gz
+          python3 blender_pipeline/prepare_resumable_render.py
           python3 -m py_compile blender_pipeline/make_phishing_characters.py blender_pipeline/phishing_explainer.py
       - name: Create expressive character sprite pack
         run: python3 blender_pipeline/make_phishing_characters.py
@@ -83,6 +85,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes blender ffmpeg xvfb libegl1 libegl-mesa0 libgl1 libgl1-mesa-dri
           gunzip -kf blender_pipeline/phishing_explainer.py.gz
+          python3 blender_pipeline/prepare_resumable_render.py
           python3 -m py_compile blender_pipeline/phishing_explainer.py
       - name: Download packed scene from audit
         uses: actions/download-artifact@v4
