@@ -1,0 +1,543 @@
+{
+  "project": "Ocean Nightmares",
+  "source_policy": {
+    "allowed_domain": "oceanexplorer.noaa.gov",
+    "allowed_sources": [
+      "NOAA Ocean Exploration"
+    ],
+    "pixabay": false,
+    "other_sources": false,
+    "require_asset_level_rights_review": true,
+    "require_species_visual_review": true
+  },
+  "output": {
+    "duration_seconds": 900,
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "format": "mp4",
+    "codec": "h264",
+    "audio_voice": "Liam Kokoro (am_liam)",
+    "cta_at_seconds": 420
+  },
+  "requirements": {
+    "minimum_unique_clips": 50,
+    "exact_species_only": true,
+    "no_substitutions": true,
+    "no_smoke_test": true
+  },
+  "species_order": [
+    "Giant isopod",
+    "Barreleye fish",
+    "Frilled shark",
+    "Vampire squid",
+    "Gulper eel",
+    "Viperfish",
+    "Black dragonfish",
+    "Goblin shark",
+    "Colossal squid",
+    "Deep-sea anglerfish"
+  ],
+  "clips": [
+    {
+      "id": "clip-01",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-02",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-03",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-04",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-05",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-06",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-07",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-08",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-09",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-10",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-11",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-12",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-13",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-14",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-15",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-16",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-17",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-18",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-19",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-20",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-21",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-22",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-23",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-24",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-25",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-26",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-27",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-28",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-29",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-30",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-31",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-32",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-33",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-34",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-35",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-36",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-37",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-38",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-39",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-40",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-41",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-42",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-43",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-44",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-45",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-46",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-47",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-48",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-49",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    },
+    {
+      "id": "clip-50",
+      "species": null,
+      "noaa_page_url": null,
+      "direct_media_url": null,
+      "credit_text": null,
+      "rights_review": "pending",
+      "species_review": "pending",
+      "approved": false
+    }
+  ]
+}
