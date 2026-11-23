@@ -1,0 +1,2 @@
+orpheus-speech
+vllm==0.7.3
