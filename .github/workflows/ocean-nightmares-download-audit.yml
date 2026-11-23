@@ -1,0 +1,123 @@
+name: Ocean Nightmares — download and audit NOAA candidates
+
+on:
+  push:
+    paths:
+      - ".github/workflows/ocean-nightmares-download-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  download-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Install media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg jq
+
+      - name: Download every currently identified direct NOAA candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work/noaa-media work/contact-sheets
+          cat > work/sources.tsv <<'EOF'
+          noaa-isopod-01|Giant isopod|https://oceanexplorer.noaa.gov/wp-content/uploads/2014/03/isopod-1280x720-2.mp4
+          noaa-isopod-02|Giant isopod|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive11-isopod-1280x720-1.mp4
+          noaa-anglerfish-01|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive12-anglerfish-1280x720-1.mp4
+          noaa-anglerfish-02|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2025/05/one-of-my-favorites-1920x1080-2.mp4
+          noaa-anglerfish-03|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/04/ex1711-goosefish1.mp4
+          noaa-anglerfish-04|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/02/ex1605-pizzafish.mp4
+          noaa-dragonfish-01|Black dragonfish candidate|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive04-dragonfish-1280x720-1.mp4
+          EOF
+
+          printf 'id|species_segment|url|download_status|bytes|duration_seconds|width|height|frame_audit_status\n' > work/download-audit.tsv
+          while IFS='|' read -r id species url; do
+            [ -n "$id" ] || continue
+            file="work/noaa-media/${id}.mp4"
+            status="download_failed"
+            bytes=0 duration="" width="" height="" frame_status="not_available"
+            if curl --fail --location --retry 4 --retry-all-errors --connect-timeout 30 --max-time 900 "$url" -o "$file"; then
+              if ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration -of json "$file" > "work/noaa-media/${id}.ffprobe.json"; then
+                status="downloaded"
+                bytes=$(stat -c%s "$file")
+                duration=$(jq -r '.streams[0].duration // empty' "work/noaa-media/${id}.ffprobe.json")
+                width=$(jq -r '.streams[0].width // empty' "work/noaa-media/${id}.ffprobe.json")
+                height=$(jq -r '.streams[0].height // empty' "work/noaa-media/${id}.ffprobe.json")
+                mkdir -p "work/contact-sheets/${id}"
+                # Extract a small set of evenly spaced frames for human species verification.
+                dur=${duration:-0}
+                if awk "BEGIN {exit !($dur > 0)}"; then
+                  for pct in 10 35 60 85; do
+                    ts=$(awk -v d="$dur" -v p="$pct" 'BEGIN {printf "%.3f", d*p/100}')
+                    ffmpeg -hide_banner -loglevel error -ss "$ts" -i "$file" -frames:v 1 -vf "scale=640:-1" "work/contact-sheets/${id}/frame-${pct}.jpg" || true
+                  done
+                fi
+                if find "work/contact-sheets/${id}" -name '*.jpg' -print -quit | grep -q .; then
+                  frame_status="frames_extracted_pending_human_species_review"
+                fi
+              else
+                status="downloaded_but_invalid_video"
+              fi
+            fi
+            printf '%s|%s|%s|%s|%s|%s|%s|%s|%s\n' "$id" "$species" "$url" "$status" "$bytes" "$duration" "$width" "$height" "$frame_status" >> work/download-audit.tsv
+          done < work/sources.tsv
+
+      - name: Create contact sheet and audit summary
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, csv
+          from PIL import Image, ImageOps, ImageDraw
+          root=Path("work")
+          files=list((root/"contact-sheets").glob("*/*.jpg"))
+          thumbs=[]
+          for p in files:
+              im=Image.open(p).convert("RGB")
+              im.thumbnail((320,190))
+              canvas=Image.new("RGB",(340,225),"white")
+              canvas.paste(im,((340-im.width)//2,5))
+              ImageDraw.Draw(canvas).text((8,200),f"{p.parent.name} / {p.stem}",fill="black")
+              thumbs.append(canvas)
+          if thumbs:
+              cols=2; rows=(len(thumbs)+cols-1)//cols
+              sheet=Image.new("RGB",(cols*340,rows*225),(235,235,235))
+              for i,im in enumerate(thumbs): sheet.paste(im,((i%cols)*340,(i//cols)*225))
+              sheet.save(root/"NOAA-contact-sheet.jpg",quality=88)
+          rows=[]
+          with open(root/"download-audit.tsv") as f:
+              rows=list(csv.DictReader(f,delimiter="|"))
+          report={
+            "project":"Ocean Nightmares",
+            "candidate_scope":"All 7 direct NOAA MP4 candidates currently recorded in the source audit",
+            "downloaded_count":sum(r["download_status"]=="downloaded" for r in rows),
+            "failed_count":sum(r["download_status"]!="downloaded" for r in rows),
+            "frame_sets_extracted":sum(r["frame_audit_status"]!="not_available" for r in rows),
+            "species_approval":"NOT AUTOMATIC: contact sheets require human visual review",
+            "confirmed_source_gap":"Only 7 direct-video candidates are currently identified; the 50-clip requirement is not met. No substitute footage or still images are counted.",
+            "items":rows
+          }
+          (root/"audit-summary.json").write_text(json.dumps(report,indent=2))
+          PY
+
+      - name: Upload downloaded footage and audit package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocean-nightmares-noaa-download-audit
+          path: |
+            work/noaa-media/
+            work/contact-sheets/
+            work/NOAA-contact-sheet.jpg
+            work/download-audit.tsv
+            work/audit-summary.json
+          if-no-files-found: warn
+          retention-days: 14
