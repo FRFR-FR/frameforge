@@ -105,11 +105,34 @@
     "Deep-sea anglerfish": "Four NOAA-hosted video assets identified: Schaefer's anglerfish, Chaunacops anglerfish, goosefish, and batfish. Each needs frame-level inspection."
   },
   "important_limitations": [
-    "The web retrieval system can identify and link MP4 files but cannot decode the video frames for visual species inspection.",
+    "The web retrieval system can identify and link MP4 files but cannot decode video frames for visual species inspection.",
     "Direct MP4 download through the available container downloader failed; no media files have been staged in the repository.",
     "Do not mark species_review approved or approved_for_render true until frames are actually inspected.",
     "NOAA still images are not counted toward the 50-video requirement.",
     "Do not use unrelated deep-sea B-roll to fill narration slots."
   ],
-  "next_gate": "Acquire the seven NOAA MP4 candidates in the FrameForge runner, extract contact sheets with FFmpeg, visually verify exact animals, then continue searching for the six species with no confirmed NOAA-hosted video. Keep the full render blocked until 50 distinct, exact-species video clips and narration are present."
+  "next_gate": "Resolve/download the seven NOAA MP4 candidates in the FrameForge runner, inspect representative frames, then continue searching for exact-species NOAA videos for the remaining animals. Keep render blocked until 50 distinct exact-species clips and narration are present.",
+  "video_page_candidates_without_resolved_media_url": [
+    {
+      "id": "noaa-anglerfish-page-only-01",
+      "species_segment": "Deep-sea anglerfish",
+      "title": "Goosefish Video",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-ex2103-gallery-media-goosefish-video/",
+      "direct_media_url": null,
+      "credit": "NOAA Ocean Exploration, 2021 ROV Shakedown",
+      "page_identifies_subject": "Goosefish, a type of anglerfish",
+      "rights_review": "NOAA credit recorded; source notice check complete",
+      "species_review": "pending_media_url_resolution_and_frame_inspection",
+      "approved_for_render": false
+    }
+  ],
+  "next_search_findings": {
+    "Barreleye fish": "NOAA Gulf of Alaska expedition page identifies a barreleye, but the result is a JPG still image, not video.",
+    "Viperfish": "NOAA has multiple identified viperfish pages, but the surfaced assets are JPG stills, not video.",
+    "Pelican/gulper eel": "NOAA page identifies Eurypharynx pelecanoides, but the surfaced asset is a JPG still image.",
+    "Vampire squid": "NOAA educational resources include an image; the linked video credit is Ocean Exploration Trust/Nautilus Live, so excluded under NOAA-only policy.",
+    "Frilled shark, goblin shark, colossal squid": "No exact NOAA Ocean Exploration-hosted video page located in these search passes."
+  },
+  "current_verified_video_candidates": 7,
+  "current_page_only_video_candidates": 1
 }
