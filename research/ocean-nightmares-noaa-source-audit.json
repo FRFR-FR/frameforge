@@ -1,0 +1,61 @@
+{
+  "project": "Ocean Nightmares",
+  "repository": "FRFR-FR/frameforge",
+  "source_policy": "NOAA Ocean Exploration-hosted sources only; no Pixabay or non-NOAA providers.",
+  "rights_policy": "NOAA Ocean Exploration says video portal footage is public domain; website media is generally public domain unless captions identify copyright. Preserve each item's exact credit.",
+  "audit_date": "2026-11-23",
+  "video_candidates": [
+    {
+      "species_segment": "Giant isopod",
+      "title": "Giant Isopod",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/video-playlist-ex1711-giant-isopod/",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2014/03/isopod-1280x720-2.mp4",
+      "credit": "NOAA Ocean Exploration, Gulf of Mexico 2017",
+      "media_type": "video/mp4",
+      "page_identifies_subject": "Bathynomus giganteus",
+      "rights_review": "approved_from_page_credit",
+      "species_review": "pending_frame_inspection",
+      "approved_for_render": false
+    },
+    {
+      "species_segment": "Deep-sea anglerfish",
+      "title": "Schaefer's Anglerfish",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/video-playlist-ex1907-anglerfish/",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive12-anglerfish-1280x720-1.mp4",
+      "credit": "NOAA Ocean Exploration, 2019 Southeastern U.S. Deep-sea Exploration",
+      "media_type": "video/mp4",
+      "page_identifies_subject": "Sladenia shaefersi, Schaefer's anglerfish",
+      "rights_review": "approved_from_page_credit",
+      "species_review": "pending_frame_inspection",
+      "approved_for_render": false
+    },
+    {
+      "species_segment": "Black dragonfish",
+      "title": "Dragonfish",
+      "page_url": "https://oceanexplorer.noaa.gov/exploration-extras/24-national-ocean-month/",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive04-dragonfish-1280x720-1.mp4",
+      "credit": "NOAA Ocean Exploration, 2019 Southeastern U.S. Deep-sea Exploration",
+      "media_type": "video/mp4",
+      "page_identifies_subject": "Melanostomias melanops",
+      "rights_review": "approved_from_page_credit",
+      "species_review": "pending_exact_common_name_and_frame_inspection",
+      "approved_for_render": false
+    }
+  ],
+  "species_search_results": {
+    "Giant isopod": "NOAA-hosted video page found; exact scientific name given.",
+    "Barreleye fish": "NOAA page found, but it is a still image, not video.",
+    "Frilled shark": "No exact NOAA-hosted video confirmed in this search pass.",
+    "Vampire squid": "NOAA image and educational references found; video attribution points to Ocean Exploration Trust/Nautilus, not NOAA, so excluded.",
+    "Gulper eel": "NOAA pelican-eel still image found; no exact NOAA-hosted video confirmed in this search pass.",
+    "Viperfish": "NOAA still images found; no exact NOAA-hosted video confirmed in this search pass.",
+    "Black dragonfish": "NOAA-hosted dragonfish video found, but exact species/common-name match requires frame and taxonomy review.",
+    "Goblin shark": "No exact NOAA-hosted video confirmed in this search pass.",
+    "Colossal squid": "No exact NOAA-hosted colossal-squid video confirmed; a NOAA page for a generic giant squid is not sufficient to claim colossal squid.",
+    "Deep-sea anglerfish": "NOAA-hosted Schaefer's anglerfish video found; frame inspection still required."
+  },
+  "current_approval_count": 0,
+  "current_verified_video_candidates": 3,
+  "required_unique_video_clips": 50,
+  "next_gate": "Download candidate MP4s, inspect representative frames for exact animal identity, and locate additional distinct NOAA video assets. Do not approve still images or generic animals as footage."
+}
