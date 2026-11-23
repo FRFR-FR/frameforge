@@ -39,6 +39,7 @@ jobs:
           EOF
 
           printf 'id|species_segment|url|download_status|bytes|duration_seconds|width|height|frame_audit_status\n' > work/download-audit.tsv
+          # Strictly serial: curl + ffprobe for this item must finish before the next row starts.
           while IFS='|' read -r id species url; do
             [ -n "$id" ] || continue
             file="work/noaa-media/${id}.mp4"
