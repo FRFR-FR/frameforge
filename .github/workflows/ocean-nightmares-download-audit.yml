@@ -41,6 +41,7 @@ jobs:
           noaa-anglerfish-04|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/02/ex1605-pizzafish.mp4
           noaa-anglerfish-05|Deep-sea anglerfish (Grumpy Goosefish)|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive02-goosefish-1280x720-1.mp4
           noaa-dragonfish-01|Black dragonfish candidate|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive04-dragonfish-1280x720-1.mp4
+          noaa-anglerfish-06|Goosefish (2021 ROV Shakedown; resolve NOAA page)|https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-ex2103-gallery-media-goosefish-video/
           EOF
 
           printf 'id|species_segment|url|download_status|bytes|duration_seconds|width|height|frame_audit_status\n' > work/download-audit.tsv
@@ -49,8 +50,32 @@ jobs:
             [ -n "$id" ] || continue
             file="work/noaa-media/${id}.mp4"
             status="download_failed"
+            if [[ "$url" == *".mp4" ]]; then
+              media_url="$url"
+            else
+              page_file="work/noaa-media/${id}.source.html"
+              media_url=""
+              if curl --fail --location --retry 3 --retry-all-errors --connect-timeout 30 --max-time 180 "$url" -o "$page_file"; then
+                media_url=$(python - "$page_file" <<'PY'
+          import re, sys, html
+          s=open(sys.argv[1],encoding="utf-8",errors="ignore").read()
+          s=html.unescape(s).replace("\\/", "/")
+          candidates=re.findall(r'https?://[^\\"\'<> ]+?\.mp4(?:\?[^\\"\'<> ]*)?',s,re.I)
+          candidates += re.findall(r'(?<![A-Za-z0-9])(?:src|content)=["\']([^"\']+\.mp4(?:\?[^"\']*)?)["\']',s,re.I)
+          for u in candidates:
+              if u.startswith("//"): u="https:"+u
+              if u.startswith("/"): u="https://oceanexplorer.noaa.gov"+u
+              if "oceanexplorer.noaa.gov" in u:
+                  print(u); break
+          PY
+                )
+              fi
+              if [ -z "$media_url" ]; then
+                echo "No direct NOAA MP4 link could be resolved from $url"
+              fi
+            fi
             bytes=0 duration="" width="" height="" frame_status="not_available"
-            if curl --fail --location --retry 4 --retry-all-errors --connect-timeout 30 --max-time 900 "$url" -o "$file"; then
+            if [ -n "$media_url" ] && curl --fail --location --retry 4 --retry-all-errors --connect-timeout 30 --max-time 900 "$media_url" -o "$file"; then
               if ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration -of json "$file" > "work/noaa-media/${id}.ffprobe.json"; then
                 status="downloaded"
                 bytes=$(stat -c%s "$file")
@@ -103,12 +128,12 @@ jobs:
               rows=list(csv.DictReader(f,delimiter="|"))
           report={
             "project":"Ocean Nightmares",
-            "candidate_scope":"All 12 direct NOAA MP4 candidates currently recorded in the source audit",
+            "candidate_scope":"All 13 NOAA video candidates currently recorded in the download workflow; one candidate is resolved from its official NOAA page at runtime",
             "downloaded_count":sum(r["download_status"]=="downloaded" for r in rows),
             "failed_count":sum(r["download_status"]!="downloaded" for r in rows),
             "frame_sets_extracted":sum(r["frame_audit_status"]!="not_available" for r in rows),
             "species_approval":"NOT AUTOMATIC: contact sheets require human visual review",
-            "confirmed_source_gap":"Only 12 direct-video candidates are currently identified; the 50-clip requirement is not met. Four isopod-related clips are not confirmed giant isopods and require review. No substitute footage or still images are counted.",
+            "confirmed_source_gap":"13 NOAA video candidates are queued in this workflow; the 50-clip requirement is not met. Four isopod-related clips are not confirmed giant isopods and require review. No substitute footage or still images are counted.",
             "items":rows
           }
           (root/"audit-summary.json").write_text(json.dumps(report,indent=2))
