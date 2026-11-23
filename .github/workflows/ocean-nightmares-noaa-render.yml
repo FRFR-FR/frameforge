@@ -1,0 +1,49 @@
+name: Ocean Nightmares — NOAA-only full render
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "projects/ocean-nightmares/**"
+      - ".github/workflows/ocean-nightmares-noaa-render.yml"
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+concurrency:
+  group: ocean-nightmares-full-render
+  cancel-in-progress: false
+jobs:
+  full-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install render dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3
+      - name: Enforce NOAA-only footage approvals
+        run: python3 projects/ocean-nightmares/validate_manifest.py
+      - name: Verify narration and source media files
+        run: |
+          test -s projects/ocean-nightmares/narration.mp3
+          python3 - <<'PY'
+          import json, pathlib, sys
+          m=json.loads(pathlib.Path("projects/ocean-nightmares/media_manifest.json").read_text())
+          for c in m["clips"]:
+              f=pathlib.Path("projects/ocean-nightmares/media")/(c["id"]+".mp4")
+              if not f.is_file() or f.stat().st_size == 0:
+                  print("Missing downloaded media:", f); sys.exit(3)
+          PY
+      - name: Assemble full 15-minute documentary
+        run: |
+          python3 projects/ocean-nightmares/render_full.py
+      - name: Verify final MP4
+        run: |
+          test -s projects/ocean-nightmares/output/ocean-nightmares-15min.mp4
+          ffprobe -v error -show_entries format=duration,size -of json projects/ocean-nightmares/output/ocean-nightmares-15min.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ocean-nightmares-full-mp4
+          path: projects/ocean-nightmares/output/ocean-nightmares-15min.mp4
+          if-no-files-found: error
