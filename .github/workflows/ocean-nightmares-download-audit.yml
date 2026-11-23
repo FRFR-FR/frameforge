@@ -31,6 +31,8 @@ jobs:
           cat > work/sources.tsv <<'EOF'
           noaa-isopod-01|Giant isopod|https://oceanexplorer.noaa.gov/wp-content/uploads/2014/03/isopod-1280x720-2.mp4
           noaa-isopod-02|Giant isopod|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive11-isopod-1280x720-1.mp4
+          noaa-isopod-03|Isopod (species unconfirmed)|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/04/ex1605l3-isopod2.mp4
+          noaa-isopod-04|Isopod (species unconfirmed)|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/03/ex1803-isopod-legs.mp4
           noaa-anglerfish-01|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive12-anglerfish-1280x720-1.mp4
           noaa-anglerfish-02|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2025/05/one-of-my-favorites-1920x1080-2.mp4
           noaa-anglerfish-03|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/04/ex1711-goosefish1.mp4
@@ -98,12 +100,12 @@ jobs:
               rows=list(csv.DictReader(f,delimiter="|"))
           report={
             "project":"Ocean Nightmares",
-            "candidate_scope":"All 7 direct NOAA MP4 candidates currently recorded in the source audit",
+            "candidate_scope":"All 9 direct NOAA MP4 candidates currently recorded in the source audit",
             "downloaded_count":sum(r["download_status"]=="downloaded" for r in rows),
             "failed_count":sum(r["download_status"]!="downloaded" for r in rows),
             "frame_sets_extracted":sum(r["frame_audit_status"]!="not_available" for r in rows),
             "species_approval":"NOT AUTOMATIC: contact sheets require human visual review",
-            "confirmed_source_gap":"Only 7 direct-video candidates are currently identified; the 50-clip requirement is not met. No substitute footage or still images are counted.",
+            "confirmed_source_gap":"Only 9 direct-video candidates are currently identified; the 50-clip requirement is not met. Two isopod clips are species-unconfirmed and require review. No substitute footage or still images are counted.",
             "items":rows
           }
           (root/"audit-summary.json").write_text(json.dumps(report,indent=2))
