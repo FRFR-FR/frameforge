@@ -5,6 +5,8 @@ on:
     branches: [gameforge-perfected-pvp-qa-2026-11-24]
     paths:
       - "gameforge/pvp/**"
+      - "character-source/gameforge/characters/**"
+      - "world-source/gameforge/worlds/**"
       - ".github/workflows/gameforge-offline-pvp.yml"
   workflow_dispatch:
   workflow_call:
