@@ -78,6 +78,16 @@ def locomotion_actions(rig):
   (1,{"upper_arm.L":(0,0,1.55),"forearm.L":(0,0,-0.25),"upper_arm.R":(0,0,-1.55),"forearm.R":(0,0,0.25)}),
   (18,{"spine":(-0.08,0,0),"upper_arm.L":(0,0,1.75),"forearm.L":(0,0,-0.38),"upper_arm.R":(0,0,-1.75),"forearm.R":(0,0,0.38)}),(36,neutral)])
 
+def cylinder(n,p,r,d,m,col,verts=16):
+ bpy.ops.mesh.primitive_cylinder_add(vertices=verts,radius=r,depth=d,location=p);o=bpy.context.object;o.name=n;o.data.materials.append(m)
+ for cc in list(o.users_collection):cc.objects.unlink(o)
+ col.objects.link(o);q=o.modifiers.new("EdgeBevel","BEVEL");q.width=min(r*.16,.045);q.segments=2
+ bpy.context.view_layer.objects.active=o;bpy.ops.object.modifier_apply(modifier=q.name);return o
+
+def detail_panel(n,p,s,m,col,bev=.025):
+ o=box(n,p,s,m,col);q=o.modifiers.new("Panel bevel","BEVEL");q.width=bev;q.segments=3
+ bpy.context.view_layer.objects.active=o;bpy.ops.object.modifier_apply(modifier=q.name);return o
+
 def main():
  a=arg();out=Path(a.output_dir).resolve();(out/"characters").mkdir(parents=True,exist_ok=True);(out/"previews").mkdir(parents=True,exist_ok=True)
  bpy.ops.object.select_all(action="SELECT");bpy.ops.object.delete(use_global=False)
@@ -85,6 +95,7 @@ def main():
   col=bpy.data.collections.new(name);bpy.context.scene.collection.children.link(col);off=(i%5*2.7-5.4,i//5*3,0)
   suit=M(name+" Suit",(.025+.012*i,.045,.065+.008*i),.55,.3);arm=M(name+" Armor",(.16,.2,.24),.8,.23);acc=M(name+" Accent",(.08+.06*(i%3),.35+.04*(i%4),.55),.65,.24);skin=M(name+" Skin",(.36,.20,.13),.05,.5);glass=M(name+" Visor",(.02,.2,.25),.3,.15)
   meshes=[box("Torso",(off[0],off[1],1.25),(.62,.34,.62),suit,col),box("ChestPlate",(off[0],off[1]-.19,1.38),(.48,.05,.3),arm,col),box("Core",(off[0],off[1]-.22,1.38),(.14,.025,.1),acc,col),sph("Head",(off[0],off[1],1.82),(.22,.19,.25),skin,col),sph("Visor",(off[0],off[1]-.17,1.84),(.17,.03,.09),glass,col)]
+  meshes += [detail_panel("Collar",(off[0],off[1]-.02,1.58),(.46,.28,.12),arm,col,.035),detail_panel("Chest_Rib_L",(off[0]-.17,off[1]-.23,1.22),(.16,.035,.24),acc,col,.02),detail_panel("Chest_Rib_R",(off[0]+.17,off[1]-.23,1.22),(.16,.035,.24),acc,col,.02),detail_panel("Belt",(off[0],off[1]-.01,.96),(.56,.30,.12),arm,col,.025),detail_panel("Belt_Core",(off[0],off[1]-.18,.98),(.16,.035,.12),acc,col,.018),detail_panel("Backpack",(off[0],off[1]+.19,1.25),(.34,.16,.48),arm,col,.035),detail_panel("Helmet_Crown",(off[0],off[1],2.02),(.30,.25,.12),arm,col,.045),detail_panel("Helmet_Side_L",(off[0]-.22,off[1],1.88),(.08,.24,.22),acc,col,.025),detail_panel("Helmet_Side_R",(off[0]+.22,off[1],1.88),(.08,.24,.22),acc,col,.025),cylinder("ShoulderJoint_L",(off[0]-.43,off[1],1.42),.09,.16,glass,col),cylinder("ShoulderJoint_R",(off[0]+.43,off[1],1.42),.09,.16,glass,col),cylinder("KneeJoint_L",(off[0]-.19,off[1]-.13,.50),.075,.12,glass,col),cylinder("KneeJoint_R",(off[0]+.19,off[1]-.13,.50),.075,.12,glass,col)]
   for s in (-1,1):
    q="L" if s<0 else "R";meshes += [box("Shoulder_"+q,(off[0]+s*.37,off[1],1.42),(.2,.38,.2),acc,col),box("Arm_"+q,(off[0]+s*.58,off[1],1.2),(.18,.2,.42),suit,col),box("Forearm_"+q,(off[0]+s*.7,off[1],1.0),(.17,.22,.34),arm,col),box("Thigh_"+q,(off[0]+s*.17,off[1],.68),(.2,.24,.45),suit,col),box("Shin_"+q,(off[0]+s*.19,off[1],.3),(.18,.22,.4),arm,col),box("Boot_"+q,(off[0]+s*.19,off[1]-.12,.07),(.22,.4,.16),suit,col)]
   r=rig(name);r.location=off
