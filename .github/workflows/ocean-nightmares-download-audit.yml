@@ -51,6 +51,8 @@ jobs:
           noaa-anglerfish-05|Deep-sea anglerfish (Grumpy Goosefish)|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive02-goosefish-1280x720-1.mp4
           noaa-dragonfish-01|Black dragonfish candidate|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive04-dragonfish-1280x720-1.mp4
           noaa-anglerfish-06|Goosefish (2021 ROV Shakedown; resolve NOAA page)|https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-ex2103-gallery-media-goosefish-video/
+          noaa-anglerfish-08|Rosy coffinfish (Chaunax; deep-sea anglerfish family)|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/11/dive05-coffinfish-1280x720-1.mp4
+          noaa-anglerfish-09|Fish of the Deep compilation (goosefish is linked as a featured species; verify frames before counting)|https://oceanexplorer.noaa.gov/wp-content/uploads/2018/05/fish_deep_1280x720.mp4
           EOF
 
           cat > work/image-fallbacks.tsv <<'EOF'
