@@ -23,7 +23,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg jq python3-pil
 
-      - name: Download every currently identified direct NOAA candidate
+      - name: Download NOAA candidates one at a time; skip unavailable items and continue
         shell: bash
         run: |
           set -euo pipefail
@@ -45,11 +45,12 @@ jobs:
           EOF
 
           printf 'id|species_segment|url|download_status|bytes|duration_seconds|width|height|frame_audit_status\n' > work/download-audit.tsv
-          # Strictly serial: curl + ffprobe for this item must finish before the next row starts.
+          # STRICTLY SERIAL: finish (or skip) this candidate before starting the next row.
+          # Missing/invalid candidates are recorded for manual follow-up; they never stop the queue.
           while IFS='|' read -r id species url; do
             [ -n "$id" ] || continue
             file="work/noaa-media/${id}.mp4"
-            status="download_failed"
+            status="SKIPPED_DOWNLOAD_FAILED"
             if [[ "$url" == *".mp4" ]]; then
               media_url="$url"
             else
@@ -71,13 +72,14 @@ jobs:
                 )
               fi
               if [ -z "$media_url" ]; then
-                echo "No direct NOAA MP4 link could be resolved from $url"
+                status="SKIPPED_NO_DIRECT_MATCH"
+                echo "SKIPPED: no direct NOAA MP4 link could be resolved from $url"
               fi
             fi
             bytes=0 duration="" width="" height="" frame_status="not_available"
             if [ -n "$media_url" ] && curl --fail --location --retry 4 --retry-all-errors --connect-timeout 30 --max-time 900 "$media_url" -o "$file"; then
               if ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration -of json "$file" > "work/noaa-media/${id}.ffprobe.json"; then
-                status="downloaded"
+                status="DOWNLOADED_PENDING_REVIEW"
                 bytes=$(stat -c%s "$file")
                 duration=$(jq -r '.streams[0].duration // empty' "work/noaa-media/${id}.ffprobe.json")
                 width=$(jq -r '.streams[0].width // empty' "work/noaa-media/${id}.ffprobe.json")
@@ -95,8 +97,12 @@ jobs:
                   frame_status="frames_extracted_pending_human_species_review"
                 fi
               else
-                status="downloaded_but_invalid_video"
+                status="SKIPPED_INVALID_VIDEO"
+                rm -f "$file"
+                echo "SKIPPED: downloaded file did not pass FFprobe: $id"
               fi
+            elif [ -n "$media_url" ]; then
+              echo "SKIPPED: download failed for $id; moving to the next candidate"
             fi
             printf '%s|%s|%s|%s|%s|%s|%s|%s|%s\n' "$id" "$species" "$url" "$status" "$bytes" "$duration" "$width" "$height" "$frame_status" >> work/download-audit.tsv
           done < work/sources.tsv
@@ -128,15 +134,27 @@ jobs:
               rows=list(csv.DictReader(f,delimiter="|"))
           report={
             "project":"Ocean Nightmares",
-            "candidate_scope":"All 13 NOAA video candidates currently recorded in the download workflow; one candidate is resolved from its official NOAA page at runtime",
-            "downloaded_count":sum(r["download_status"]=="downloaded" for r in rows),
-            "failed_count":sum(r["download_status"]!="downloaded" for r in rows),
+            "candidate_scope":"All 13 currently recorded NOAA video candidates; candidates are processed strictly one at a time. Failed/unresolvable/invalid items are labeled SKIPPED and the next candidate is attempted.",
+            "downloaded_count":sum(r["download_status"]=="DOWNLOADED_PENDING_REVIEW" for r in rows),
+            "skipped_count":sum(r["download_status"].startswith("SKIPPED") for r in rows),
+            "failed_count":sum(r["download_status"].startswith("SKIPPED") for r in rows),
             "frame_sets_extracted":sum(r["frame_audit_status"]!="not_available" for r in rows),
             "species_approval":"NOT AUTOMATIC: contact sheets require human visual review",
-            "confirmed_source_gap":"13 NOAA video candidates are queued in this workflow; the 50-clip requirement is not met. Four isopod-related clips are not confirmed giant isopods and require review. No substitute footage or still images are counted.",
+            "confirmed_source_gap":"This queue contains only 13 known candidate videos, not 50 approved clips. Species identity and rights still require human review. No unrelated footage or still images are counted.",
+            "manual_followup_species":["Barreleye fish","Frilled shark","Vampire squid","Gulper eel","Viperfish","Goblin shark","Colossal squid"],
+            "manual_followup_note":"These target species have no candidate video in the current queue. Find and download matching footage manually at the end; do not substitute another species.",
             "items":rows
           }
           (root/"audit-summary.json").write_text(json.dumps(report,indent=2))
+          with open(root/"manual-download-queue.txt","w") as out:
+              out.write("OCEAN NIGHTMARES — MANUAL FOOTAGE FOLLOW-UP\\n")
+              out.write("Only exact-species NOAA footage is acceptable. Do not substitute species.\\n\\n")
+              for r in rows:
+                  if r["download_status"].startswith("SKIPPED"):
+                      out.write(f'SKIPPED CANDIDATE: {r["id"]} | {r["species_segment"]} | {r["download_status"]} | source: {r["url"]}\\n')
+              out.write("\\nTARGET SPECIES WITH NO CANDIDATE IN THIS QUEUE:\\n")
+              for species in report["manual_followup_species"]:
+                  out.write(f"- {species}\\n")
           PY
 
       - name: Upload downloaded footage and audit package
@@ -150,5 +168,6 @@ jobs:
             work/NOAA-contact-sheet.jpg
             work/download-audit.tsv
             work/audit-summary.json
+            work/manual-download-queue.txt
           if-no-files-found: warn
           retention-days: 14
