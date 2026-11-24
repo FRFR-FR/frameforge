@@ -137,7 +137,6 @@ jobs:
             "candidate_scope":"All 13 currently recorded NOAA video candidates; candidates are processed strictly one at a time. Failed/unresolvable/invalid items are labeled SKIPPED and the next candidate is attempted.",
             "downloaded_count":sum(r["download_status"]=="DOWNLOADED_PENDING_REVIEW" for r in rows),
             "skipped_count":sum(r["download_status"].startswith("SKIPPED") for r in rows),
-            "failed_count":sum(r["download_status"].startswith("SKIPPED") for r in rows),
             "frame_sets_extracted":sum(r["frame_audit_status"]!="not_available" for r in rows),
             "species_approval":"NOT AUTOMATIC: contact sheets require human visual review",
             "confirmed_source_gap":"This queue contains only 13 known candidate videos, not 50 approved clips. Species identity and rights still require human review. No unrelated footage or still images are counted.",
@@ -147,14 +146,14 @@ jobs:
           }
           (root/"audit-summary.json").write_text(json.dumps(report,indent=2))
           with open(root/"manual-download-queue.txt","w") as out:
-              out.write("OCEAN NIGHTMARES — MANUAL FOOTAGE FOLLOW-UP\\n")
-              out.write("Only exact-species NOAA footage is acceptable. Do not substitute species.\\n\\n")
+              out.write("OCEAN NIGHTMARES — MANUAL FOOTAGE FOLLOW-UP\n")
+              out.write("Only exact-species NOAA footage is acceptable. Do not substitute species.\n\n")
               for r in rows:
                   if r["download_status"].startswith("SKIPPED"):
-                      out.write(f'SKIPPED CANDIDATE: {r["id"]} | {r["species_segment"]} | {r["download_status"]} | source: {r["url"]}\\n')
-              out.write("\\nTARGET SPECIES WITH NO CANDIDATE IN THIS QUEUE:\\n")
+                      out.write(f'SKIPPED CANDIDATE: {r["id"]} | {r["species_segment"]} | {r["download_status"]} | source: {r["url"]}\n')
+              out.write("\nTARGET SPECIES WITH NO CANDIDATE IN THIS QUEUE:\n")
               for species in report["manual_followup_species"]:
-                  out.write(f"- {species}\\n")
+                  out.write(f"- {species}\n")
           PY
 
       - name: Upload downloaded footage and audit package
