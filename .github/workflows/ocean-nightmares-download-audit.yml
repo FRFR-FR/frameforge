@@ -236,16 +236,34 @@ jobs:
                       out.write(f'- {r["species"]} | {r["direct_url"]} | credit/source: {r["source_page"]}\n')
           PY
 
-      - name: Upload downloaded footage and audit package
+      - name: Upload Rosy Coffinfish candidate
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ocean-nightmares-noaa-download-audit
+          name: ocean-nightmares-rosy-coffinfish
           path: |
             work/noaa-media/noaa-anglerfish-08.mp4
-            work/noaa-media/noaa-anglerfish-09.mp4
             work/contact-sheets/noaa-anglerfish-08/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Fish of the Deep candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocean-nightmares-fish-of-the-deep
+          path: |
+            work/noaa-media/noaa-anglerfish-09.mp4
             work/contact-sheets/noaa-anglerfish-09/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload new candidate audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocean-nightmares-new-candidate-audit
+          path: |
             work/download-audit.tsv
             work/image-fallback-audit.tsv
             work/audit-summary.json
