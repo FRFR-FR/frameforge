@@ -2,7 +2,7 @@ name: GAMEFORGE Offline PvP — Android A Prototype
 
 on:
   push:
-    branches: [gameforge-offline-pvp-prototype]
+    branches: [gameforge-perfected-pvp-qa-2026-11-24]
     paths:
       - "gameforge/pvp/**"
       - ".github/workflows/gameforge-offline-pvp.yml"
@@ -129,7 +129,7 @@ jobs:
             rm -rf gameforge/pvp/.godot
             godot --headless --verbose --path gameforge/pvp --editor --quit
             godot --headless --verbose --path gameforge/pvp --script res://tests/pvp_smoke_test.gd
-            APK_PATH="$PWD/build/android/LOOMWILD_Offline_PvP_A.apk"
+            APK_PATH="$PWD/build/android/GAMEFORGE_BlackTide_Offline_PvP.apk"
             mkdir -p "$(dirname "$APK_PATH")"
             godot --headless --verbose --path gameforge/pvp --export-debug "Android" "$APK_PATH"
             test -s "$APK_PATH"
@@ -155,13 +155,13 @@ jobs:
           cp gameforge/pvp/ASSET_VALIDATION.json build/qa/ 2>/dev/null || true
           cp gameforge/pvp/assets/characters/CHARACTER_RIG_AUDIT.json build/qa/ 2>/dev/null || true
           cp gameforge/pvp/assets/weapons/WEAPON_AUDIT.json build/qa/ 2>/dev/null || true
-          printf 'branch=%s\ncommit=%s\nresolution=1280x720\nrender_cap=30fps\nplatform=Android only\nmode=offline 1v1\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > build/qa/BUILD_METADATA.txt
+          printf 'branch=%s\ncommit=%s\nresolution=1280x720\nrender_cap=30fps\nplatform=Android only\nmode=offline 1v1\nqa=gameplay-smoke-test\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > build/qa/BUILD_METADATA.txt
 
       - name: Upload Android prototype and verified asset pack
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: LOOMWILD-OFFLINE-PVP-A-Prototype-${{ github.sha }}
+          name: GAMEFORGE-BLACKTIDE-OFFLINE-PVP-${{ github.sha }}
           path: |
             prototype/build/android/LOOMWILD_Offline_PvP_A.apk
             prototype/gameforge/pvp/ASSET_VALIDATION.json
@@ -176,7 +176,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: LOOMWILD-OFFLINE-PVP-FAILURE-LOGS-${{ github.run_id }}
+          name: GAMEFORGE-BLACKTIDE-OFFLINE-PVP-FAILURE-LOGS-${{ github.run_id }}
           path: |
             prototype/gameforge/pvp/ASSET_VALIDATION.json
             prototype/build/qa/
