@@ -242,12 +242,11 @@ jobs:
         with:
           name: ocean-nightmares-noaa-download-audit
           path: |
-            work/noaa-media/
-            work/contact-sheets/
-            work/noaa-image-fallbacks/
-            work/NOAA-contact-sheet.jpg
+            work/noaa-media/noaa-anglerfish-08.mp4
+            work/noaa-media/noaa-anglerfish-09.mp4
+            work/contact-sheets/noaa-anglerfish-08/
+            work/contact-sheets/noaa-anglerfish-09/
             work/download-audit.tsv
-            work/image-fallbacks.tsv
             work/image-fallback-audit.tsv
             work/audit-summary.json
             work/manual-download-queue.txt
