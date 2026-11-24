@@ -3,8 +3,8 @@
   "repository": "FRFR-FR/frameforge",
   "source_policy": "NOAA Ocean Exploration-hosted video assets only. No Pixabay, no other footage providers, no still images counted as video clips.",
   "rights_policy": "NOAA-produced/credited footage is treated as U.S. government public-domain material unless an item carries a separate copyright notice. Preserve the exact NOAA credit for every source. The source-specific credit is recorded below.",
-  "audit_date": "2026-11-23",
-  "candidate_count": 7,
+  "audit_date": "2026-11-24",
+  "candidate_count": 8,
   "approved_for_render_count": 0,
   "video_candidates": [
     {
@@ -90,6 +90,18 @@
       "rights_review": "NOAA-produced source and credit recorded; source notice check complete",
       "species_review": "pending_video_frame_inspection_and_common-name-alignment",
       "approved_for_render": false
+    },
+    {
+      "id": "noaa-anglerfish-01-alternate",
+      "species_segment": "Deep-sea anglerfish",
+      "title": "Schaefer's Anglerfish — alternate NOAA upload",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/video-playlist-ex1907-anglerfish/",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2026/09/dive12-anglerfish-1280x720-1.mp4",
+      "credit": "NOAA Ocean Exploration, 2019 Southeastern U.S. Deep-sea Exploration",
+      "page_identifies_subject": "Sladenia shaefersi, Schaefer's anglerfish",
+      "rights_review": "NOAA-hosted candidate; preserve credit and verify source notice before approval",
+      "species_review": "pending_video_frame_inspection_and_duplicate-scene_check",
+      "approved_for_render": false
     }
   ],
   "species_search_results": {
@@ -105,13 +117,13 @@
     "Deep-sea anglerfish": "Four NOAA-hosted video assets identified: Schaefer's anglerfish, Chaunacops anglerfish, goosefish, and batfish. Each needs frame-level inspection."
   },
   "important_limitations": [
-    "The web retrieval system can identify and link MP4 files but cannot decode video frames for visual species inspection.",
-    "Direct MP4 download through the available container downloader failed; no media files have been staged in the repository.",
-    "Do not mark species_review approved or approved_for_render true until frames are actually inspected.",
-    "NOAA still images are not counted toward the 50-video requirement.",
-    "Do not use unrelated deep-sea B-roll to fill narration slots."
+    "Downloaded video files pass FFprobe but species and visual uniqueness are pending frame-by-frame inspection.",
+    "SHA-256 uniqueness only catches byte-identical files, not re-encoded duplicates.",
+    "Still images are separate fallbacks and never count toward the 30-video target.",
+    "Do not mark species_review approved or approved_for_render true until representative frames are actually inspected.",
+    "The NCEI Ocean Exploration Video Portal is the preferred route for searching further exact-species segments, streams, and highlights when its search service is available."
   ],
-  "next_gate": "Resolve/download the seven NOAA MP4 candidates in the FrameForge runner, inspect representative frames, then continue searching for exact-species NOAA videos for the remaining animals. Keep render blocked until 50 distinct exact-species clips and narration are present.",
+  "next_gate": "Inspect downloaded candidate frames and source credits, then keep searching NOAA's NCEI Video Portal and NOAA expedition video archives for the remaining exact-species candidates. Populate the 30-slot manifest only with individually verified unique video assets; keep rendering blocked until all 30 are approved and narration is present.",
   "video_page_candidates_without_resolved_media_url": [
     {
       "id": "noaa-anglerfish-page-only-01",
@@ -133,6 +145,44 @@
     "Vampire squid": "NOAA educational resources include an image; the linked video credit is Ocean Exploration Trust/Nautilus Live, so excluded under NOAA-only policy.",
     "Frilled shark, goblin shark, colossal squid": "No exact NOAA Ocean Exploration-hosted video page located in these search passes."
   },
-  "current_verified_video_candidates": 7,
-  "current_page_only_video_candidates": 1
+  "current_verified_video_candidates": 8,
+  "current_page_only_video_candidates": 1,
+  "required_video_clip_count": 30,
+  "still_image_fallbacks": [
+    {
+      "species": "Barreleye fish",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2024/08/barreleye-fish.jpg",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/explorations-24skq-ak-seamounts-gallery-media-barreleye/",
+      "note": "NOAA still image; not a video clip"
+    },
+    {
+      "species": "Pelican/gulper eel (Eurypharynx pelecanoides)",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2025/05/eel-hires.jpg",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/explorations-19biolum-logs-jun18-media-eel/",
+      "note": "NOAA still image; not a video clip"
+    },
+    {
+      "species": "Viperfish",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2022/03/ex2104-viperfish-1920x1080-1.jpg",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/viperfish/",
+      "note": "NOAA still image; not a video clip"
+    },
+    {
+      "species": "Vampire squid",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2025/04/vampire-squid-hires.jpg",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/explorations-19biolum-background-cephalopods-media-vampire-squid/",
+      "note": "NOAA still image; NOAA educational resource credits the video version to Ocean Exploration Trust/Nautilus, so that video is excluded"
+    }
+  ],
+  "current_search_status": {
+    "noaa_video_portal": "Available for keyword/segment/stream/highlight searches, but the NCEI search endpoint returned a heavy-usage error during this pass; no speculative archive records added.",
+    "videos_downloaded_pending_review": 13,
+    "video_downloads_remaining_to_target": 17,
+    "still_fallbacks_downloaded": 4,
+    "still_fallbacks_count_toward_video_target": false,
+    "download_run_id": 45343362174,
+    "download_artifact_id": 14896433923,
+    "artifact_size_bytes": 508892146,
+    "visual_uniqueness": "SHA-256 distinct files only; frame review is still required to rule out re-encoded duplicate footage."
+  }
 }
