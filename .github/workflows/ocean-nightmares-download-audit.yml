@@ -10,6 +10,10 @@ permissions:
   contents: read
   actions: write
 
+env:
+  TARGET_CLIP_COUNT: "30"
+  MAX_STILL_IMAGE_FALLBACKS: "10"
+
 jobs:
   download-audit:
     runs-on: ubuntu-latest
@@ -27,7 +31,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p work/noaa-media work/contact-sheets
+          target_clip_count="${TARGET_CLIP_COUNT:-30}"
+          max_still_fallbacks="${MAX_STILL_IMAGE_FALLBACKS:-10}"
+          downloaded_unique_hash_count=0
+          declare -A seen_hashes=()
+          mkdir -p work/noaa-media work/contact-sheets work/noaa-image-fallbacks
           cat > work/sources.tsv <<'EOF'
           noaa-isopod-01|Giant isopod|https://oceanexplorer.noaa.gov/wp-content/uploads/2014/03/isopod-1280x720-2.mp4
           noaa-isopod-02|Giant isopod|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive11-isopod-1280x720-1.mp4
@@ -35,13 +43,21 @@ jobs:
           noaa-isopod-04|Isopod (species unconfirmed)|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/03/ex1803-isopod-legs.mp4
           noaa-isopod-05|Water Walker isopod (Munnopsidae; not giant isopod)|https://oceanexplorer.noaa.gov/wp-content/uploads/2025/05/dive05-waterwalker-1280x720-1.mp4
           noaa-isopod-06|Unknown isopod (species unconfirmed; Mariana 2016)|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/02/ex1605l3-isopod.mp4
-          noaa-anglerfish-01|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive12-anglerfish-1280x720-1.mp4
+          noaa-anglerfish-01|Schaefer's anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive12-anglerfish-1280x720-1.mp4
+          noaa-anglerfish-07|Schaefer's anglerfish alternate NOAA upload (check for duplicate footage)|https://oceanexplorer.noaa.gov/wp-content/uploads/2026/09/dive12-anglerfish-1280x720-1.mp4
           noaa-anglerfish-02|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2025/05/one-of-my-favorites-1920x1080-2.mp4
           noaa-anglerfish-03|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/04/ex1711-goosefish1.mp4
           noaa-anglerfish-04|Deep-sea anglerfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2021/02/ex1605-pizzafish.mp4
           noaa-anglerfish-05|Deep-sea anglerfish (Grumpy Goosefish)|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive02-goosefish-1280x720-1.mp4
           noaa-dragonfish-01|Black dragonfish candidate|https://oceanexplorer.noaa.gov/wp-content/uploads/2019/11/dive04-dragonfish-1280x720-1.mp4
           noaa-anglerfish-06|Goosefish (2021 ROV Shakedown; resolve NOAA page)|https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-ex2103-gallery-media-goosefish-video/
+          EOF
+
+          cat > work/image-fallbacks.tsv <<'EOF'
+          fallback-barreleye|Barreleye fish|https://oceanexplorer.noaa.gov/wp-content/uploads/2024/08/barreleye-fish.jpg|https://oceanexplorer.noaa.gov/multimedia/explorations-24skq-ak-seamounts-gallery-media-barreleye/
+          fallback-gulper-eel|Pelican/gulper eel (Eurypharynx pelecanoides)|https://oceanexplorer.noaa.gov/wp-content/uploads/2025/05/eel-hires.jpg|https://oceanexplorer.noaa.gov/multimedia/explorations-19biolum-logs-jun18-media-eel/
+          fallback-viperfish|Viperfish|https://oceanexplorer.noaa.gov/wp-content/uploads/2022/03/ex2104-viperfish-1920x1080-1.jpg|https://oceanexplorer.noaa.gov/multimedia/viperfish/
+          fallback-vampire-squid|Vampire squid|https://oceanexplorer.noaa.gov/wp-content/uploads/2025/04/vampire-squid-hires.jpg|https://oceanexplorer.noaa.gov/multimedia/explorations-19biolum-background-cephalopods-media-vampire-squid/
           EOF
 
           printf 'id|species_segment|url|download_status|bytes|duration_seconds|width|height|frame_audit_status\n' > work/download-audit.tsv
@@ -104,15 +120,58 @@ jobs:
             elif [ -n "$media_url" ]; then
               echo "SKIPPED: download failed for $id; moving to the next candidate"
             fi
+            if [ "$status" = "DOWNLOADED_PENDING_REVIEW" ]; then
+              candidate_hash=$(sha256sum "$file" | awk '{print $1}')
+              if [[ -n "${seen_hashes[$candidate_hash]+x}" ]]; then
+                status="SKIPPED_DUPLICATE_HASH"
+                rm -f "$file"
+                rm -rf "work/contact-sheets/$id"
+                bytes=0
+                frame_status="not_available"
+              else
+                seen_hashes["$candidate_hash"]=1
+                downloaded_unique_hash_count=$((downloaded_unique_hash_count+1))
+              fi
+            fi
             printf '%s|%s|%s|%s|%s|%s|%s|%s|%s\n' "$id" "$species" "$url" "$status" "$bytes" "$duration" "$width" "$height" "$frame_status" >> work/download-audit.tsv
+            if [ "$downloaded_unique_hash_count" -ge "$target_clip_count" ]; then
+              echo "Reached the $target_clip_count-file-hash target; stopping the serial candidate queue."
+              break
+            fi
           done < work/sources.tsv
+
+          printf 'id|species|direct_url|source_page|download_status|bytes|mime_type\n' > work/image-fallback-audit.tsv
+          image_fallback_count=0
+          while IFS='|' read -r id species image_url source_page; do
+            [ -n "$id" ] || continue
+            if [ "$image_fallback_count" -ge "$max_still_fallbacks" ]; then
+              echo "Reached the still-image fallback limit ($max_still_fallbacks); stopping image fallback downloads."
+              break
+            fi
+            image_file="work/noaa-image-fallbacks/${id}.jpg"
+            image_status="SKIPPED_DOWNLOAD_FAILED"
+            image_bytes=0
+            mime_type=""
+            if curl --fail --location --retry 2 --retry-all-errors --connect-timeout 30 --max-time 180 "$image_url" -o "$image_file"; then
+              mime_type=$(file --brief --mime-type "$image_file")
+              if [[ "$mime_type" == image/* ]]; then
+                image_status="DOWNLOADED_STILL_FALLBACK_NOT_A_VIDEO"
+                image_bytes=$(stat -c%s "$image_file")
+                image_fallback_count=$((image_fallback_count+1))
+              else
+                rm -f "$image_file"
+                image_status="SKIPPED_NOT_AN_IMAGE"
+              fi
+            fi
+            printf '%s|%s|%s|%s|%s|%s|%s\n' "$id" "$species" "$image_url" "$source_page" "$image_status" "$image_bytes" "$mime_type" >> work/image-fallback-audit.tsv
+          done < work/image-fallbacks.tsv
 
       - name: Create contact sheet and audit summary
         if: always()
         run: |
           python - <<'PY'
           from pathlib import Path
-          import json, csv
+          import json, csv, os
           from PIL import Image, ImageOps, ImageDraw
           root=Path("work")
           files=list((root/"contact-sheets").glob("*/*.jpg"))
@@ -132,28 +191,47 @@ jobs:
           rows=[]
           with open(root/"download-audit.tsv") as f:
               rows=list(csv.DictReader(f,delimiter="|"))
+          target=int(os.environ.get("TARGET_CLIP_COUNT","30"))
+          downloaded=sum(r["download_status"]=="DOWNLOADED_PENDING_REVIEW" for r in rows)
+          image_rows=[]
+          image_audit=root/"image-fallback-audit.tsv"
+          if image_audit.exists():
+              with open(image_audit) as f: image_rows=list(csv.DictReader(f,delimiter="|"))
           report={
             "project":"Ocean Nightmares",
-            "candidate_scope":"All 13 currently recorded NOAA video candidates; candidates are processed strictly one at a time. Failed/unresolvable/invalid items are labeled SKIPPED and the next candidate is attempted.",
-            "downloaded_count":sum(r["download_status"]=="DOWNLOADED_PENDING_REVIEW" for r in rows),
+            "target_clip_count":target,
+            "downloaded_distinct_file_hashes_pending_species_review":downloaded,
+            "remaining_video_downloads_to_target":max(0,target-downloaded),
+            "still_image_fallback_count":sum(r["download_status"]=="DOWNLOADED_STILL_FALLBACK_NOT_A_VIDEO" for r in image_rows),
+            "still_images_count_toward_video_target":False,
+            "candidate_scope":"NOAA video candidates are processed strictly one at a time. The queue stops at 30 distinct SHA-256 file hashes. Hash uniqueness does not prove that two differently encoded files show different footage; contact sheets still require human review.",
+            "downloaded_count":downloaded,
             "skipped_count":sum(r["download_status"].startswith("SKIPPED") for r in rows),
             "frame_sets_extracted":sum(r["frame_audit_status"]!="not_available" for r in rows),
             "species_approval":"NOT AUTOMATIC: contact sheets require human visual review",
-            "confirmed_source_gap":"This queue contains only 13 known candidate videos, not 50 approved clips. Species identity and rights still require human review. No unrelated footage or still images are counted.",
+            "source_search_note":"NOAA Ocean Exploration pages confirm the current candidates. The separate NCEI Ocean Exploration Video Portal is the documented route for searching archived ROV segments, streams, and highlights, but its page currently reports heavy usage; no unverified portal records were inserted.",
+            "video_gap_species":["Barreleye fish","Frilled shark","Vampire squid","Gulper eel","Viperfish","Goblin shark","Colossal squid"],
             "manual_followup_species":["Barreleye fish","Frilled shark","Vampire squid","Gulper eel","Viperfish","Goblin shark","Colossal squid"],
-            "manual_followup_note":"These target species have no candidate video in the current queue. Find and download matching footage manually at the end; do not substitute another species.",
+            "manual_followup_note":"Search the NOAA Ocean Exploration Video Portal for each exact species/accepted synonym and add a clip only when the observation metadata confirms the animal. Do not substitute another species. The four NOAA stills are fallback-only and do not count toward the 30 videos.",
+            "image_fallbacks":image_rows,
             "items":rows
           }
           (root/"audit-summary.json").write_text(json.dumps(report,indent=2))
           with open(root/"manual-download-queue.txt","w") as out:
               out.write("OCEAN NIGHTMARES — MANUAL FOOTAGE FOLLOW-UP\n")
-              out.write("Only exact-species NOAA footage is acceptable. Do not substitute species.\n\n")
+              out.write(f"Video target: {target} distinct file hashes; downloaded pending review: {downloaded}; remaining: {max(0,target-downloaded)}.\n")
+              out.write("Only exact-species NOAA footage is acceptable. Do not substitute species.\n")
+              out.write("NOAA archive search route: https://www.ncei.noaa.gov/access/ocean-exploration/video/ (search exact species keywords; use segment/stream/highlight filters; check observation annotations before adding a clip).\n\n")
               for r in rows:
                   if r["download_status"].startswith("SKIPPED"):
                       out.write(f'SKIPPED CANDIDATE: {r["id"]} | {r["species_segment"]} | {r["download_status"]} | source: {r["url"]}\n')
               out.write("\nTARGET SPECIES WITH NO CANDIDATE IN THIS QUEUE:\n")
               for species in report["manual_followup_species"]:
                   out.write(f"- {species}\n")
+              out.write("\nSTILL-IMAGE FALLBACKS (NOT VIDEO CLIPS; DO NOT COUNT TOWARD 30):\n")
+              for r in image_rows:
+                  if r["download_status"]=="DOWNLOADED_STILL_FALLBACK_NOT_A_VIDEO":
+                      out.write(f'- {r["species"]} | {r["direct_url"]} | credit/source: {r["source_page"]}\n')
           PY
 
       - name: Upload downloaded footage and audit package
@@ -164,8 +242,11 @@ jobs:
           path: |
             work/noaa-media/
             work/contact-sheets/
+            work/noaa-image-fallbacks/
             work/NOAA-contact-sheet.jpg
             work/download-audit.tsv
+            work/image-fallbacks.tsv
+            work/image-fallback-audit.tsv
             work/audit-summary.json
             work/manual-download-queue.txt
           if-no-files-found: warn
