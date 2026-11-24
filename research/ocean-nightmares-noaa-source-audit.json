@@ -4,7 +4,7 @@
   "source_policy": "NOAA Ocean Exploration-hosted video assets only. No Pixabay, no other footage providers, no still images counted as video clips.",
   "rights_policy": "NOAA-produced/credited footage is treated as U.S. government public-domain material unless an item carries a separate copyright notice. Preserve the exact NOAA credit for every source. The source-specific credit is recorded below.",
   "audit_date": "2026-11-24",
-  "candidate_count": 8,
+  "candidate_count": 10,
   "approved_for_render_count": 0,
   "video_candidates": [
     {
@@ -102,6 +102,36 @@
       "rights_review": "NOAA-hosted candidate; preserve credit and verify source notice before approval",
       "species_review": "pending_video_frame_inspection_and_duplicate-scene_check",
       "approved_for_render": false
+    },
+    {
+      "id": "noaa-anglerfish-08",
+      "species_segment": "Deep-sea anglerfish",
+      "title": "Rosy Coffinfish",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-ex2107-gallery-media-dive05-coffinfish/",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2021/11/dive05-coffinfish-1280x720-1.mp4",
+      "credit": "NOAA Ocean Exploration, Windows to the Deep 2021",
+      "page_identifies_subject": "Rosy coffinfish, genus Chaunax; a coffinfish in the anglerfish order Lophiiformes",
+      "rights_review": "NOAA-produced source; preserve NOAA Ocean Exploration credit",
+      "species_review": "pending_video_frame_inspection",
+      "approved_for_render": false,
+      "download_run_id": 45354952405,
+      "artifact_id": 14901398762,
+      "artifact_size_bytes": 30146454
+    },
+    {
+      "id": "noaa-anglerfish-09",
+      "species_segment": "Deep-sea anglerfish candidate (mixed fish overview)",
+      "title": "Fish of the Deep",
+      "page_url": "https://oceanexplorer.noaa.gov/multimedia/video-playlist-ex1703-fishofdeep/",
+      "direct_media_url": "https://oceanexplorer.noaa.gov/wp-content/uploads/2018/05/fish_deep_1280x720.mp4",
+      "credit": "NOAA Ocean Exploration, Discovering the Deep: Exploring Remote Pacific MPAs",
+      "page_identifies_subject": "Mixed overview of fish from 19 dives; NOAA page links to Gutsy Goosefish as a related featured species, but does not confirm that goosefish appears in this video",
+      "rights_review": "NOAA-produced source; preserve NOAA Ocean Exploration credit",
+      "species_review": "pending_visual_review_do_not_count_until_goosefish_is_confirmed_in_frames",
+      "approved_for_render": false,
+      "download_run_id": 45354952405,
+      "artifact_id": 14901358707,
+      "artifact_size_bytes": 80556958
     }
   ],
   "species_search_results": {
@@ -121,9 +151,11 @@
     "SHA-256 uniqueness only catches byte-identical files, not re-encoded duplicates.",
     "Still images are separate fallbacks and never count toward the 30-video target.",
     "Do not mark species_review approved or approved_for_render true until representative frames are actually inspected.",
-    "The NCEI Ocean Exploration Video Portal is the preferred route for searching further exact-species segments, streams, and highlights when its search service is available."
+    "The Rosy Coffinfish video is a new NOAA anglerfish-family candidate and still requires visual frame review.",
+    "The Fish of the Deep video is a mixed-species compilation; do not count it as an anglerfish/goosefish clip unless frames confirm the target animal.",
+    "The current download queue has 15 candidate video files pending review, but this does not mean 15 clips are approved for the final film."
   ],
-  "next_gate": "Inspect downloaded candidate frames and source credits, then keep searching NOAA's NCEI Video Portal and NOAA expedition video archives for the remaining exact-species candidates. Populate the 30-slot manifest only with individually verified unique video assets; keep rendering blocked until all 30 are approved and narration is present.",
+  "next_gate": "Review all downloaded video contact sheets and source credits. Keep searching NOAA's multimedia archive and NCEI video portal for exact species; do not count mixed compilations without frame-level confirmation. Only populate the 30-slot manifest with verified unique target-species footage.",
   "video_page_candidates_without_resolved_media_url": [
     {
       "id": "noaa-anglerfish-page-only-01",
@@ -175,14 +207,35 @@
     }
   ],
   "current_search_status": {
-    "noaa_video_portal": "Available for keyword/segment/stream/highlight searches, but the NCEI search endpoint returned a heavy-usage error during this pass; no speculative archive records added.",
-    "videos_downloaded_pending_review": 13,
+    "noaa_video_portal": "Search interface remains available but currently returns a heavy-usage error; no speculative records were added.",
+    "videos_downloaded_pending_review": 15,
     "video_downloads_remaining_to_target": 17,
     "still_fallbacks_downloaded": 4,
     "still_fallbacks_count_toward_video_target": false,
     "download_run_id": 45343362174,
     "download_artifact_id": 14896433923,
     "artifact_size_bytes": 508892146,
-    "visual_uniqueness": "SHA-256 distinct files only; frame review is still required to rule out re-encoded duplicate footage."
+    "visual_uniqueness": "SHA-256 distinct file hashes only; frame review is still required to rule out re-encoded duplicate footage and confirm the mixed Fish of the Deep compilation contains goosefish.",
+    "video_candidate_files_remaining_to_target": 15,
+    "species_verified_for_render": 0,
+    "new_candidates_downloaded": 2,
+    "new_candidate_run_id": 45354952405,
+    "new_candidate_artifacts": [
+      {
+        "name": "ocean-nightmares-rosy-coffinfish",
+        "artifact_id": 14901398762,
+        "size_bytes": 30146454
+      },
+      {
+        "name": "ocean-nightmares-fish-of-the-deep",
+        "artifact_id": 14901358707,
+        "size_bytes": 80556958
+      },
+      {
+        "name": "ocean-nightmares-new-candidate-audit",
+        "artifact_id": 14901333809,
+        "size_bytes": 4908
+      }
+    ]
   }
 }
