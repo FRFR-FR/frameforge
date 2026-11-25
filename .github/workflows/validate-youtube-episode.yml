@@ -1,0 +1,77 @@
+name: Validate YouTube documentary package
+
+on:
+  pull_request:
+    paths:
+      - "youtube-channel/**"
+      - ".github/workflows/validate-youtube-episode.yml"
+  push:
+    branches:
+      - main
+      - "youtube-docs/**"
+    paths:
+      - "youtube-channel/**"
+      - ".github/workflows/validate-youtube-episode.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-blueprint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate required blueprint files
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            "youtube-channel/README.md"
+            "youtube-channel/docs/CHANNEL_BLUEPRINT.md"
+            "youtube-channel/docs/PRODUCTION_PIPELINE.md"
+            "youtube-channel/episodes/EP001_SUBMARINE_CABLES.md"
+          )
+          for file in "${required[@]}"; do
+            test -s "$file" || { echo "::error file=$file::Required file missing or empty"; exit 1; }
+            echo "OK: $file"
+          done
+
+      - name: Check for accidentally committed credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE '(AIza[0-9A-Za-z_-]{30,}|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA |EC )?PRIVATE KEY-----)' youtube-channel; then
+            echo "::error::Possible credential or private key found in youtube-channel/"
+            exit 1
+          fi
+          echo "No obvious credential patterns found."
+
+      - name: Validate asset manifest header when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="youtube-channel/assets/manifest.csv"
+          if [ -f "$manifest" ]; then
+            python - <<'PY'
+          import csv
+          from pathlib import Path
+          path = Path("youtube-channel/assets/manifest.csv")
+          with path.open(newline="", encoding="utf-8-sig") as f:
+              reader = csv.reader(f)
+              header = next(reader, [])
+          required = [
+              "asset_id", "filename", "asset_type", "source_url",
+              "creator", "license", "attribution", "download_date",
+              "episode_use", "verified_by"
+          ]
+          missing = [name for name in required if name not in header]
+          if missing:
+              raise SystemExit(f"Manifest is missing columns: {', '.join(missing)}")
+          print("Asset manifest header is valid.")
+          PY
+          else
+            echo "No asset manifest added yet; skipping."
+          fi
