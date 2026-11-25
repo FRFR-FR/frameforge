@@ -6,7 +6,6 @@ on:
       - "youtube-docs/**"
     paths:
       - "youtube-channel/episodes/**"
-      - ".github/workflows/render-documentary-720p.yml"
   workflow_dispatch:
     inputs:
       episode_directory:
