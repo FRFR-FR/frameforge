@@ -1,0 +1,109 @@
+name: Render documentary (720p only)
+
+on:
+  push:
+    branches:
+      - "youtube-docs/**"
+    paths:
+      - "youtube-channel/episodes/**"
+      - ".github/workflows/render-documentary-720p.yml"
+  workflow_dispatch:
+    inputs:
+      episode_directory:
+        description: "Episode folder, e.g. youtube-channel/episodes/EP002 (blank selects latest)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentary-render-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+      CARTESIA_API_KEY: ${{ secrets.CARTESIA_API_KEY }}
+
+    steps:
+      - name: Check out episode source
+        uses: actions/checkout@v4
+
+      - name: Select episode folder
+        id: episode
+        shell: bash
+        run: |
+          set -euo pipefail
+          REQUESTED="${{ inputs.episode_directory }}"
+          if [ -n "$REQUESTED" ]; then
+            EPISODE_DIR="$REQUESTED"
+          else
+            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\n' | sort -V | tail -n 1)"
+          fi
+          test -n "$EPISODE_DIR" || { echo "::error::No episode folder containing render_episode.py was found."; exit 1; }
+          test -f "$EPISODE_DIR/render_episode.py" || { echo "::error::Missing $EPISODE_DIR/render_episode.py"; exit 1; }
+          echo "dir=$EPISODE_DIR" >> "$GITHUB_OUTPUT"
+          echo "Selected $EPISODE_DIR"
+
+      - name: Install rendering dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng fonts-dejavu-core libgl1 libglib2.0-0
+          python -m pip install --upgrade pip
+          python -m pip install numpy opencv-python-headless Pillow
+
+      - name: Render episode
+        env:
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$EPISODE_DIR"
+          python render_episode.py
+
+      - name: Validate strict 720p export and decode
+        env:
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t FILES < <(find "$EPISODE_DIR/output" -maxdepth 1 -type f -name "*720p.mp4" -size +1M | sort)
+          test "${#FILES[@]}" -eq 1 || { echo "::error::Expected exactly one non-empty *720p.mp4 output; found ${#FILES[@]}"; exit 1; }
+          VIDEO="${FILES[0]}"
+          META="$(ffprobe -v error -show_entries stream=codec_type,codec_name,width,height:format=duration,size -of json "$VIDEO")"
+          echo "$META"
+          python - "$VIDEO" <<'PY'
+          import json, subprocess, sys
+          p=sys.argv[1]
+          m=json.loads(subprocess.check_output([
+              "ffprobe","-v","error","-show_entries",
+              "stream=codec_type,codec_name,width,height:format=duration,size",
+              "-of","json",p], text=True))
+          v=next(s for s in m["streams"] if s["codec_type"]=="video")
+          a=next(s for s in m["streams"] if s["codec_type"]=="audio")
+          assert (v["width"],v["height"])==(1280,720), f"Only 1280x720 is allowed, got {v.get('width')}x{v.get('height')}"
+          assert v["codec_name"]=="h264", f"Expected H.264, got {v['codec_name']}"
+          assert a["codec_name"]=="aac", f"Expected AAC, got {a['codec_name']}"
+          assert float(m["format"]["duration"])>60, "Export is unexpectedly short"
+          print(f"PASS: {p}; {int(m['format']['size'])/1_000_000:.2f} MB; {float(m['format']['duration']):.2f} seconds")
+          PY
+          ffmpeg -v error -i "$VIDEO" -f null -
+          echo "Full-file decode check passed."
+
+      - name: Upload episode deliverables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.episode.outputs.dir }}-720p
+          path: |
+            ${{ steps.episode.outputs.dir }}/output/
+            ${{ steps.episode.outputs.dir }}/*.md
+            ${{ steps.episode.outputs.dir }}/*.csv
+          if-no-files-found: warn
+          retention-days: 14
