@@ -1,8 +1,8 @@
-# Hidden Worlds — Channel Blueprint
+# Underneath Everything — Channel Blueprint
 
 ## 1. Positioning
 
-**Working channel name:** Hidden Worlds  
+**Working channel name:** Underneath Everything  
 **Editorial promise:** Cinematic explanations of the hidden infrastructure, machines and engineering behind everyday life.  
 **Audience:** Curious English-speaking viewers, initially targeting broad international reach in the US, UK, Canada, Australia and other English-speaking markets. Geography is an audience hypothesis, not a guarantee of distribution or RPM.
 
