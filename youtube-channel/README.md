@@ -1,6 +1,6 @@
-# Hidden Worlds — Cinematic Technology Documentaries
+# Underneath Everything — Cinematic Technology Documentaries
 
-This folder contains the launch blueprint for a growth-first, cinematic YouTube documentary channel. The working identity is **Hidden Worlds**; the final public name and handle remain subject to availability checks.
+This folder contains the launch blueprint for a growth-first, cinematic YouTube documentary channel. The working identity is **Underneath Everything**; the final public name and handle remain subject to availability checks.
 
 ## Channel promise
 Reveal the hidden systems, machines and engineering that make modern life possible. Every episode should make a complex subject understandable through original storytelling, credible research, real-world footage and clear visual explanations.
