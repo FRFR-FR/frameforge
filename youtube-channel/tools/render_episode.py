@@ -51,7 +51,7 @@ def make_shot(src, out_path, seconds, seek, section_title, show_lower_third):
         vf_parts.extend([
             "drawbox=x=32:y=ih-100:w=690:h=62:color=0x102B52@0.88:t=fill:enable='lt(t,4)'",
             "drawbox=x=32:y=ih-100:w=8:h=62:color=0xD62839:t=fill:enable='lt(t,4)'",
-            f"drawtext=fontfile={font}:text='{title}':fontcolor=white:fontsize=22:x=56:y=ih-78:enable='lt(t,4)'"
+            f"drawtext=fontfile={font}:text='{title}':fontcolor=white:fontsize=22:x=56:y=main_h-78:enable='lt(t,4)'"
         ])
     vf = ",".join(vf_parts)
     run([
