@@ -30,6 +30,8 @@ Keep the first 8–12 uploads concentrated around infrastructure and engineering
 - Music: properly licensed, mixed below narration, with no distracting constant effects.
 - Captions: accurate, synchronized and readable on mobile.
 - Visual language: footage-first documentaries. Target 75–85% relevant moving real-world B-roll; 70% is the minimum for a release candidate. Use real cable ships, industrial operations, ocean exploration, server rooms and other topic-specific footage where relevant. Use custom maps, technical diagrams and selective 3D cutaways only to explain what footage cannot show. Static slides, narrated PowerPoint panels, still-photo zooms and generic filler are not acceptable as the main visual treatment.
+- Brand palette: **red `#D62839`, white `#FFFFFF`, blue `#1746A2`, and deep navy `#102B52`**. Use red for a narrow top rule and accent bars, blue/navy for subtle lower thirds and caption backing, and white for legible type. Keep footage's natural colours intact; never apply a full-frame red/blue tint.
+- Keep the on-screen identity restrained: one small channel bug, a brief chapter lower-third over moving footage, and readable subtitles. No slide pages or static title-card sequences.
 - No blur, vignette, fake film damage, random overlays or decorative effects without a storytelling purpose.
 - Avoid generic AI imagery when a real source image, archival clip, map or accurate 3D explanation is available.
 
@@ -57,6 +59,7 @@ For every episode, prepare:
 Thumbnail rules:
 - One primary subject, one clear visual idea, strong contrast.
 - Keep text to 0–4 short words, or omit it.
+- Use the channel red/white/blue palette sparingly: white title, navy grounding panel, red accent, blue detail. The photograph must remain the dominant element.
 - No misleading scale, fake disasters, invented damage or false claims.
 - Check legibility at phone size.
 
