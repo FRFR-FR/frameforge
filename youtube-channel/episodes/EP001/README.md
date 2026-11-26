@@ -17,11 +17,13 @@ This is the complete source and production package for the pilot **The Secret Ca
 - report.md and production_report.md — actual export metadata, QC and upgrade list
 - output/render_report.json — measured local-pilot metadata
 
-## Render
-Requires FFmpeg/ffprobe, eSpeak NG or eSpeak, Python 3, NumPy, OpenCV and Pillow. Run python render_episode.py. The script restores the compressed builder if necessary, synthesizes local fallback narration, creates procedural motion graphics, renders the MP4, captions and thumbnail, and writes a render report.
+## Rebuild — footage-first red/white/blue version
+The old 8:54 pilot is a rough procedural-graphics proof, not the public-release master. The replacement renderer uses Kokoro `am_echo`, moving rights-documented B-roll, short chapter lower-thirds over footage, and a restrained red `#D62839`, white `#FFFFFF`, blue `#1746A2`, navy `#102B52` identity. Footage stays naturally coloured; the palette is used only for on-screen labels, accents and captions.
+
+Requires FFmpeg/ffprobe, Python 3.11, Kokoro, and the configured footage source. Run the GitHub Actions workflow `.github/workflows/render-documentary-720p.yml` with `EP001`. The workflow writes a narration WAV/MP3 and SRT even when footage is unavailable; it must skip final rendering rather than substitute static slides. The renderer outputs exactly 1280×720, H.264/AAC, 24 fps if the runner meets validation.
 
 To restore the archived caption file: base64 -d output/captions.srt.gz.b64 | gzip -d > output/captions.srt.
 
 **Export lock:** 1280×720, 16:9, H.264 + AAC. The delivered local pilot's measured frame rate is 18 fps. The CI renderer now targets 24 fps and will report the actual measured rate; it is not complete until a GitHub Actions artifact passes validation. No 1080p or 4K export is permitted.
 
-The source package contains no third-party stock footage or music. The current local pilot is a vector/motion-graphics proof of pipeline, not a maximum-quality public release.
+The first local pilot contains no real-world B-roll and uses eSpeak; it is superseded as a visual/audio master. The replacement run has generated Kokoro Echo narration, but its first B-roll stage was skipped because the `PIXABAY_API_KEY` Actions secret was empty. Therefore no footage-led 720p replacement master has been produced yet. Do not publish the old pilot as though it meets the new visual standard.
