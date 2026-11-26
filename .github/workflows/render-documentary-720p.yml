@@ -111,7 +111,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VIDEO="$EPISODE_DIR/output/Underneath_Everything_EP001_Echo_Broll_720p.mp4"
+          VIDEO="$(find "$EPISODE_DIR/output" -maxdepth 1 -type f -name "*_Kokoro_Broll_720p.mp4" | sort | tail -n 1)"
+          test -n "$VIDEO" || { echo "::error::No B-roll + Kokoro 720p master found."; exit 1; }
           REPORT="$EPISODE_DIR/output/render_report_broll_echo.json"
           test -s "$VIDEO" || { echo "::error::Rendered MP4 is missing or empty."; exit 1; }
           test -s "$REPORT" || { echo "::error::Render report is missing."; exit 1; }
