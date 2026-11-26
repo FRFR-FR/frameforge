@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "voice": "Kokoro Echo (am_echo)",
+  "model": "hexgrad/Kokoro-82M",
+  "language": "American English",
+  "sample_rate": 24000,
+  "channels": 1,
+  "wav_duration_seconds": 30.0,
+  "mp3_duration_seconds": 30.048,
+  "mp3_bitrate": "160 kbps",
+  "cta_start_seconds": 10.0,
+  "segments": [
+    {
+      "id": "hook",
+      "start": 0.0,
+      "duration": 10.0
+    },
+    {
+      "id": "cta",
+      "start": 10.0,
+      "duration": 3.7037037037037033
+    },
+    {
+      "id": "explainer",
+      "start": 13.703703703703702,
+      "duration": 16.296296296296298
+    }
+  ]
+}
