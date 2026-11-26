@@ -1,0 +1,4 @@
+asset_id,filename,asset_type,source_url,creator,license,attribution,download_date,episode_use,verified_by
+ORIG-001,build_episode.py,procedural_graphics,local,Underneath Everything,original code and generated output,not required,2026-11-25,all explanatory motion graphics,source review
+ORIG-002,espeak-en-us,narration,local,espeak-ng-or-espeak,local system voice fallback; no Cartesia credential used,identify local fallback in credits if retained,2026-11-25,full narration,render report
+ORIG-003,thumbnail.png,thumbnail,local,Underneath Everything,original procedural graphic,not required,2026-11-25,YouTube thumbnail concept,visual inspection
