@@ -135,12 +135,13 @@ def main():
          "-vf", thumb_vf, str(thumbnail)])
 
     final = OUT / f"Underneath_Everything_{ROOT.name}_Kokoro_Broll_720p.mp4"
-    captions = OUT / "captions_echo_kokoro.srt"
+    # No subtitles or closed-caption overlays are ever burned into channel videos.
+    # Explicitly disable subtitle-stream mapping on the finished MP4.
     run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-i", str(video_only), "-i", str(audio_file),
-        "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", f"subtitles={captions.as_posix()}:force_style='FontName=Arial,FontSize=17,PrimaryColour=&H00FFFFFF,OutlineColour=&H00101010,BackColour=&HAA16396C,BorderStyle=3,Outline=0,Shadow=0,MarginV=28',scale=1280:720:flags=lanczos,setsar=1,fps=24",
+        "-map", "0:v:0", "-map", "1:a:0", "-sn",
+        "-vf", "scale=1280:720:flags=lanczos,setsar=1,fps=24",
         "-c:v", "libx264", "-preset", "medium", "-crf", "21",
         "-pix_fmt", "yuv420p", "-r", "24",
         "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
@@ -152,6 +153,7 @@ def main():
     ], text=True))
     v = next(s for s in meta["streams"] if s["codec_type"] == "video")
     a = next(s for s in meta["streams"] if s["codec_type"] == "audio")
+    assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "Subtitle streams are forbidden"
     runtime = float(meta["format"]["duration"])
     size = final.stat().st_size
     assert (v["width"], v["height"]) == (1280, 720), f"720p lock failed: {v.get('width')}x{v.get('height')}"
@@ -188,7 +190,8 @@ def main():
         "broll_runtime_seconds": round(broll_duration, 3),
         "broll_coverage_percent": broll_pct,
         "music": "none",
-        "captions": "Sentence-level timestamps from actual Kokoro synthesized speech",
+        "captions": "none",
+        "subtitle_streams": "none",
         "asset_manifest": str(manifest_path.name),
         "full_decode_check": "PASS",
         "public_release_status": "Awaiting human review of footage rights and full playback."
