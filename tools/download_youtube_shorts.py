@@ -65,6 +65,8 @@ def main() -> int:
             sys.executable,
             "-m",
             "yt_dlp",
+            "--js-runtimes",
+            "deno",
             "--no-playlist",
             "--windows-filenames",
             "--format",
