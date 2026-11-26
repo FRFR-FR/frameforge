@@ -3,7 +3,7 @@
 **The Secret Cables That Keep the Internet Alive**  
 Channel: Underneath Everything  
 Target export: 1280 × 720 (720p), MP4 H.264 + AAC  
-Voice: local English eSpeak fallback (temporary production voice)
+Voice: Kokoro am_echo (Echo)
 
 ## 01 — THE INVISIBLE NETWORK
 
