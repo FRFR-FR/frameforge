@@ -1,0 +1,26 @@
+{
+  "episode": "EP001",
+  "title": "The Secret Cables That Keep the Internet Alive",
+  "narration": "narration.md",
+  "default_voice_provider": "Kokoro-82M",
+  "default_voice_id": "am_echo",
+  "default_voice_name": "Echo",
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "aspect_ratio": "16:9",
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "target_fps": 24,
+    "strict_720p_only": true
+  },
+  "visual_policy": {
+    "target_moving_broll_percent": [
+      75,
+      85
+    ],
+    "minimum_moving_broll_percent": 70,
+    "still_slide_sequences_allowed": false,
+    "explanatory_graphics_only_when_needed": true
+  }
+}
