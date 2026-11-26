@@ -169,7 +169,7 @@ jobs:
       - name: Download the existing 720p master artifact
         uses: actions/download-artifact@v4
         with:
-          name: EP001-720p-broll-echo
+          artifact-ids: 15121124907
           run-id: 45816307616
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: master_artifact
