@@ -41,11 +41,12 @@ jobs:
           if [ -n "$REQUESTED" ]; then
             EPISODE_DIR="$REQUESTED"
           else
-            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\n' | sort -V | tail -n 1)"
+            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\\n' | sort -V | tail -n 1)"
           fi
           test -n "$EPISODE_DIR" || { echo "::error::No episode folder containing render_episode.py was found."; exit 1; }
           test -f "$EPISODE_DIR/render_episode.py" || { echo "::error::Missing $EPISODE_DIR/render_episode.py"; exit 1; }
           echo "dir=$EPISODE_DIR" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$(basename "$EPISODE_DIR")" >> "$GITHUB_OUTPUT"
           echo "Selected $EPISODE_DIR"
 
       - name: Install rendering dependencies
@@ -99,7 +100,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.episode.outputs.dir }}-720p
+          name: ${{ steps.episode.outputs.artifact_name }}-720p
           path: |
             ${{ steps.episode.outputs.dir }}/output/
             ${{ steps.episode.outputs.dir }}/*.md
