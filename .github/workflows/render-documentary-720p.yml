@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: documentary-render-${{ github.ref }}
@@ -24,6 +25,7 @@ concurrency:
 
 jobs:
   render:
+    if: ${{ !contains(github.event.head_commit.message || '', '[compress-360p-only]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
@@ -157,4 +159,61 @@ jobs:
             ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
             ${{ steps.episode.outputs.dir }}/assets/broll/
           if-no-files-found: warn
+          retention-days: 14
+
+  compress_360p:
+    if: ${{ contains(github.event.head_commit.message || '', '[compress-360p-only]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download the existing 720p master artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: EP001-720p-broll-echo
+          run-id: 45816307616
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: master_artifact
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Encode separate 360p low-bitrate copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          MASTER="$(find master_artifact -type f -name 'Underneath_Everything_EP001_Kokoro_Broll_720p.mp4' -print -quit)"
+          test -n "$MASTER" || { echo '720p master was not found in the original artifact'; exit 1; }
+          mkdir -p compressed
+          ffmpeg -hide_banner -y -i "$MASTER" -vf "fps=12,scale=640:360:flags=bicubic,setsar=1" -c:v libx264 -preset slow -profile:v baseline -level 3.0 -b:v 180k -maxrate 210k -bufsize 360k -pix_fmt yuv420p -c:a aac -b:a 40k -ac 1 -ar 32000 -movflags +faststart compressed/Underneath_Everything_EP001_360p_12fps_lowbitrate.mp4
+
+      - name: Validate compressed copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          VIDEO='compressed/Underneath_Everything_EP001_360p_12fps_lowbitrate.mp4'
+          python - "$VIDEO" <<'PY'
+          import json, subprocess, sys
+          p = sys.argv[1]
+          meta = json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-of','json',p], text=True))
+          v = next(s for s in meta['streams'] if s['codec_type'] == 'video')
+          a = next(s for s in meta['streams'] if s['codec_type'] == 'audio')
+          assert (v['width'], v['height']) == (640, 360), (v.get('width'), v.get('height'))
+          assert v['avg_frame_rate'] == '12/1', v['avg_frame_rate']
+          assert v['codec_name'] == 'h264'
+          assert a['codec_name'] == 'aac'
+          duration = float(meta['format']['duration'])
+          assert 480 <= duration <= 485, duration
+          size = int(meta['format']['size'])
+          print(f'PASS: 640x360, 12fps, {duration:.2f}s, {size/1_000_000:.2f} MB')
+          PY
+          ffmpeg -v error -i "$VIDEO" -f null -
+
+      - name: Upload only the compressed 360p MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: EP001-360p-low-bitrate-12fps
+          path: compressed/Underneath_Everything_EP001_360p_12fps_lowbitrate.mp4
+          if-no-files-found: error
           retention-days: 14
