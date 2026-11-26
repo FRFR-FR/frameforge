@@ -65,7 +65,7 @@ def main():
  silent=OUT/"temporary_720p_video.mp4"
  run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(concatfile),"-fflags","+genpts","-c:v","libx264","-preset","veryfast","-crf","20","-profile:v","high","-pix_fmt","yuv420p","-r","24","-g","48","-an",str(silent)])
  if abs(duration(silent)-audio_seconds)>.35: raise RuntimeError("Video timeline and narration duration differ by more than 0.35 sec.")
- final=OUT/"Underneath_Everything_EP002_720p.mp4"
+ final=OUT/"Underneath_Everything_EP002_Kokoro_Broll_720p.mp4"
  run(["ffmpeg","-hide_banner","-loglevel","error","-y","-i",str(silent),"-i",str(wav),"-map","0:v:0","-map","1:a:0","-sn","-c:v","copy","-c:a","aac","-b:a","192k","-ar","48000","-ac","2","-shortest","-movflags","+faststart",str(final)])
  m=probe(final); v=next(s for s in m["streams"] if s["codec_type"]=="video"); a=next(s for s in m["streams"] if s["codec_type"]=="audio")
  if (v["width"],v["height"])!=(1280,720) or v["codec_name"]!="h264" or a["codec_name"]!="aac": raise RuntimeError("Strict 720p H.264/AAC validation failed.")
