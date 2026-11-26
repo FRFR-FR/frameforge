@@ -72,10 +72,10 @@ def wrap_caption(text, limit=46):
     if current:
         lines.append(current)
     if len(lines) <= 2:
-        return "\\N".join(lines)
+        return "\n".join(lines)
     # If a long sentence needs more than two lines, balance it into two readable lines.
     midpoint = (len(words) + 1) // 2
-    return " ".join(words[:midpoint]) + "\\N" + " ".join(words[midpoint:])
+    return " ".join(words[:midpoint]) + "\n" + " ".join(words[midpoint:])
 
 def main():
     ap = argparse.ArgumentParser()
@@ -130,6 +130,10 @@ def main():
                 full_parts.append(gap_between_sentences)
                 full_cursor += len(gap_between_sentences) / SR
 
+        # Keep the inter-section pause inside each section WAV so the B-roll timeline
+        # duration exactly matches the combined narration timeline.
+        if sec_index < len(sections):
+            section_parts.append(gap_between_sections)
         section_wave = np.concatenate(section_parts) if section_parts else np.zeros(1, dtype=np.float32)
         section_path = audio_dir / f"{sec['id']}_echo.wav"
         sf.write(section_path, section_wave, SR, subtype="PCM_16")
