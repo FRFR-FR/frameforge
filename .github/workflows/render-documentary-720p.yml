@@ -20,7 +20,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: documentary-render-${{ github.ref }}-${{ contains(github.event.head_commit.message || '', '[compress-360p-only]') && 'compress360' || 'master' }}
+  group: documentary-render-${{ github.ref }}-${{ contains(github.event.head_commit.message || '', '[compress-360p-only]') && format('compress360-{0}', github.sha) || 'master' }}
   cancel-in-progress: false
 
 jobs:
