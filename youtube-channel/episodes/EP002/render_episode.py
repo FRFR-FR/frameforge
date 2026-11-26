@@ -61,7 +61,7 @@ def main():
    p=cutclips[cutname]; actual=duration(p); concat.append(p)
    timeline.append({"start_seconds":round(cursor,3),"duration_seconds":round(actual,3),"section_id":sid,"visual_type":"original conceptual 3D reconstruction, not footage"})
    cursor+=actual
- concatfile=OUT/"concat_timeline.txt"; concatfile.write_text("\\n".join("file '"+p.as_posix().replace("'","'\\\\''")+"'" for p in concat)+"\\n")
+ concatfile=OUT/"concat_timeline.txt"; concatfile.write_text("\n".join("file '"+p.as_posix()+"'" for p in concat)+"\n")
  silent=OUT/"temporary_720p_video.mp4"
  run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(concatfile),"-fflags","+genpts","-c:v","libx264","-preset","veryfast","-crf","20","-profile:v","high","-pix_fmt","yuv420p","-r","24","-g","48","-an",str(silent)])
  if abs(duration(silent)-audio_seconds)>.35: raise RuntimeError("Video timeline and narration duration differ by more than 0.35 sec.")
