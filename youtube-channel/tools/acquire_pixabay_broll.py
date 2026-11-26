@@ -9,15 +9,15 @@ import requests
 API = "https://pixabay.com/api/videos/"
 LICENSE = "Pixabay Content License (combined creative audiovisual work; not for standalone redistribution)"
 PLAN = [
- {"id":"section_01","title":"The invisible network","query":"ocean aerial ship city night","fallback":"smartphone city night aerial","count":3},
- {"id":"section_02","title":"A network under the sea","query":"container cargo ship ocean","fallback":"commercial ship at sea","count":3},
- {"id":"section_03","title":"How light carries information","query":"fiber optic cable close up","fallback":"optical fiber cable technology","count":3},
- {"id":"section_04","title":"Keeping the signal strong","query":"data center server racks","fallback":"server room computers","count":3},
- {"id":"section_05","title":"Why the cable is built in layers","query":"industrial cable manufacturing","fallback":"wire cable factory machinery","count":3},
- {"id":"section_06","title":"How a cable reaches the seabed","query":"cable laying ship ocean","fallback":"offshore marine vessel at sea","count":3},
- {"id":"section_07","title":"When a cable needs repair","query":"ship crane repair vessel sea","fallback":"marine research ship ocean","count":3},
- {"id":"section_08","title":"Why one break does not always mean disconnection","query":"global data center network","fallback":"city aerial night traffic","count":3},
- {"id":"section_09","title":"The world beneath the connection","query":"underwater ocean deep sea","fallback":"ocean aerial ship sunset","count":3}
+ {"id":"section_01","title":"The invisible network","query":"ocean aerial ship city night","fallback":"smartphone city night aerial","count":4},
+ {"id":"section_02","title":"A network under the sea","query":"container cargo ship ocean","fallback":"commercial ship at sea","count":4},
+ {"id":"section_03","title":"How light carries information","query":"fiber optic cable close up","fallback":"optical fiber cable technology","count":4},
+ {"id":"section_04","title":"Keeping the signal strong","query":"data center server racks","fallback":"server room computers","count":4},
+ {"id":"section_05","title":"Why the cable is built in layers","query":"industrial cable manufacturing","fallback":"wire cable factory machinery","count":4},
+ {"id":"section_06","title":"How a cable reaches the seabed","query":"cable laying ship ocean","fallback":"offshore marine vessel at sea","count":4},
+ {"id":"section_07","title":"When a cable needs repair","query":"ship crane repair vessel sea","fallback":"marine research ship ocean","count":4},
+ {"id":"section_08","title":"Why one break does not always mean disconnection","query":"global data center network","fallback":"city aerial night traffic","count":4},
+ {"id":"section_09","title":"The world beneath the connection","query":"underwater ocean deep sea","fallback":"ocean aerial ship sunset","count":4}
 ]
 STOP = {"the","and","at","in","a","an","of","to","with","by","on","under","from","how","why"}
 
@@ -55,7 +55,7 @@ def rank_hits(hits, query):
         if overlap < 1:
             continue
         duration = int(h.get("duration", 0))
-        video = h.get("videos", {}).get("medium") or h.get("videos", {}).get("small")
+        video = next((h.get("videos", {}).get(k) for k in ("large", "medium") if h.get("videos", {}).get(k) and h["videos"][k].get("url") and h["videos"][k].get("width", 0) >= 1280 and h["videos"][k].get("height", 0) >= 720), None)
         if not video or not video.get("url") or video.get("width", 0) < 1280 or video.get("height", 0) < 720 or duration < 7:
             continue
         score = overlap * 100 + min(duration, 90) + min(int(h.get("downloads", 0)) // 100, 50)
@@ -92,10 +92,10 @@ def main():
                 seen.add(hit["id"])
                 if len(chosen) >= section["count"]:
                     break
-        if len(chosen) < 2:
+        if len(chosen) < 3:
             raise SystemExit(
                 f"Only {len(chosen)} relevant clips found for {section['id']}; "
-                "minimum is 2. Do not substitute PowerPoint slides or unrelated filler."
+                "minimum is 3. Do not substitute PowerPoint slides or unrelated filler."
             )
 
         for idx, (hit, rendition) in enumerate(chosen, start=1):
