@@ -26,10 +26,10 @@ Keep the first 8–12 uploads concentrated around infrastructure and engineering
 - Shorts: **720×1280**, 9:16.
 - Frame-rate target: 24–30 fps when the actual runner supports it; report measured fps exactly. Never relabel or interpolate frames merely to claim a target.
 - Runtime target: 8–12 minutes; let the story determine the final duration.
-- Narration: clear, conversational and expressive; avoid synthetic over-emphasis.
+- Narration: Kokoro TTS `am_echo` (American English male Echo) by default; create separate WAV and MP3 deliverables. Check pronunciation, pacing and audio quality. Never silently substitute eSpeak or another voice provider.
 - Music: properly licensed, mixed below narration, with no distracting constant effects.
 - Captions: accurate, synchronized and readable on mobile.
-- Visual language: real documentary footage, restrained cinematic grading, custom maps, technical diagrams and selective 3D cutaways.
+- Visual language: footage-first documentaries. Target 75–85% relevant moving real-world B-roll; 70% is the minimum for a release candidate. Use real cable ships, industrial operations, ocean exploration, server rooms and other topic-specific footage where relevant. Use custom maps, technical diagrams and selective 3D cutaways only to explain what footage cannot show. Static slides, narrated PowerPoint panels, still-photo zooms and generic filler are not acceptable as the main visual treatment.
 - No blur, vignette, fake film damage, random overlays or decorative effects without a storytelling purpose.
 - Avoid generic AI imagery when a real source image, archival clip, map or accurate 3D explanation is available.
 
