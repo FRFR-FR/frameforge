@@ -23,15 +23,15 @@ Keep the first 8–12 uploads concentrated around infrastructure and engineering
 ## 3. Format and visual identity
 
 - Long-form master: **1280×720 (720p), 16:9, H.264 MP4, AAC stereo**.
-- Shorts: **720×1280**, 9:16.
+- Every final video deliverable, including promotional extracts, stays **1280×720 (720p), 16:9, MP4 H.264 + AAC**. No vertical, 360p, 1080p or 4K exports.
 - Frame-rate target: 24–30 fps when the actual runner supports it; report measured fps exactly. Never relabel or interpolate frames merely to claim a target.
 - Runtime target: 8–12 minutes; let the story determine the final duration.
 - Narration: Kokoro TTS `am_echo` (American English male Echo) by default; create separate WAV and MP3 deliverables. Check pronunciation, pacing and audio quality. Never silently substitute eSpeak or another voice provider.
 - Music: properly licensed, mixed below narration, with no distracting constant effects.
-- Captions/subtitles: **never use them**. Do not burn in subtitles, generate SRT/VTT caption sidecars, or add subtitle streams to exported videos. Narration remains audio-only.
+- Captions/subtitles/text overlays: **never use them**. Do not burn in subtitles, generate SRT/VTT files, add subtitle streams, shot labels, lower thirds, chapter cards or a channel bug. Narration remains audio-only.
 - Visual language: footage-first documentaries. Target 75–85% relevant moving real-world B-roll; 70% is the minimum for a release candidate. Use real cable ships, industrial operations, ocean exploration, server rooms and other topic-specific footage where relevant. Use custom maps, technical diagrams and selective 3D cutaways only to explain what footage cannot show. Static slides, narrated PowerPoint panels, still-photo zooms and generic filler are not acceptable as the main visual treatment.
-- Brand palette: **red `#D62839`, white `#FFFFFF`, blue `#1746A2`, and deep navy `#102B52`**. Use red for a narrow top rule and accent bars, blue/navy for restrained chapter lower-thirds, and white for legible type. Keep footage's natural colours intact; never apply a full-frame red/blue tint.
-- Keep the on-screen identity restrained: one small channel bug and, where useful, a brief chapter lower-third over moving footage. Never add subtitles or spoken-word captions. No slide pages or static title-card sequences.
+- Brand palette: **red `#D62839`, white `#FFFFFF`, blue `#1746A2`, and deep navy `#102B52`**. Use red, white, blue and navy in the thumbnail and original production artwork, but keep documentary footage natural and free of labels, lower thirds, borders and decorative overlays.
+- Keep the documentary image clean: no channel bug, subtitles, captions, lower thirds, chapter cards, title overlays or shot labels. No slide pages or static title-card sequences.
 - No blur, vignette, fake film damage, random overlays or decorative effects without a storytelling purpose.
 - Avoid generic AI imagery when a real source image, archival clip, map or accurate 3D explanation is available.
 
@@ -59,7 +59,7 @@ For every episode, prepare:
 Thumbnail rules:
 - One primary subject, one clear visual idea, strong contrast.
 - Keep text to 0–4 short words, or omit it.
-- Use the channel red/white/blue palette sparingly: white title, navy grounding panel, red accent, blue detail. The photograph must remain the dominant element.
+- Use the channel red/white/blue palette sparingly: white title, navy grounding panel, red accent, blue detail. The main subject must remain dominant; an original illustration is acceptable when it is clearly not presented as documentary photography.
 - No misleading scale, fake disasters, invented damage or false claims.
 - Check legibility at phone size.
 
@@ -73,7 +73,7 @@ Growth loop:
 
 ## 6. Publishing cadence
 
-Start with one polished long-form episode per week while the production system is being validated. Increase only after research, rights clearance, visual quality and review are consistently reliable. Shorts should be independently edited mini-stories, not random crops.
+Start with one polished long-form episode per week while the production system is being validated. Increase only after research, rights clearance, visual quality and review are consistently reliable. Short-form ideas may be planned, but do not export a final Short at another resolution or aspect ratio unless the owner explicitly revises the permanent 720p 16:9 export lock.
 
 ## 7. Monetization and policy guardrails
 
@@ -98,6 +98,6 @@ An episode is publish-ready only when:
 - Names, dates, numbers and technical descriptions have been checked.
 - Every asset has a documented usage basis.
 - Narration is intelligible and synchronized.
-- No black frames, missing media, subtitle tracks, burned-in captions or accidental silence remain.
+- No black frames, missing media, subtitle tracks, burned-in text or accidental silence remain.
 - The thumbnail and title accurately represent the story.
 - The final MP4 is exactly 1280×720, H.264 + AAC, and has passed full decode and human review.

@@ -21,7 +21,7 @@ episodes/
     edit/
       storyboard.csv
     output/
-      captions.srt
+      thumbnail.png
       thumbnail.png
       render_report.json
     render_episode.py
@@ -42,7 +42,7 @@ Create a source ledger with claim ID, exact claim, primary URL, publisher, publi
 Write for the ear. Mark factual statements with claim IDs. Verify names, dates, quantities and technical explanations. Avoid unsupported superlatives and sensational claims.
 
 ### 4 — Visual plan
-Every narration beat needs a visual purpose: evidence footage, map, custom diagram, 3D cutaway, on-screen figure or deliberate transition. Use real footage for the real world and original graphics to explain invisible systems.
+Every narration beat needs a visual purpose: evidence footage, map, custom diagram, 3D cutaway or deliberate transition. Do not add on-screen explanatory text. Use real footage for the real world and original graphics to explain invisible systems.
 
 ### 5 — Asset acquisition
 Acquire a small, project-specific set of footage sequentially. Respect provider API terms, rate limits and required 24-hour caching; do not harvest search results or systematically mass-download stock libraries. Verify file integrity and usage terms. Record source URL, creator, license, attribution, date and intended use. If a clip fails, try a relevant fallback and document the substitution. Never use unrelated filler. Pixabay's API documentation expressly asks clients to cache requests for 24 hours and prohibits systematic mass downloads.
@@ -51,7 +51,7 @@ Acquire a small, project-specific set of footage sequentially. Respect provider 
 Generate approved narration with Kokoro English pipeline, voice ID `am_echo` (Echo), after script approval. Export a separate WAV and MP3. Check pronunciation, pacing and intelligibility. Align scene durations to actual synthesized audio. Do not silently substitute eSpeak or Cartesia; if Kokoro fails, report the exact blocker and do not label a fallback preview as the master.
 
 ### 7 — Assembly
-Build the timeline from a structured shot list. Keep the output strictly 1280×720 for landscape long-form or 720×1280 for vertical Shorts. Do not create 1080p or 4K intermediates or deliverables.
+Build the timeline from a structured shot list. Keep every final video deliverable strictly 1280×720, 16:9, H.264 + AAC. No vertical, 360p, 1080p or 4K exports or intermediates.
 
 ### 8 — Quality control
 
@@ -59,7 +59,7 @@ Automated checks:
 - Video stream exists and is exactly 1280×720 for long-form.
 - H.264 video and AAC audio are present.
 - Measured frame rate and duration are reported without relabeling.
-- Captions are valid and timestamps are ordered.
+- There are no caption files or subtitle streams; no burned-in captions or text overlays.
 - No missing or zero-byte assets.
 - Full MP4 decode succeeds.
 
@@ -71,7 +71,7 @@ Human checks:
 - Check thumbnail/title accuracy and representative frames.
 
 ### 9 — Publishing package
-Prepare title, thumbnail, description, chapters, captions, source notes and Shorts cut list. Upload only after explicit channel-owner approval; never auto-publish from a commit.
+Prepare title, thumbnail, description, source notes and optional short-form concepts. Do not create captions or subtitles. Any final video export remains 1280×720, 16:9. Upload only after explicit channel-owner approval; never auto-publish from a commit.
 
 ## GitHub workflow
 
