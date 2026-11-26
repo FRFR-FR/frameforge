@@ -1,0 +1,19 @@
+{
+  "file": "Underneath_Everything_EP001_720p.mp4",
+  "size_bytes": 66761480,
+  "size_mb_decimal": 66.76148,
+  "size_mib": 63.6687088,
+  "duration_seconds": 534.666667,
+  "width": 1280,
+  "height": 720,
+  "fps": "18/1",
+  "video_codec": "h264",
+  "audio_codec": "aac",
+  "audio_sample_rate": "48000",
+  "audio_channels": 2,
+  "narration": "Local eSpeak English US fallback; Cartesia was not available in the render runtime",
+  "visuals": "Original procedural vector/motion graphics; no third-party footage or music",
+  "captions": "167 ordered SRT cues; final cue requires end-time alignment",
+  "full_decode_check": "PASS (FFmpeg decoded the complete MP4 without reported errors)",
+  "audio_levels": {"mean_volume_db": -20.1, "max_volume_db": -4.2}
+}
