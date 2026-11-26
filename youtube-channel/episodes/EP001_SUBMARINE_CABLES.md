@@ -10,8 +10,8 @@
 
 Use title 2 only if the script cites a current authoritative source and carefully explains the metric. Avoid implying every internet connection travels through a submarine cable at every stage.
 
-**Format:** 8–10 minute cinematic documentary  
-**Master:** 1920×1080, 30 fps  
+**Format:** 8–10 minute cinematic documentary; delivered pilot is 8:54.667 at a measured 18 fps  
+**Master:** 1280×720 (720p), 16:9, H.264 MP4 + AAC; target 24–30 fps only when measured output supports it  
 **Audience promise:** By the end, viewers understand how submarine fibre-optic cables move data between continents, how they are installed and repaired, and why this hidden infrastructure matters.
 
 ## Core narrative
@@ -20,7 +20,9 @@ The internet feels wireless, but international connectivity depends heavily on p
 
 ## Research checklist
 
-Do not finalize narration until these questions are verified from current, credible sources:
+Research is now documented in `EP001/research/source_ledger.csv` and `EP001/research/fact_check.md`. The full pilot narration is in `EP001/script/narration.md`.
+
+
 
 1. How many submarine cable systems are currently in service, and what is the date and definition behind the count?
 2. What share of international data traffic is carried by submarine cables, and how do sources define that share?
@@ -64,7 +66,7 @@ Timing is provisional; the approved script and narration determine final runtime
 
 "Every second, people send messages, watch videos and move information between continents. It feels as if the internet is everywhere and nowhere at once. But beneath the surface of the oceans, a vast physical network helps make that connection possible: fibre-optic cables laid across the seabed. And when one of those cables fails, the problem is not just underwater. It can affect the routes that connect people, businesses and entire regions. So how does this hidden network actually work?"
 
-This is an opening draft, not a complete approved script. Verify all factual claims and adapt the wording to the selected sources.
+The full narration is in the completed EP001 package. This opening excerpt is retained here as the original planning draft.
 
 ## Visual asset plan
 
@@ -110,6 +112,10 @@ Keep the image technically plausible and avoid showing a cable glowing like a ne
 - [ ] Title and thumbnail accurately represent the story.
 - [ ] Final MP4 metadata and playback checked.
 - [ ] Shorts independently edited and reviewed.
+
+## Completed package
+
+See [`EP001/README.md`](EP001/README.md) for the completed pilot package, actual export metadata, rights status and remaining public-release upgrades.
 
 ## Next episode bridge
 
