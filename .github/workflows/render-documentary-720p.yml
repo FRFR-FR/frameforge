@@ -20,13 +20,15 @@ permissions:
   actions: read
 
 concurrency:
-  group: documentary-render-${{ github.ref }}-${{ contains(github.event.head_commit.message || '', '[compress-360p-only]') && format('compress360-{0}', github.sha) || 'master' }}
+  group: documentary-render-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   render:
-    if: ${{ !contains(github.event.head_commit.message || '', '[compress-360p-only]') }}
     runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.episode.outputs.artifact_name }}
+      video_ready: ${{ steps.validate.outputs.video_ready }}
     timeout-minutes: 180
     env:
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
@@ -113,7 +115,8 @@ jobs:
           set -euo pipefail
           python "$EPISODE_DIR/render_episode.py"
 
-      - name: Validate exact 720p, Kokoro voice, B-roll ratio and full decode
+      - name: Validate exact 720p, Kokoro voice, B-roll ratio, no captions and full decode
+        id: validate
         if: steps.broll.outputs.available == 'true' && steps.render.outcome == 'success'
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
@@ -139,6 +142,8 @@ jobs:
           assert a["codec_name"] == "aac", f"Expected AAC, got {a['codec_name']}"
           assert a.get("sample_rate") == "48000", f"Expected 48kHz, got {a.get('sample_rate')}"
           assert v.get("avg_frame_rate") == "24/1", f"Expected measured 24fps, got {v.get('avg_frame_rate')}"
+          assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "Subtitle streams are forbidden"
+          assert report.get("captions") == "none", "Captions must be disabled"
           assert report.get("narration_provider") == "Kokoro-82M", "Kokoro narration is mandatory"
           assert report.get("narration_voice_id") == "am_echo", "Echo voice is mandatory"
           coverage = float(report.get("broll_coverage_percent", 0))
@@ -147,31 +152,33 @@ jobs:
           PY
           ffmpeg -v error -i "$VIDEO" -f null -
           echo "Full-file decode check passed."
+          echo "video_ready=true" >> "$GITHUB_OUTPUT"
 
-      - name: Upload video, narration, source footage and reports
+      - name: Upload no-caption 720p master and QC reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.episode.outputs.artifact_name }}-720p-broll-echo
+          name: ${{ steps.episode.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
           path: |
-            ${{ steps.episode.outputs.dir }}/output/
+            ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
+            ${{ steps.episode.outputs.dir }}/output/render_report_broll_echo.json
+            ${{ steps.episode.outputs.dir }}/output/broll_timeline.json
+            ${{ steps.episode.outputs.dir }}/output/thumbnail_rwb.png
             ${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
             ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
-            ${{ steps.episode.outputs.dir }}/assets/broll/
           if-no-files-found: warn
           retention-days: 14
 
   compress_360p:
-    if: ${{ contains(github.event.head_commit.message || '', '[compress-360p-only]') }}
+    needs: render
+    if: ${{ needs.render.outputs.video_ready == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Download the existing 720p master artifact
+      - name: Download this run's clean 720p master
         uses: actions/download-artifact@v4
         with:
-          artifact-ids: 15121124907
-          run-id: 45816307616
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ needs.render.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
           path: master_artifact
 
       - name: Install FFmpeg
@@ -179,20 +186,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Encode separate 360p low-bitrate copy
+      - name: Encode separate 360p no-caption copy
         shell: bash
         run: |
           set -euo pipefail
-          MASTER="$(find master_artifact -type f -name 'Underneath_Everything_EP001_Kokoro_Broll_720p.mp4' -print -quit)"
-          test -n "$MASTER" || { echo '720p master was not found in the original artifact'; exit 1; }
+          MASTER="$(find master_artifact -type f -name 'Underneath_Everything_*_Kokoro_Broll_720p.mp4' -print -quit)"
+          test -n "$MASTER" || { echo 'Clean no-caption 720p master was not found'; exit 1; }
           mkdir -p compressed
-          ffmpeg -hide_banner -y -i "$MASTER" -vf "fps=12,scale=640:360:flags=bicubic,setsar=1" -c:v libx264 -preset slow -profile:v baseline -level 3.0 -b:v 180k -maxrate 210k -bufsize 360k -pix_fmt yuv420p -c:a aac -b:a 40k -ac 1 -ar 32000 -movflags +faststart compressed/Underneath_Everything_EP001_360p_12fps_lowbitrate.mp4
+          ffmpeg -hide_banner -y -i "$MASTER" -map 0:v:0 -map 0:a:0 -sn \
+            -vf "fps=24,scale=640:360:flags=lanczos,setsar=1" \
+            -c:v libx264 -preset slow -profile:v main -b:v 450k -maxrate 500k -bufsize 900k \
+            -pix_fmt yuv420p -r 24 \
+            -c:a aac -b:a 64k -ac 2 -ar 48000 \
+            -shortest -movflags +faststart \
+            compressed/Underneath_Everything_EP001_360p_24fps_450k_no_captions.mp4
 
-      - name: Validate compressed copy
+      - name: Validate compressed copy has no subtitle track
         shell: bash
         run: |
           set -euo pipefail
-          VIDEO='compressed/Underneath_Everything_EP001_360p_12fps_lowbitrate.mp4'
+          VIDEO='compressed/Underneath_Everything_EP001_360p_24fps_450k_no_captions.mp4'
           python - "$VIDEO" <<'PY'
           import json, subprocess, sys
           p = sys.argv[1]
@@ -200,20 +213,22 @@ jobs:
           v = next(s for s in meta['streams'] if s['codec_type'] == 'video')
           a = next(s for s in meta['streams'] if s['codec_type'] == 'audio')
           assert (v['width'], v['height']) == (640, 360), (v.get('width'), v.get('height'))
-          assert v['avg_frame_rate'] == '12/1', v['avg_frame_rate']
+          assert v['avg_frame_rate'] == '24/1', v['avg_frame_rate']
           assert v['codec_name'] == 'h264'
+          assert int(v.get('bit_rate', 0)) >= 300000, v.get('bit_rate')
           assert a['codec_name'] == 'aac'
+          assert not any(s['codec_type'] == 'subtitle' for s in meta['streams']), "Subtitle track found"
           duration = float(meta['format']['duration'])
           assert 480 <= duration <= 485, duration
           size = int(meta['format']['size'])
-          print(f'PASS: 640x360, 12fps, {duration:.2f}s, {size/1_000_000:.2f} MB')
+          print(f'PASS: 640x360, 24fps, video bitrate {int(v["bit_rate"])/1000:.0f} kbps, {duration:.2f}s, {size/1_000_000:.2f} MB, no subtitle stream')
           PY
           ffmpeg -v error -i "$VIDEO" -f null -
 
       - name: Upload only the compressed 360p MP4
         uses: actions/upload-artifact@v4
         with:
-          name: EP001-360p-low-bitrate-12fps
-          path: compressed/Underneath_Everything_EP001_360p_12fps_lowbitrate.mp4
+          name: ${{ needs.render.outputs.artifact_name }}-360p-24fps-no-captions
+          path: compressed/Underneath_Everything_EP001_360p_24fps_450k_no_captions.mp4
           if-no-files-found: error
           retention-days: 14
