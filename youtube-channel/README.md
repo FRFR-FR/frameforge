@@ -8,6 +8,11 @@ Reveal the hidden systems, machines and engineering that make modern life possib
 ## Launch focus
 **Hidden infrastructure**, beginning with submarine telecommunications cables.
 
+## Visual identity
+- Primary palette: red `#D62839`, white `#FFFFFF`, blue `#1746A2`, deep navy `#102B52`.
+- Preserve real-footage colour. Use the palette only in restrained chapter labels, subtitle backing, thin frame rules and thumbnails.
+- Documentary master must be footage-first: target 75–85% moving, relevant B-roll and never below 70% for a release candidate. No PowerPoint-like scene sequences.
+
 ## Strict export lock
 - Long-form master: **1280×720 (720p), 16:9, MP4 H.264 + AAC**.
 - Shorts: **720×1280**, 9:16.
