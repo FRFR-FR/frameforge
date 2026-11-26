@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: frameforge-ballpoint-pen-kokoro-echo
+  group: frameforge-ballpoint-pen-kokoro-echo-v2
   cancel-in-progress: false
 
 jobs:
