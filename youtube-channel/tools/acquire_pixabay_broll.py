@@ -67,6 +67,19 @@ def main():
     ap.add_argument("--episode-dir", required=True)
     args = ap.parse_args()
     root = Path(args.episode_dir).resolve()
+    plan_file = root / "broll_plan.json"
+    plan = PLAN
+    if plan_file.exists():
+        plan = json.loads(plan_file.read_text(encoding="utf-8"))
+        if not isinstance(plan, list) or not plan:
+            raise SystemExit("broll_plan.json must contain a non-empty list.")
+        required = {"id", "title", "query", "fallback", "count"}
+        for item in plan:
+            if not required.issubset(item):
+                raise SystemExit(f"Invalid B-roll plan item; required keys: {sorted(required)}")
+            if not re.fullmatch(r"section_[0-9]{2}", item["id"]):
+                raise SystemExit(f"Invalid section id: {item['id']}")
+            item["count"] = min(4, max(3, int(item["count"])))
     key = os.environ.get("PIXABAY_API_KEY", "").strip()
     if not key:
         raise SystemExit("PIXABAY_API_KEY is missing. No footage can be acquired; refusing a slide-only render.")
@@ -76,7 +89,7 @@ def main():
     manifest = []
     seen = set()
 
-    for section in PLAN:
+    for section in plan:
         section_dir = assets_root / section["id"]
         section_dir.mkdir(parents=True, exist_ok=True)
         chosen = []
@@ -135,7 +148,7 @@ def main():
         "provider": "Pixabay API",
         "api_secret_name": "PIXABAY_API_KEY",
         "unique_clips": len(manifest),
-        "sections": {s["id"]: sum(1 for m in manifest if m["section_id"] == s["id"]) for s in PLAN},
+        "sections": {s["id"]: sum(1 for m in manifest if m["section_id"] == s["id"]) for s in plan},
         "license": LICENSE,
         "source_attribution": "Pixabay contributor attribution retained in manifest; attribution is not generally required by the Content License but is recommended.",
         "note": "Every clip was selected by query/tag relevance and downloaded sequentially. Confirm third-party marks, recognizable people and property rights before commercial publication."
