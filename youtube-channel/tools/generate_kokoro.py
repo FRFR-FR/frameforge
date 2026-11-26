@@ -52,31 +52,6 @@ def synthesize(pipeline, text):
         raise RuntimeError(f"Kokoro returned no audio for sentence: {text[:100]}")
     return np.concatenate(waves)
 
-def srt_time(value):
-    ms = max(0, int(round(value * 1000)))
-    h, rem = divmod(ms, 3_600_000)
-    m, rem = divmod(rem, 60_000)
-    s, ms = divmod(rem, 1000)
-    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
-
-def wrap_caption(text, limit=46):
-    words = text.split()
-    lines, current = [], ""
-    for word in words:
-        candidate = (current + " " + word).strip()
-        if len(candidate) > limit and current:
-            lines.append(current)
-            current = word
-        else:
-            current = candidate
-    if current:
-        lines.append(current)
-    if len(lines) <= 2:
-        return "\n".join(lines)
-    # If a long sentence needs more than two lines, balance it into two readable lines.
-    midpoint = (len(words) + 1) // 2
-    return " ".join(words[:midpoint]) + "\n" + " ".join(words[midpoint:])
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episode-dir", required=True)
@@ -97,10 +72,8 @@ def main():
     full_cursor = 0.0
     gap_between_sentences = np.zeros(int(0.18 * SR), dtype=np.float32)
     gap_between_sections = np.zeros(int(0.42 * SR), dtype=np.float32)
-    srt_lines = []
     sentence_rows = []
     section_rows = []
-    cue = 1
 
     for sec_index, sec in enumerate(sections, start=1):
         section_parts = []
@@ -117,13 +90,6 @@ def main():
                 "text": sentence, "start_seconds": round(start, 3),
                 "end_seconds": round(end, 3), "duration_seconds": round(duration, 3)
             })
-            srt_lines.extend([
-                str(cue),
-                f"{srt_time(start)} --> {srt_time(end)}",
-                wrap_caption(sentence),
-                ""
-            ])
-            cue += 1
             full_cursor = end
             if sent_index < len(sentences(sec["text"])):
                 section_parts.append(gap_between_sentences)
@@ -158,7 +124,6 @@ def main():
         "-b:a", "192k", "-ar", "48000", str(mp3_path)
     ], check=True)
 
-    (output / "captions_echo_kokoro.srt").write_text("\n".join(srt_lines), encoding="utf-8")
     metadata = {
         "provider": "Kokoro-82M",
         "voice_id": VOICE,
@@ -171,7 +136,7 @@ def main():
         "wav_size_bytes": wav_path.stat().st_size,
         "mp3": mp3_path.name,
         "mp3_size_bytes": mp3_path.stat().st_size,
-        "caption_timing": "Sentence-level timestamps taken from the actual synthesized sentence audio",
+        "subtitles": "none; no SRT or caption sidecar is generated",
         "sections": section_rows,
         "sentences": sentence_rows
     }
