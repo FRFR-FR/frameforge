@@ -1,0 +1,10 @@
+scene,timecode_guide,section,narrative_purpose,visual_plan,asset_type,source_claims,notes
+01,00:00-00:58,The Invisible Network,Open with a message crossing an ocean and reveal the physical path,City-at-night silhouette and animated seabed cable line,Original motion graphics,C01,Cold open; no logo intro
+02,00:58-01:55,A Network Under the Sea,Show that the network is many systems and landing stations,Illustrative world map with clearly marked non-geographic routes and landing-station diagram,Original map/diagram,C02;C03,Must say illustrative and not a route map
+03,01:55-02:50,How Light Carries Information,Explain fibre core/cladding and optical signal,Macro fibre cross-section and moving light pulse,Original technical diagram,C07,Do not imply one flash per letter
+04,02:50-03:50,Keeping the Signal Strong,Explain repeaters/amplifiers and power feed,Repeater module cutaway and simplified power path,Original technical diagram,C08,Label as typical architecture; designs vary
+05,03:50-04:50,Why the Cable Is Built in Layers,Explain protection varies by environment,Layered cable cross-section and shallow/deep comparison,Original technical diagram,C07,Mark simplified and not to scale
+06,04:50-05:55,How a Cable Reaches the Seabed,Show route survey and laying ship workflow,Route survey map cable tank and ship payout animation,Original motion graphics,C05;C06,No precise route data
+07,05:55-07:00,When a Cable Needs Repair,Explain common faults and high-level repair,Fault marker repair vessel silhouette and cable recovery diagram,Original motion graphics,C04;C06,No procedural operational detail
+08,07:00-08:10,Why One Break Does Not Always Mean Disconnection,Explain rerouting and unequal resilience,Network rerouting animation with alternate paths,Original network diagram,C03;C05,Illustrative reroute; not live network telemetry
+09,08:10-08:54,The World Beneath the Connection,Pay off the opening and close with the physical network,Return to ocean/cable visual and concise end card,Original motion graphics,C01-C08,Current local pilot runtime 8:54.667
