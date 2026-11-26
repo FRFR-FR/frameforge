@@ -28,10 +28,10 @@ Keep the first 8–12 uploads concentrated around infrastructure and engineering
 - Runtime target: 8–12 minutes; let the story determine the final duration.
 - Narration: Kokoro TTS `am_echo` (American English male Echo) by default; create separate WAV and MP3 deliverables. Check pronunciation, pacing and audio quality. Never silently substitute eSpeak or another voice provider.
 - Music: properly licensed, mixed below narration, with no distracting constant effects.
-- Captions: accurate, synchronized and readable on mobile.
+- Captions/subtitles: **never use them**. Do not burn in subtitles, generate SRT/VTT caption sidecars, or add subtitle streams to exported videos. Narration remains audio-only.
 - Visual language: footage-first documentaries. Target 75–85% relevant moving real-world B-roll; 70% is the minimum for a release candidate. Use real cable ships, industrial operations, ocean exploration, server rooms and other topic-specific footage where relevant. Use custom maps, technical diagrams and selective 3D cutaways only to explain what footage cannot show. Static slides, narrated PowerPoint panels, still-photo zooms and generic filler are not acceptable as the main visual treatment.
-- Brand palette: **red `#D62839`, white `#FFFFFF`, blue `#1746A2`, and deep navy `#102B52`**. Use red for a narrow top rule and accent bars, blue/navy for subtle lower thirds and caption backing, and white for legible type. Keep footage's natural colours intact; never apply a full-frame red/blue tint.
-- Keep the on-screen identity restrained: one small channel bug, a brief chapter lower-third over moving footage, and readable subtitles. No slide pages or static title-card sequences.
+- Brand palette: **red `#D62839`, white `#FFFFFF`, blue `#1746A2`, and deep navy `#102B52`**. Use red for a narrow top rule and accent bars, blue/navy for restrained chapter lower-thirds, and white for legible type. Keep footage's natural colours intact; never apply a full-frame red/blue tint.
+- Keep the on-screen identity restrained: one small channel bug and, where useful, a brief chapter lower-third over moving footage. Never add subtitles or spoken-word captions. No slide pages or static title-card sequences.
 - No blur, vignette, fake film damage, random overlays or decorative effects without a storytelling purpose.
 - Avoid generic AI imagery when a real source image, archival clip, map or accurate 3D explanation is available.
 
@@ -98,6 +98,6 @@ An episode is publish-ready only when:
 - Names, dates, numbers and technical descriptions have been checked.
 - Every asset has a documented usage basis.
 - Narration is intelligible and synchronized.
-- No black frames, missing media, broken captions or accidental silence remain.
+- No black frames, missing media, subtitle tracks, burned-in captions or accidental silence remain.
 - The thumbnail and title accurately represent the story.
 - The final MP4 is exactly 1280×720, H.264 + AAC, and has passed full decode and human review.
