@@ -28,6 +28,12 @@ jobs:
           ffmpeg -version
           ffprobe -version
 
+      - name: Set up Deno JavaScript runtime
+        uses: denoland/setup-deno@v2
+
+      - name: Verify Deno runtime
+        run: deno --version
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
