@@ -1,0 +1,65 @@
+[
+  {
+    "id": "section_01",
+    "title": "The invisible network",
+    "query": "ocean aerial cargo ship city night",
+    "fallback": "smartphone city night aerial",
+    "count": 3
+  },
+  {
+    "id": "section_02",
+    "title": "A network under the sea",
+    "query": "container ship ocean shipping vessel",
+    "fallback": "commercial ship at sea",
+    "count": 3
+  },
+  {
+    "id": "section_03",
+    "title": "How light carries information",
+    "query": "fiber optic cable close up glass fiber",
+    "fallback": "optical fiber cable technology",
+    "count": 3
+  },
+  {
+    "id": "section_04",
+    "title": "Keeping the signal strong",
+    "query": "data center server racks",
+    "fallback": "server room computers",
+    "count": 3
+  },
+  {
+    "id": "section_05",
+    "title": "Why the cable is built in layers",
+    "query": "industrial cable manufacturing machinery",
+    "fallback": "wire cable factory",
+    "count": 3
+  },
+  {
+    "id": "section_06",
+    "title": "How a cable reaches the seabed",
+    "query": "submarine cable laying ship ocean",
+    "fallback": "offshore marine vessel cable ship",
+    "count": 3
+  },
+  {
+    "id": "section_07",
+    "title": "When a cable needs repair",
+    "query": "marine repair vessel crane ship",
+    "fallback": "research vessel ocean deck",
+    "count": 3
+  },
+  {
+    "id": "section_08",
+    "title": "Why one break does not always mean disconnection",
+    "query": "data center infrastructure network server racks",
+    "fallback": "city aerial night traffic",
+    "count": 3
+  },
+  {
+    "id": "section_09",
+    "title": "The world beneath the connection",
+    "query": "deep sea underwater ocean exploration",
+    "fallback": "ocean aerial ship sunset",
+    "count": 3
+  }
+]
