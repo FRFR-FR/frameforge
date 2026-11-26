@@ -3,7 +3,7 @@
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
-import argparse, csv, hashlib, json, os, re, time
+import argparse, csv, hashlib, json, os, re, time, subprocess
 import requests
 
 API = "https://pixabay.com/api/videos/"
@@ -67,7 +67,9 @@ def main():
     ap.add_argument("--episode-dir", required=True)
     args = ap.parse_args()
     root = Path(args.episode_dir).resolve()
-    plan_file = root / "broll_plan.json"
+    plan_file = root / "assets" / "broll_plan.json"
+    if not plan_file.exists():
+        plan_file = root / "broll_plan.json"
     plan = PLAN
     if plan_file.exists():
         plan = json.loads(plan_file.read_text(encoding="utf-8"))
@@ -101,7 +103,7 @@ def main():
             for hit, rendition in rank_hits(data.get("hits", []), query):
                 if hit["id"] in seen:
                     continue
-                chosen.append((hit, rendition))
+                chosen.append((hit, rendition, query))
                 seen.add(hit["id"])
                 if len(chosen) >= section["count"]:
                     break
@@ -111,7 +113,7 @@ def main():
                 "minimum is 3. Do not substitute PowerPoint slides or unrelated filler."
             )
 
-        for idx, (hit, rendition) in enumerate(chosen, start=1):
+        for idx, (hit, rendition, selected_query) in enumerate(chosen, start=1):
             filename = f"{section['id']}_{idx:02d}_{hit['id']}.mp4"
             target = section_dir / filename
             if not target.exists() or target.stat().st_size < 100_000:
@@ -123,8 +125,27 @@ def main():
                                 f.write(chunk)
             if target.stat().st_size < 100_000:
                 raise SystemExit(f"Downloaded footage is incomplete: {target}")
+            meta = json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-show_format","-of","json",str(target)],text=True))
+            video = next((s for s in meta.get("streams",[]) if s.get("codec_type")=="video"),None)
+            if not video or int(video.get("width",0))<1280 or int(video.get("height",0))<720:
+                raise SystemExit(f"Downloaded footage does not contain 1280x720 video: {target}")
+            clip_duration = float(meta.get("format",{}).get("duration",0))
+            if clip_duration < 7:
+                raise SystemExit(f"Downloaded footage is shorter than 7 seconds: {target}")
+            subprocess.run(["ffmpeg","-v","error","-i",str(target),"-f","null","-"],check=True)
+            digest = hashlib.sha256()
+            with target.open("rb") as source_file:
+                for block in iter(lambda: source_file.read(1024*1024),b""):
+                    digest.update(block)
             manifest.append({
                 "asset_id": str(hit["id"]), "section_id": section["id"],
+                "search_query": selected_query,
+                "fallback_used": selected_query != section["query"],
+                "file_size_bytes": target.stat().st_size,
+                "sha256": digest.hexdigest(),
+                "validated_codec": video.get("codec_name",""),
+                "validated_duration_seconds": round(clip_duration,3),
+                "full_decode_check": "PASS",
                 "filename": str(target.relative_to(root)),
                 "source_url": hit.get("pageURL", ""),
                 "contributor": hit.get("user", ""),
@@ -149,6 +170,10 @@ def main():
         "api_secret_name": "PIXABAY_API_KEY",
         "unique_clips": len(manifest),
         "sections": {s["id"]: sum(1 for m in manifest if m["section_id"] == s["id"]) for s in plan},
+        "fallback_substitutions": [{"section_id":m["section_id"],"query_used":m["search_query"],"asset_id":m["asset_id"],"tags":m["tags"]} for m in manifest if m["fallback_used"]],
+        "sequential_downloads": True,
+        "per_item_metadata_probe": "PASS",
+        "per_item_full_decode": "PASS",
         "license": LICENSE,
         "source_attribution": "Pixabay contributor attribution retained in manifest; attribution is not generally required by the Content License but is recommended.",
         "note": "Every clip was selected by query/tag relevance and downloaded sequentially. Confirm third-party marks, recognizable people and property rights before commercial publication."

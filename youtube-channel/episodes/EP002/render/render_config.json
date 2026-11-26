@@ -1,0 +1,40 @@
+{
+  "episode": "EP002",
+  "title": "The Machine That Prints the World's Most Advanced Chips",
+  "master": {
+    "container": "mp4",
+    "video_codec": "H.264",
+    "audio_codec": "AAC",
+    "width": 1280,
+    "height": 720,
+    "aspect_ratio": "16:9",
+    "fps_target": 24,
+    "fps_policy": "Report measured ffprobe rate; never fake or relabel.",
+    "runtime_target_seconds": [
+      480,
+      720
+    ],
+    "audio_sample_rate_hz": 48000,
+    "audio_channels": 2
+  },
+  "captions": "none",
+  "subtitles": "none",
+  "burned_in_text": "none",
+  "forbidden_resolutions": [
+    "1080p",
+    "4K",
+    "360p",
+    "all non-720p resolutions"
+  ],
+  "narration": {
+    "provider": "Kokoro-82M",
+    "voice_id": "am_echo",
+    "language": "American English"
+  },
+  "visual": {
+    "minimum_relevant_moving_broll_percent": 70,
+    "target_percent": 80,
+    "original_3d_cutaways": "conceptual explanatory reconstructions, not real footage"
+  },
+  "auto_publish": false
+}

@@ -1,0 +1,11 @@
+sequence,beat,approximate_plan_only,real_world_footage,original_3d,edit_purpose
+01,Cold open,00:00-00:35,semiconductor cleanroom and relevant industrial equipment,tin droplet and plasma source,Establish the physical process immediately
+02,Layered chip,00:35-01:25,wafer handling and fab robots,stacked patterned layers,Show the chip as a built-up structure
+03,Wavelength,01:25-02:15,lithography system and optics,relative beam wavelength,Explain why EUV exists
+04,Tin source,02:15-03:15,industrial laser and precision manufacturing,two-pulse droplet plasma,Explain light generation
+05,Mirrors and vacuum,03:15-04:05,optical polishing and vacuum equipment,reflective path,Explain why mirrors and vacuum are required
+06,Reticle and resist,04:05-05:00,wafer coating and semiconductor processing,reticle-to-wafer projection,Follow one exposure onto silicon
+07,Wafer stage,05:00-06:00,precision robotics and metrology,sensor-guided wafer stage,Show controlled synchronized movement
+08,Layer alignment,06:00-07:05,wafer inspection and fab operations,layer stack overlay,Explain the repeat process
+09,High-NA milestone,07:05-08:25,advanced fab and manufacturing footage,0.33 versus 0.55 optical cone,Explain the 2026 update with limits
+10,Ecosystem payoff,08:25-end,factory/wafer/processor manufacturing footage,pullback to the wider fab,Resolve the question and avoid overselling one machine
