@@ -38,7 +38,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
 
       - name: Cache Kokoro model and Pixabay search cache
         uses: actions/cache@v4
@@ -86,18 +85,25 @@ jobs:
           python youtube-channel/tools/generate_kokoro.py --episode-dir "$EPISODE_DIR"
 
       - name: Acquire rights-documented B-roll sequentially
+        id: broll
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
           if [ -z "$PIXABAY_API_KEY" ]; then
-            echo "::error::PIXABAY_API_KEY is missing. Refusing to create a slide-only episode."
-            exit 1
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            mkdir -p "$EPISODE_DIR/output"
+            printf '%s\n' "Kokoro narration generated. Video rendering is blocked because PIXABAY_API_KEY is empty or unavailable. No slide-based substitute was created." > "$EPISODE_DIR/output/production_status.md"
+            echo "::warning::PIXABAY_API_KEY is missing. Narration will still be packaged; video rendering is skipped rather than replaced with slides."
+            exit 0
           fi
           python youtube-channel/tools/acquire_pixabay_broll.py --episode-dir "$EPISODE_DIR"
+          echo "available=true" >> "$GITHUB_OUTPUT"
 
       - name: Render B-roll-first documentary
+        id: render
+        if: steps.broll.outputs.available == 'true'
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
@@ -106,6 +112,7 @@ jobs:
           python "$EPISODE_DIR/render_episode.py"
 
       - name: Validate exact 720p, Kokoro voice, B-roll ratio and full decode
+        if: steps.broll.outputs.available == 'true' && steps.render.outcome == 'success'
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
