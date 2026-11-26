@@ -1,0 +1,48 @@
+name: Download authorized YouTube Shorts
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_rights_and_public_artifact:
+        description: "I own or have permission to download/reuse every listed video, and I understand the artifact is temporarily accessible to anyone with access to this PUBLIC repository."
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    if: ${{ inputs.confirm_rights_and_public_artifact == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out Frameforge
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install yt-dlp
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ytdlp.txt
+
+      - name: Verify FFmpeg
+        run: ffmpeg -version
+
+      - name: Download the five Shorts sequentially
+        env:
+          FRAMEFORGE_VIDEO_RIGHTS_CONFIRMED: "yes"
+        run: python tools/download_youtube_shorts.py --output-dir downloads/youtube-shorts
+
+      - name: Package downloads as a short-lived artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frameforge-youtube-shorts-${{ github.run_number }}
+          path: downloads/youtube-shorts/
+          if-no-files-found: error
+          retention-days: 1
