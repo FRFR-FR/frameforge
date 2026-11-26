@@ -1,0 +1,2 @@
+# Optional dependency for downloading videos you own or are licensed to reuse.
+yt-dlp[default]
