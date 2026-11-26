@@ -45,10 +45,10 @@ Write for the ear. Mark factual statements with claim IDs. Verify names, dates, 
 Every narration beat needs a visual purpose: evidence footage, map, custom diagram, 3D cutaway, on-screen figure or deliberate transition. Use real footage for the real world and original graphics to explain invisible systems.
 
 ### 5 — Asset acquisition
-Download one item at a time. Verify file integrity and usage terms. Record source URL, creator, license, attribution, date and intended use. If an asset fails, try a relevant fallback and document the substitution. Never use unrelated filler.
+Acquire a small, project-specific set of footage sequentially. Respect provider API terms, rate limits and required 24-hour caching; do not harvest search results or systematically mass-download stock libraries. Verify file integrity and usage terms. Record source URL, creator, license, attribution, date and intended use. If a clip fails, try a relevant fallback and document the substitution. Never use unrelated filler. Pixabay's API documentation expressly asks clients to cache requests for 24 hours and prohibits systematic mass downloads.
 
 ### 6 — Narration and sound
-Generate narration only after script approval. Check pronunciation, pacing and intelligibility. Align scene durations to actual spoken phrases. Keep music below narration and use effects sparingly.
+Generate approved narration with Kokoro English pipeline, voice ID `am_echo` (Echo), after script approval. Export a separate WAV and MP3. Check pronunciation, pacing and intelligibility. Align scene durations to actual synthesized audio. Do not silently substitute eSpeak or Cartesia; if Kokoro fails, report the exact blocker and do not label a fallback preview as the master.
 
 ### 7 — Assembly
 Build the timeline from a structured shot list. Keep the output strictly 1280×720 for landscape long-form or 720×1280 for vertical Shorts. Do not create 1080p or 4K intermediates or deliverables.
