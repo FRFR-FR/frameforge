@@ -8,17 +8,19 @@
     "width": 1280,
     "height": 720,
     "aspect_ratio": "16:9",
-    "measured_frame_rate_fps": 18,
+    "local_pilot_measured_frame_rate_fps": 18,
+    "ci_render_target_frame_rate_fps": 24,
     "audio_sample_rate_hz": 48000,
     "audio_channels": 2
   },
-  "target_duration_minutes": [8, 10],
-  "measured_duration_seconds": 534.666667,
-  "measured_file_bytes": 66761480,
-  "measured_file_size_mb_decimal": 66.76148,
-  "measured_file_size_mib": 63.668709,
-  "narration_provider": "eSpeak English US local fallback",
+  "target_duration_minutes": [8, 12],
+  "local_pilot_measured_duration_seconds": 534.666667,
+  "local_pilot_measured_file_bytes": 66761480,
+  "local_pilot_measured_file_size_mb_decimal": 66.76148,
+  "local_pilot_measured_file_size_mib": 63.668709,
+  "narration_provider_local_pilot": "eSpeak English US local fallback",
   "visual_method": "original procedural motion graphics; no live-action stock footage",
   "music": "none",
-  "export_lock": "Do not create any 1080p or 4K exports. Final video must be exactly 1280x720."
+  "export_lock": "Do not create any 1080p or 4K exports. Final video must be exactly 1280x720.",
+  "frame_rate_policy": "CI render must be genuinely generated at 24 fps and verified by ffprobe; do not relabel or interpolate a lower-rate file."
 }
