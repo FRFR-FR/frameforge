@@ -2,7 +2,7 @@
 
 **Channel:** Underneath Everything  
 **Episode:** The Secret Cables That Keep the Internet Alive  
-**Status:** 720p pilot rendered and locally quality-checked; not yet a maximum-quality public release.
+**Status:** Original 720p pilot is a superseded technical rough cut. The B-roll-first/Kokoro rebuild generated the Echo narration successfully, but final video rendering was skipped because the repository Actions secret `PIXABAY_API_KEY` was empty.
 
 ## Export facts
 
@@ -38,3 +38,14 @@ Three Shorts concepts are prepared in the episode brief. No separate Shorts vide
 ## Release status
 
 The MP4 has not been uploaded to YouTube. A human review and approval is required before publication. The standalone MP4, SRT, thumbnail and compact source pack were provided in the ChatGPT conversation; the MP4 is not committed to Git history.
+
+
+## Replacement render attempt — 26 November 2026
+
+- Kokoro-82M voice: `am_echo` (Echo); narration WAV, MP3 and sentence-timed SRT generated successfully by GitHub Actions.
+- B-roll download: skipped. The job log showed `PIXABAY_API_KEY` was empty; no real footage was downloaded.
+- Video render and full-video QC: skipped because footage was unavailable. No new MP4 exists from this run.
+- New visual identity committed to the shared renderer: red `#D62839`, white `#FFFFFF`, blue `#1746A2`, navy `#102B52`. Natural footage colours are preserved.
+- Action needed: configure `PIXABAY_API_KEY` under the repository's **Settings → Secrets and variables → Actions**. Keep the key private; never paste it into chat or commit it to the repository.
+- Workflow run: https://github.com/FRFR-FR/frameforge/actions/runs/45804386715
+- Kokoro narration artifact: https://github.com/FRFR-FR/frameforge/actions/runs/45804386715/artifacts/15109785204
