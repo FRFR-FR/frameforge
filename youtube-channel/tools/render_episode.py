@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """B-roll-first documentary assembly. Strict landscape export: 1280x720."""
 from pathlib import Path
-import argparse, json, math, subprocess
+import argparse, json, math, re, subprocess
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--episode-dir", required=True)
@@ -28,8 +28,32 @@ def list_scene_clips(scene_id):
         raise RuntimeError(f"{scene_id}: at least 3 topic-matched moving B-roll clips are required; found {len(files)}")
     return files
 
-def make_shot(src, out_path, seconds, seek):
-    vf = "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,fps=24,format=yuv420p"
+def make_shot(src, out_path, seconds, seek, section_title, show_lower_third):
+    # The footage remains naturally coloured. Red, white and blue are used only
+    # for a restrained broadcast-style identity, never as a full-frame tint.
+    title = re.sub(r"[^A-Za-z0-9 &-]", "", section_title).strip()[:42]
+    font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    vf_parts = [
+        "scale=1280:720:force_original_aspect_ratio=increase",
+        "crop=1280:720",
+        "setsar=1",
+        "fps=24",
+        "format=yuv420p",
+        # Thin red top rule and blue bottom rule.
+        "drawbox=x=0:y=0:w=iw:h=6:color=0xD62839:t=fill",
+        "drawbox=x=0:y=ih-6:w=iw:h=6:color=0x1746A2:t=fill",
+        # Small, consistent channel bug on the footage.
+        "drawbox=x=32:y=24:w=360:h=40:color=0x102B52@0.78:t=fill",
+        "drawbox=x=32:y=24:w=7:h=40:color=0xD62839:t=fill",
+        f"drawtext=fontfile={font}:text='UNDERNEATH EVERYTHING':fontcolor=white:fontsize=17:x=52:y=35"
+    ]
+    if show_lower_third:
+        vf_parts.extend([
+            "drawbox=x=32:y=ih-100:w=690:h=62:color=0x102B52@0.88:t=fill:enable='lt(t,4)'",
+            "drawbox=x=32:y=ih-100:w=8:h=62:color=0xD62839:t=fill:enable='lt(t,4)'",
+            f"drawtext=fontfile={font}:text='{title}':fontcolor=white:fontsize=22:x=56:y=ih-78:enable='lt(t,4)'"
+        ])
+    vf = ",".join(vf_parts)
     run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-stream_loop", "-1", "-i", str(src),
@@ -75,7 +99,7 @@ def main():
             max_seek = max(0.0, src_duration - min(shot_seconds, SHOT_SECONDS))
             seek = (cycle * 2.9) % max_seek if max_seek > 0.1 else 0.0
             out_path = shot_dir / f"shot_{len(shot_files)+1:04d}.mp4"
-            make_shot(src, out_path, shot_seconds, seek)
+            make_shot(src, out_path, shot_seconds, seek, sec.get('title', scene_id), shot_index == 0)
             shot_files.append(out_path)
             timeline.append({
                 "start_seconds": round(timeline_cursor, 3),
@@ -93,13 +117,30 @@ def main():
          "-f", "concat", "-safe", "0", "-i", str(concat),
          "-c", "copy", "-fflags", "+genpts", str(video_only)])
 
+    # Use an actual B-roll frame for the thumbnail, with the same R/W/B brand language.
+    thumbnail = OUT / "thumbnail_rwb.png"
+    thumb_vf = (
+        "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,"
+        "drawbox=x=0:y=0:w=iw:h=8:color=0xD62839:t=fill,"
+        "drawbox=x=0:y=0:w=700:h=170:color=0x102B52@0.86:t=fill,"
+        "drawbox=x=0:y=0:w=12:h=170:color=0xD62839:t=fill,"
+        "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
+        "text='THE HIDDEN NETWORK':fontcolor=white:fontsize=48:x=42:y=48,"
+        "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:"
+        "text='UNDER THE OCEAN':fontcolor=white:fontsize=28:x=44:y=112,"
+        "drawbox=x=0:y=ih-8:w=iw:h=8:color=0x1746A2:t=fill"
+    )
+    run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+         "-ss", "8", "-i", str(video_only), "-frames:v", "1",
+         "-vf", thumb_vf, str(thumbnail)])
+
     final = OUT / f"Underneath_Everything_{ROOT.name}_Kokoro_Broll_720p.mp4"
     captions = OUT / "captions_echo_kokoro.srt"
     run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-i", str(video_only), "-i", str(audio_file),
         "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", f"subtitles={captions.as_posix()}:force_style='FontName=Arial,FontSize=17,Outline=2,Shadow=0,MarginV=28',scale=1280:720:flags=lanczos,setsar=1,fps=24",
+        "-vf", f"subtitles={captions.as_posix()}:force_style='FontName=Arial,FontSize=17,PrimaryColour=&H00FFFFFF,OutlineColour=&H00101010,BackColour=&HAA16396C,BorderStyle=3,Outline=0,Shadow=0,MarginV=28',scale=1280:720:flags=lanczos,setsar=1,fps=24",
         "-c:v", "libx264", "-preset", "medium", "-crf", "21",
         "-pix_fmt", "yuv420p", "-r", "24",
         "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
@@ -140,7 +181,9 @@ def main():
         "narration_voice_id": "am_echo",
         "narration_file_wav": audio_report["wav"],
         "narration_file_mp3": audio_report["mp3"],
-        "visuals": "Relevant moving real-world B-roll from licensed Pixabay downloads; no PowerPoint slides, still-image zooms or generic filler.",
+        "visuals": "Relevant moving real-world B-roll; restrained red/white/blue broadcast overlays and lower thirds; natural footage colour preserved; no PowerPoint slides or still-image zooms.",
+        "brand_palette": {"red": "#D62839", "white": "#FFFFFF", "blue": "#1746A2", "navy": "#102B52"},
+        "thumbnail": thumbnail.name,
         "broll_assets": clip_count,
         "broll_runtime_seconds": round(broll_duration, 3),
         "broll_coverage_percent": broll_pct,
