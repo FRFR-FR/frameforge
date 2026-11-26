@@ -93,7 +93,7 @@ def main():
          "-f", "concat", "-safe", "0", "-i", str(concat),
          "-c", "copy", "-fflags", "+genpts", str(video_only)])
 
-    final = OUT / "Underneath_Everything_EP001_Echo_Broll_720p.mp4"
+    final = OUT / f"Underneath_Everything_{ROOT.name}_Kokoro_Broll_720p.mp4"
     captions = OUT / "captions_echo_kokoro.srt"
     run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
@@ -126,7 +126,7 @@ def main():
 
     report = {
         "episode": ROOT.name,
-        "title": "The Secret Cables That Keep the Internet Alive",
+        "title": (json.loads((ROOT / "episode_meta.json").read_text(encoding="utf-8")).get("title") if (ROOT / "episode_meta.json").exists() else ROOT.name),
         "file": final.name,
         "file_size_bytes": size,
         "file_size_mb_decimal": round(size / 1_000_000, 2),
