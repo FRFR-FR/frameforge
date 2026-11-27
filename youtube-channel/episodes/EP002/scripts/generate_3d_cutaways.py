@@ -317,19 +317,21 @@ SCENES = [
     ("scene_09_high_na", scene_high_na),
     ("scene_10_supply_chain", scene_supply_chain)
 ]
-def progress_handler(scene, name):
-    frame = scene.frame_current
-    if frame == 1 or frame % 48 == 0 or frame == FRAMES:
-        print(f"FRAME_PROGRESS {name} {frame}/{FRAMES}", flush=True)
+def make_progress_handler(name):
+    def report_frame(scene, *args):
+        frame = scene.frame_current
+        if frame == 1 or frame % 48 == 0 or frame == FRAMES:
+            print(f"FRAME_PROGRESS {name} {frame}/{FRAMES}", flush=True)
+    return report_frame
 
 
 for name, function in SCENES:
     folder = os.path.join(out, name)
     os.makedirs(folder, exist_ok=True)
     function(folder)
-    handler = lambda scene, scene_name=name: progress_handler(scene, scene_name)
-    bpy.app.handlers.render_post.append(handler)
+    handler = make_progress_handler(name)
+    bpy.app.handlers.render_write.append(handler)
     print(f"STARTING_RENDER {name} engine={bpy.context.scene.render.engine} size={W}x{H} fps={FPS} frames={FRAMES}", flush=True)
     bpy.ops.render.render(animation=True)
-    bpy.app.handlers.render_post.remove(handler)
+    bpy.app.handlers.render_write.remove(handler)
     print("RENDERED", name, flush=True)
