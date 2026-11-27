@@ -1,0 +1,62 @@
+name: Generate photoreal suburban short dialogue
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "projects/photoreal-suburban-short/generate_dialogue.py"
+      - ".github/workflows/photoreal-suburban-dialogue.yml"
+permissions:
+  contents: read
+jobs:
+  dialogue:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      OMP_NUM_THREADS: "4"
+      MKL_NUM_THREADS: "4"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: .cache/huggingface
+          key: frameforge-suburban-kokoro-82m-v1
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - name: Install CPU PyTorch and Kokoro
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0+cpu torchaudio==2.6.0+cpu
+          python -m pip install "kokoro==0.9.4" "numpy==1.26.4" soundfile
+      - name: Generate two-speaker dialogue
+        run: python projects/photoreal-suburban-short/generate_dialogue.py
+      - name: Verify dialogue
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=Path("projects/photoreal-suburban-short/output")
+          data=json.loads((d/"suburban-dialogue-timing.json").read_text())
+          assert data["status"]=="PASS"
+          assert abs(data["duration_seconds"]-30)<.12
+          assert len(data["segments"])==4
+          assert {s["voice"] for s in data["segments"]}=={"am_echo","af_bella"}
+          for p in [d/"suburban-dialogue.mp3",d/"suburban-dialogue.wav"]:
+              assert p.is_file() and p.stat().st_size>10000
+              print(p.name,p.stat().st_size,"bytes")
+          print(json.dumps(data,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-Suburban-Dialogue-Kokoro
+          path: |
+            projects/photoreal-suburban-short/output/suburban-dialogue.mp3
+            projects/photoreal-suburban-short/output/suburban-dialogue.wav
+            projects/photoreal-suburban-short/output/suburban-dialogue-timing.json
+          if-no-files-found: error
+          retention-days: 14
