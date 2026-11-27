@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Five animated Blender cutaways. These are conceptual reconstructions, not factory footage."""
+"""Ten animated Blender cutaways. These are conceptual reconstructions, not factory footage."""
 import bpy, math, os, sys
 from mathutils import Vector
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 out = os.path.abspath(args[args.index("--output-dir") + 1]) if "--output-dir" in args else os.path.abspath("output/3d_frames")
 os.makedirs(out, exist_ok=True)
-W, H, FPS, FRAMES = 1280, 720, 24, 120
+W, H, FPS, FRAMES = 1280, 720, 24, 288
 
 def mat(n, c, metal=0.2, emit=None):
     m = bpy.data.materials.new(n)
@@ -78,6 +78,12 @@ def setup(folder, camloc=(8, -12, 7), target=(0, 0, 0)):
     bpy.ops.object.camera_add(location=camloc)
     cam = bpy.context.object
     cam.rotation_euler = (Vector(target) - cam.location).to_track_quat("-Z", "Y").to_euler()
+    cam.keyframe_insert(data_path="location", frame=1)
+    cam.keyframe_insert(data_path="rotation_euler", frame=1)
+    cam.location = Vector(camloc) * 0.93 + Vector(target) * 0.07
+    cam.rotation_euler = (Vector(target) - cam.location).to_track_quat("-Z", "Y").to_euler()
+    cam.keyframe_insert(data_path="location", frame=FRAMES)
+    cam.keyframe_insert(data_path="rotation_euler", frame=FRAMES)
     scene.camera = cam
     world = bpy.data.worlds.new("studio world")
     scene.world = world
@@ -126,7 +132,7 @@ def scene_tin(folder):
     p.scale = (2.0, 1.5, 1.5)
     p.keyframe_insert(data_path="scale", frame=55)
     p.scale = (.8, .8, .8)
-    p.keyframe_insert(data_path="scale", frame=120)
+    p.keyframe_insert(data_path="scale", frame=FRAMES)
     setup(folder, (6, -9, 5), (0, 0, 0))
 
 def scene_mirrors(folder):
@@ -185,12 +191,111 @@ def scene_layers(folder):
         animate(disk, (0, 0, z + 1), (0, 0, z))
     setup(folder, (7, -11, 6), (0, 0, .6))
 
+
+def scene_wafer_macro(folder):
+    clear()
+    cube("cleanroom studio floor", (0, 0, -0.55), (9, 8, 0.3), DARK)
+    wafer = cyl("full silicon wafer", (0, 0, 0), 2.25, 0.14, WAFER)
+    for row in range(-4, 5):
+        for column in range(-4, 5):
+            x, y = column * 0.43, row * 0.43
+            die = cube("repeating die field", (x, y, 0.095), (0.36, 0.36, 0.025), STEEL, 0.012)
+            if (row + column) % 2 == 0:
+                trace = cube("die interconnect", (x, y, 0.116), (0.26, 0.025, 0.012), CYAN, 0.002)
+                trace.rotation_euler[2] = (row - column) * 0.07
+    wafer.rotation_euler[2] = 0
+    wafer.keyframe_insert(data_path="rotation_euler", frame=1)
+    wafer.rotation_euler[2] = math.radians(18)
+    wafer.keyframe_insert(data_path="rotation_euler", frame=FRAMES)
+    setup(folder, (6, -9, 5), (0, 0, 0))
+
+
+def scene_wavelength(folder):
+    clear()
+    cube("dark optics bench", (0, 0, -0.6), (10, 6, 0.3), DARK)
+    for row, y, color, wavelength in [
+        (0, -1.15, RED, 0.95),
+        (1, 1.15, CYAN, 0.38)
+    ]:
+        points = []
+        for index in range(65):
+            x = -4.2 + index * 0.132
+            z = 0.25 + math.sin(index * wavelength) * 0.28
+            points.append((x, y, z))
+        for a, b in zip(points, points[1:]):
+            beam("conceptual wavelength path", a, b, 0.018, color)
+        pulse = sphere("travelling light pulse", points[0], 0.12, color)
+        animate(pulse, points[0], points[-1])
+    setup(folder, (6, -10, 5.5), (0, 0, 0.2))
+
+
+def scene_process_cycle(folder):
+    clear()
+    cube("process floor", (0, 0, -0.6), (11, 6, 0.3), DARK)
+    stations = [
+        (-3.6, "deposition chamber", STEEL),
+        (-1.2, "lithography chamber", GOLD),
+        (1.2, "etch chamber", STEEL),
+        (3.6, "inspection chamber", SILVER)
+    ]
+    for x, name, material in stations:
+        cube(name, (x, 0, 0.7), (1.5, 1.9, 1.8), material, 0.08)
+        cube("process window", (x, -0.98, 0.8), (0.85, 0.05, 0.65), CYAN, 0.02)
+        for side in (-1, 1):
+            cyl("status lamp", (x + side * 0.52, -1.05, 1.35), 0.08, 0.08, RED)
+    wafer = cyl("wafer moving between process tools", (-4.4, -0.2, -0.05), 0.55, 0.09, WAFER)
+    animate(wafer, (-4.4, -0.2, -0.05), (4.4, -0.2, -0.05))
+    setup(folder, (8, -13, 7), (0, 0, 0.4))
+
+
+def scene_high_na(folder):
+    clear()
+    cube("optical comparison floor", (0, 0, -0.65), (10, 6, 0.3), DARK)
+    for x, aperture, color in [(-2.2, 0.72, RED), (2.2, 1.15, CYAN)]:
+        cyl("optical aperture", (x, 0, 0.75), aperture, 0.18, STEEL)
+        for angle in range(0, 360, 30):
+            rad = math.radians(angle)
+            start = (x + aperture * math.cos(rad), aperture * math.sin(rad), 0.85)
+            end = (x * 0.15, 0.0, -0.05)
+            beam("numerical aperture ray", start, end, 0.018, color)
+        wafer = cyl("exposure plane", (x * 0.15, 0, -0.18), 0.8, 0.1, WAFER)
+        wafer.scale = (0.9, 0.9, 0.9)
+    setup(folder, (7, -12, 6), (0, 0, 0.25))
+
+
+def scene_supply_chain(folder):
+    clear()
+    cube("factory floor", (0, 0, -0.65), (10, 8, 0.3), DARK)
+    wafer = cyl("central silicon wafer", (0, 0, 0), 1.35, 0.12, WAFER)
+    for angle in range(0, 360, 60):
+        rad = math.radians(angle)
+        x, y = 3.1 * math.cos(rad), 3.1 * math.sin(rad)
+        cube("supporting process tool", (x, y, 0.55), (1.2, 1.2, 1.4), STEEL, 0.08)
+        cube("tool inspection window", (x, y - 0.62, 0.65), (0.55, 0.05, 0.5), CYAN, 0.02)
+        beam("factory material route", (x * 0.78, y * 0.78, 0.45), (0, 0, 0.2), 0.025, CYAN)
+        arm = cyl("robotic transfer arm", (x * 0.6, y * 0.6, 0.95), 0.09, 1.0, GOLD)
+        arm.rotation_euler[2] = rad
+        arm.keyframe_insert(data_path="rotation_euler", frame=1)
+        arm.rotation_euler[2] = rad + math.radians(35)
+        arm.keyframe_insert(data_path="rotation_euler", frame=FRAMES)
+    wafer.rotation_euler[2] = 0
+    wafer.keyframe_insert(data_path="rotation_euler", frame=1)
+    wafer.rotation_euler[2] = math.radians(24)
+    wafer.keyframe_insert(data_path="rotation_euler", frame=FRAMES)
+    setup(folder, (8, -12, 7), (0, 0, 0.25))
+
+
 SCENES = [
+    ("scene_01_wafer_macro", scene_wafer_macro),
+    ("scene_02_layer_stack", scene_layers),
+    ("scene_03_wavelength", scene_wavelength),
     ("scene_04_tin_plasma", scene_tin),
     ("scene_05_mirror_optics", scene_mirrors),
     ("scene_06_reticle_projection", scene_reticle),
     ("scene_07_wafer_stage", scene_stage),
-    ("scene_08_layer_stack", scene_layers)
+    ("scene_08_process_cycle", scene_process_cycle),
+    ("scene_09_high_na", scene_high_na),
+    ("scene_10_supply_chain", scene_supply_chain)
 ]
 for name, function in SCENES:
     folder = os.path.join(out, name)

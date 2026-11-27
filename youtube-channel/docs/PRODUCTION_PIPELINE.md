@@ -1,93 +1,44 @@
-# Reusable Production Pipeline
+# Underneath Everything — documentary production pipeline
 
-## Overview
+## Editorial and visual standard
 
-GitHub is the source of truth. Frameforge/FFmpeg assembles episodes. GitHub Actions validates packages and runs renders only when the runner has sufficient resources. Standard hosted runners are not guaranteed to be fast or free for long 3D renders.
+- Every episode must be a distinct research-led cinematic documentary.
+- Real, relevant, moving B-roll is the visual foundation: target 75–85% of runtime; hard release-candidate minimum 70%.
+- Use only the minimum rights-cleared footage needed. Pixabay API requests must be cached for 24 hours, made sequentially, and kept within the published API policy. No systematic bulk downloads.
+- NOAA Ocean Exploration video is public domain and should be credited to NOAA Ocean Exploration or NOAA when used. OOI Regional Cabled Array archive video may be reused with proper attribution. Other sources require documented reuse rights.
+- Search topic-specific terms and relevant fallbacks. Verify every clip against its intended scene. Record source page, creator, license/credit, download date, query, intended use, relevance and full-decode result.
+- Never describe generic stock as a particular event, factory, location or proprietary process without evidence.
+- Use dynamic 3D, animated maps and diagrams only where a camera cannot show the mechanism. Keep explanatory motion graphics to 15–25% of runtime; text/diagram-only cards normally below 10%.
+- No static slide presentation, title-card sequence, still-photo zooms, repeated infographic panels or unrelated filler.
 
-## Folder convention
+## Brand
 
-```text
-episodes/
-  EP001/
-    README.md
-    research/
-      source_ledger.csv
-      fact_check.md
-    script/
-      narration.md
-    assets/
-      manifest.csv
-      thumbnail_concept.md
-    edit/
-      storyboard.csv
-    output/
-      thumbnail.png
-      thumbnail.png
-      render_report.json
-    render_episode.py
-    build_episode.py.gz.b64
-```
+- Red #D62839, white #FFFFFF, blue #1746A2, deep navy #102B52.
+- Preserve footage's natural colours.
+- Use a thin red top rule, one small channel bug, short chapter labels over moving footage and readable subtitles with restrained navy/blue backplates.
+- No decorative text walls or unnecessary labels.
 
-Do not commit large raw video files, audio intermediates or private API keys. Keep MP4s as GitHub Actions artifacts or other approved storage. Store credentials in GitHub Actions Secrets and never print them in logs.
+## Narration
 
-## Stage gates
+- Kokoro English pipeline, voice ID am_echo (American English male Echo).
+- Save separate narration WAV and compressed MP3; record provider, voice ID, durations and file sizes.
+- Split long scripts into paragraph-sized sections, then synthesize naturally with clean pauses.
+- Never silently substitute eSpeak, Cartesia or another provider. If Kokoro fails, report the exact error and stop audio approval. A clearly labelled temporary preview is not an approved narration master.
 
-### 1 — Topic approval
-Record the central question, viewer promise, audience hypothesis, competing coverage, visual feasibility and what makes this treatment distinct.
+## Technical export lock
 
-### 2 — Research
-Create a source ledger with claim ID, exact claim, primary URL, publisher, publication/update date, access date, supported claim, confidence and caveats. Prefer primary sources and clearly separate facts, estimates and interpretation.
+- Long-form final: exactly 1280×720, 16:9, MP4 H.264 video and AAC audio.
+- Shorts, if rendered: exactly 720×1280.
+- Never export 1080p or 4K. Keep all intermediate encoded video at 720p or lower.
+- Target 24–30 fps only when the actual runner supports it reliably. Report measured ffprobe fps; never fake or relabel it.
+- Target 8–12 minutes only when natural narration supports it. Never stretch shots or pad.
+- Large media stays out of normal Git history; use GitHub Actions artifacts or another approved artifact store.
 
-### 3 — Script
-Write for the ear. Mark factual statements with claim IDs. Verify names, dates, quantities and technical explanations. Avoid unsupported superlatives and sensational claims.
+## Quality control and release
 
-### 4 — Visual plan
-Every narration beat needs a visual purpose: evidence footage, map, custom diagram, 3D cutaway or deliberate transition. Do not add on-screen explanatory text. Use real footage for the real world and original graphics to explain invisible systems.
-
-### 5 — Asset acquisition
-Acquire a small, project-specific set of footage sequentially. Respect provider API terms, rate limits and required 24-hour caching; do not harvest search results or systematically mass-download stock libraries. Verify file integrity and usage terms. Record source URL, creator, license, attribution, date and intended use. If a clip fails, try a relevant fallback and document the substitution. Never use unrelated filler. Pixabay's API documentation expressly asks clients to cache requests for 24 hours and prohibits systematic mass downloads.
-
-### 6 — Narration and sound
-Generate approved narration with Kokoro English pipeline, voice ID `am_echo` (Echo), after script approval. Export a separate WAV and MP3. Check pronunciation, pacing and intelligibility. Align scene durations to actual synthesized audio. Do not silently substitute eSpeak or Cartesia; if Kokoro fails, report the exact blocker and do not label a fallback preview as the master.
-
-### 7 — Assembly
-Build the timeline from a structured shot list. Keep every final video deliverable strictly 1280×720, 16:9, H.264 + AAC. No vertical, 360p, 1080p or 4K exports or intermediates.
-
-### 8 — Quality control
-
-Automated checks:
-- Video stream exists and is exactly 1280×720 for long-form.
-- H.264 video and AAC audio are present.
-- Measured frame rate and duration are reported without relabeling.
-- There are no caption files or subtitle streams; no burned-in captions or text overlays.
-- No missing or zero-byte assets.
-- Full MP4 decode succeeds.
-
-Human checks:
-- Watch the full render.
-- Listen to the full narration mix.
-- Verify factual graphics and maps.
-- Confirm source/license manifest is complete.
-- Check thumbnail/title accuracy and representative frames.
-
-### 9 — Publishing package
-Prepare title, thumbnail, description, source notes and optional short-form concepts. Do not create captions or subtitles. Any final video export remains 1280×720, 16:9. Upload only after explicit channel-owner approval; never auto-publish from a commit.
-
-## GitHub workflow
-
-1. Commit an episode brief, source ledger, script, storyboard and asset manifest.
-2. GitHub Actions validates required files and the 720p-only configuration.
-3. A human approves research, rights and script.
-4. A render job runs on a properly provisioned runner.
-5. The render output is stored as an artifact.
-6. A human watches the final render and approves publication.
-
-## Resource and cost controls
-
-- Cache dependencies where possible.
-- Download only approved assets, sequentially.
-- Avoid parallel large downloads or renders that exhaust disk space.
-- Track expected and actual MB for each source and final export.
-- Delete temporary intermediates only after successful validation.
-- Use proxy media where needed, but retain high-quality source media for final rendering.
-- Never promise a render duration before benchmarking the actual runner and project.
+- Run ffprobe, full-file decode and audio checks.
+- Inspect representative frames throughout the episode and create per-clip B-roll contact sheets for human relevance review.
+- Detect frozen/repeated shots; enforce no more than two uses per source clip.
+- Measure B-roll share from actual timeline durations, not estimates.
+- Report clip count, license records, narration WAV/MP3 sizes, runtime, measured fps, codec, resolution, file size MB, thumbnail, subtitle and Shorts status, Git commit, artifact link, blockers and next steps.
+- Never auto-publish. Human approval is required.

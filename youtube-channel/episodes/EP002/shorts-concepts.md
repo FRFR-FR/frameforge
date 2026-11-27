@@ -1,7 +1,11 @@
 # EP002 Shorts concepts — not yet rendered
 
-No Shorts MP4s exist yet. Final source timestamps must be selected from the inspected master, never guessed. These are concept notes only. No Shorts video files are exported. Any final video deliverable remains locked to 1280×720, 16:9, H.264/AAC; no vertical or alternate-resolution export is permitted.
+No Shorts MP4s exist yet. Select final source timestamps only after the long-form master has passed review. No Shorts are automatically exported in this package.
 
-1. The laser that turns tin into chip-making light — 30–40 seconds; two-pulse droplet source, 13.5 nm and 50,000 pulses per second. Use original reconstruction and industrial laser context, not falsely attributed machinery footage.
-2. Why an EUV machine uses mirrors instead of lenses — 30–40 seconds; EUV absorption, high vacuum and multilayer mirrors.
-3. The wafer stage that checks itself 20,000 times a second — 35–45 seconds; ASML's quarter-nanometre positioning and metrology specification with clear verbal attribution.
+If a Short is approved and rendered later, its only permitted export is 720×1280 (9:16), H.264/AAC. Never export 1080p or 4K.
+
+1. The laser that turns tin into chip-making light — 30–40 seconds; two-pulse droplet source and 13.5 nm light. Use original reconstruction and accurately identified industrial context.
+2. Why an EUV machine uses mirrors instead of lenses — 30–40 seconds; EUV absorption, vacuum and multilayer mirrors.
+3. The wafer stage that keeps correcting its position — 35–45 seconds; attribute the positioning and metrology specifications to ASML.
+
+These are concepts only. No vertical file is part of the current deliverable.

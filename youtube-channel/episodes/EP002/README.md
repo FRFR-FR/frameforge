@@ -2,21 +2,30 @@
 
 **The Machine That Prints the World's Most Advanced Chips**
 
-A research-led semiconductor engineering documentary about extreme ultraviolet lithography (EUV), tin-plasma light generation, reflective optics, wafer stages, alignment and the 2026 High-NA production milestone.
+A research-led documentary following one EUV exposure from tin-droplet plasma through reflective optics, reticle projection and a precision wafer stage. The 2026 High-NA milestone is explained with its exact scope.
 
-## Permanent export lock
-- Final long-form master: 1280×720, 16:9, MP4, H.264 video and AAC audio.
-- Never export 1080p or 4K masters. Other master resolutions are prohibited. A 360p low-data derivative is allowed only when explicitly requested; it is not a master.
-- Master frame rate: 24–30 fps only when the runner can produce it reliably. Record the measured frame rate from ffprobe; never relabel it.
-- Requested low-data derivative: 640×360, measured 12 fps, H.264 target 180 kb/s and mono AAC target 40 kb/s at 32 kHz.
-- Runtime target: 8–12 minutes, only when narration naturally supports it. Do not stretch or loop footage to reach a quota.
-- No captions, subtitles, SRT/VTT files, burned-in words, shot labels, lower thirds, logo bugs or subtitle streams.
-- Narration: Kokoro-82M, American English Echo (am_echo), as the available natural local voice. Cartesia is not claimed unless its credential and generator are available in the runner.
-- 70% minimum relevant real moving B-roll for a release candidate; 75–85% is the target.
-- Original Blender cutaways are identified as conceptual reconstructions, never passed off as actual factory footage.
-- No automatic YouTube publishing.
+## Locked delivery specification
 
-## Package files
-brief.md; narration.md; research/source-ledger.csv; research/fact-check.md; storyboard/storyboard.csv; storyboard/shot-list.md; assets/broll_plan.json; assets/asset-manifest.csv; thumbnail-concept.md; shorts-concepts.md; render/render_config.json; render_episode.py; scripts/generate_3d_cutaways.py; scripts/create_thumbnail.py; output/production_report.md.
+- Long-form master: exactly 1280×720, 16:9, MP4, H.264 video and AAC audio.
+- No 1080p or 4K exports. No 360p derivative is generated.
+- Target frame rate: 24 fps only when measured reliably; report the actual ffprobe value.
+- Runtime: 8–12 minutes only when the narration naturally supports it. Never pad.
+- Narration: Kokoro-82M, English pipeline, American English Echo voice ID am_echo. Separate WAV and compressed MP3 are mandatory.
+- Subtitles: readable, timed from Kokoro sentence timestamps, burned into the picture; SRT sidecar included.
+- Brand overlays: one small channel bug, brief chapter labels over moving footage, thin red top rule; no title-card sequence or narrated PowerPoint layout.
+- Palette: red #D62839, white #FFFFFF, blue #1746A2, deep navy #102B52. Preserve natural footage colours.
+- B-roll: target 75–85% of measured runtime; hard release-candidate minimum 70%.
+- Explanatory motion graphics: ten dynamic 12-second conceptual 3D cutaways (120 seconds total), giving a 15–25% share across an 8–12 minute master.
+- No static slides, still-photo zooms, generic circuit-board filler or unrelated city footage.
+- Every downloaded clip needs its source page, creator, license/credit, download date, intended use, topic match and full-decode record.
+- Pixabay requests are cached for 24 hours, sent sequentially and limited to the minimum clips needed. No systematic bulk downloading.
+- No proprietary ASML, ZEISS or Intel process is claimed from generic stock footage.
+- No automatic YouTube publishing. Human approval is required.
 
-Large video and audio assets stay out of normal Git history. The 720p master, narration files, thumbnail and QC report are uploaded as a GitHub Actions artifact. EP001 remains the submarine-cable pilot and is not duplicated.
+## Package and artifact
+
+The episode folder contains the original script, source ledger, fact-check, scene-by-scene storyboard, topic-specific B-roll queries, rights manifest template, thumbnail concept, Shorts concepts, render configuration and Frameforge/FFmpeg scripts.
+
+The GitHub Actions artifact contains the 720p master, Kokoro WAV/MP3, SRT, thumbnail, B-roll contact sheets, timeline, technical QC contact sheet, acquisition report and production report. Large media is not committed to normal Git history.
+
+EP001 remains the submarine-cable pilot. This is a distinct topic and does not duplicate it.

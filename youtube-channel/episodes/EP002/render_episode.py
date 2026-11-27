@@ -1,295 +1,531 @@
 #!/usr/bin/env python3
-"""EP002 footage-led 720p master plus 360p 24fps derivative. No captions or subtitle streams."""
+"""B-roll-first EP002 assembly: 720p H.264/AAC, Kokoro Echo, subtitles and strict QC."""
 from pathlib import Path
-import csv, json, math, shutil, subprocess, sys
+import csv
+import json
+import math
+import os
+import re
+import shutil
+import subprocess
+import sys
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "output"
 ASSETS = ROOT / "assets" / "broll"
 FPS = 24
 SHOT_SECONDS = 7.0
+CUTAWAY_SECONDS = 12.0
 MAX_SOURCE_USES = 2
+MIN_BROLL_PERCENT = 75.0
+MAX_BROLL_PERCENT = 85.0
 CUTS = {
+    "section_01": "scene_01_wafer_macro",
+    "section_02": "scene_02_layer_stack",
+    "section_03": "scene_03_wavelength",
     "section_04": "scene_04_tin_plasma",
     "section_05": "scene_05_mirror_optics",
     "section_06": "scene_06_reticle_projection",
     "section_07": "scene_07_wafer_stage",
-    "section_08": "scene_08_layer_stack",
+    "section_08": "scene_08_process_cycle",
+    "section_09": "scene_09_high_na",
+    "section_10": "scene_10_supply_chain"
+}
+SECTION_LABELS = {
+    "section_01": "THE FLASH",
+    "section_02": "CHIP LAYERS",
+    "section_03": "WHY EUV",
+    "section_04": "TIN PLASMA",
+    "section_05": "MIRRORS AND VACUUM",
+    "section_06": "PATTERN TO SILICON",
+    "section_07": "THE WAFER STAGE",
+    "section_08": "REPEATED ALIGNMENT",
+    "section_09": "HIGH-NA EUV",
+    "section_10": "THE WHOLE FACTORY"
 }
 
-def run(cmd):
-    subprocess.run(cmd, check=True)
+
+def run(command):
+    subprocess.run(command, check=True)
+
 
 def probe(path):
     return json.loads(subprocess.check_output([
         "ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)
     ], text=True))
 
+
 def duration(path):
     return float(probe(path)["format"]["duration"])
 
-def validate_clip(path):
-    meta = probe(path)
-    video = next((s for s in meta["streams"] if s.get("codec_type") == "video"), None)
-    if not video or int(video.get("width", 0)) < 1280 or int(video.get("height", 0)) < 720:
-        raise RuntimeError(f"Source B-roll must contain at least 1280x720 video: {path}")
-    seconds = float(meta["format"]["duration"])
-    if seconds < 7:
-        raise RuntimeError(f"B-roll clip shorter than 7 seconds: {path}")
-    return seconds
-
-def encode(src, dest, seconds, seek):
-    vf = "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,fps=24,format=yuv420p"
-    run([
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{seek:.3f}",
-        "-stream_loop", "-1", "-i", str(src), "-t", f"{seconds:.3f}", "-vf", vf,
-        "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-        "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
-        "-movflags", "+faststart", str(dest)
-    ])
 
 def load_manifest():
     manifest_path = ROOT / "asset-manifest-broll.csv"
     if not manifest_path.is_file():
-        raise RuntimeError("B-roll rights manifest missing.")
+        raise RuntimeError("B-roll rights manifest is missing.")
     by_filename = {}
-    with manifest_path.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if int(row.get("relevance_groups_matched", 0)) < int(row.get("relevance_groups_total", 2)):
-                raise RuntimeError(f"Clip failed topic-match gate: {row.get('filename')}")
+    with manifest_path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            required = ("filename", "source_url", "creator", "license", "license_url", "search_query")
+            if any(not row.get(field) for field in required):
+                raise RuntimeError(f"Incomplete rights metadata for {row.get('filename', 'unknown asset')}")
+            if int(row.get("relevance_groups_matched", 0)) < 1:
+                raise RuntimeError(f"Clip failed topic/scene-context relevance: {row.get('filename')}")
+            if row.get("relevance_level") not in ("subject-specific", "context-only"):
+                raise RuntimeError(f"Clip has no relevance classification: {row.get('filename')}")
+            if row.get("ai_generated_check") != "PASS":
+                raise RuntimeError(f"Clip failed AI-generated-footage exclusion: {row.get('filename')}")
             if row.get("full_decode_check") != "PASS":
-                raise RuntimeError(f"Clip failed decode validation: {row.get('filename')}")
-            by_filename[row["filename"].replace("\\", "/")] = row
+                raise RuntimeError(f"Clip failed full-file decode: {row.get('filename')}")
+            filename = row["filename"].replace("\\", "/")
+            if filename in by_filename:
+                raise RuntimeError(f"Duplicate rights manifest row: {filename}")
+            by_filename[filename] = row
     return by_filename
 
+
+def validate_clip(path):
+    metadata = probe(path)
+    video = next((stream for stream in metadata["streams"] if stream.get("codec_type") == "video"), None)
+    if not video:
+        raise RuntimeError(f"No video stream in {path}")
+    if int(video.get("width", 0)) < 1280 or int(video.get("height", 0)) < 720:
+        raise RuntimeError(f"Source B-roll is below 720p and cannot be upscaled: {path}")
+    seconds = float(metadata["format"]["duration"])
+    if seconds < SHOT_SECONDS:
+        raise RuntimeError(f"B-roll clip is shorter than seven seconds: {path}")
+    run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "null", "-"])
+    return seconds
+
+
+def make_shot(source, destination, seconds, seek):
+    filters = "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,fps=24,format=yuv420p"
+    run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", f"{seek:.3f}", "-i", str(source), "-t", f"{seconds:.3f}",
+        "-vf", filters, "-an", "-c:v", "libx264", "-preset", "veryfast",
+        "-crf", "20", "-profile:v", "high", "-pix_fmt", "yuv420p",
+        "-r", "24", "-g", "48", "-movflags", "+faststart", str(destination)
+    ])
+
+
+def make_3d_clips(frames_dir):
+    blender = shutil.which("blender")
+    if not blender:
+        raise RuntimeError("Blender executable missing; original explanatory 3D cutaways cannot be rendered.")
+    xvfb = shutil.which("xvfb-run")
+    command = [xvfb, "-a", blender] if xvfb else [blender]
+    run(command + [
+        "--background", "--factory-startup",
+        "--python", str(ROOT / "scripts" / "generate_3d_cutaways.py"),
+        "--", "--output-dir", str(frames_dir)
+    ])
+
+    output = {}
+    for scene_name in sorted(CUTS.values()):
+        folder = frames_dir / scene_name
+        pngs = sorted(folder.glob("frame_*.png"))
+        if len(pngs) != 288:
+            raise RuntimeError(f"{scene_name} produced {len(pngs)} frames; exactly 288 are required.")
+        clip_path = OUT / "3d_clips" / f"{scene_name}.mp4"
+        clip_path.parent.mkdir(parents=True, exist_ok=True)
+        run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-framerate", "24", "-start_number", "1",
+            "-i", str(folder / "frame_%04d.png"), "-frames:v", "288",
+            "-vf", "scale=1280:720:flags=lanczos,setsar=1,fps=24,format=yuv420p",
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
+            str(clip_path)
+        ])
+        if abs(duration(clip_path) - CUTAWAY_SECONDS) > 0.06:
+            raise RuntimeError(f"{scene_name} is not a measured 12-second cutaway.")
+        output[scene_name] = clip_path
+    return output
+
+
+def make_subtitle_filter(srt_path):
+    escaped_path = str(srt_path).replace("\\", "/").replace(":", "\\:")
+    style = (
+        "FontName=DejaVu Sans,FontSize=24,PrimaryColour=&H00FFFFFF,"
+        "OutlineColour=&H00A24617,BackColour=&H66522B10,BorderStyle=3,"
+        "Outline=1,Shadow=0,Alignment=2,MarginV=42,MarginL=48,MarginR=48"
+    )
+    return f"subtitles=filename='{escaped_path}':force_style='{style}'"
+
+
+def overlay_filters(chapters):
+    bold_font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    filters = [
+        "drawbox=x=0:y=0:w=iw:h=6:color=0xD62839:t=fill",
+        "drawbox=x=iw-342:y=18:w=320:h=40:color=0x102B52@0.86:t=fill",
+        "drawbox=x=iw-342:y=18:w=5:h=40:color=0x1746A2:t=fill",
+        f"drawtext=fontfile={bold_font}:text='UNDERNEATH EVERYTHING':fontcolor=white:fontsize=16:x=w-328:y=30"
+    ]
+    for chapter in chapters:
+        start = float(chapter["start_seconds"])
+        end = start + 3.2
+        enable = f"between(t,{start:.3f},{end:.3f})"
+        label = chapter["label"].replace("'", "")
+        filters.extend([
+            f"drawbox=x=48:y=70:w=500:h=48:color=0x102B52@0.82:t=fill:enable='{enable}'",
+            f"drawbox=x=48:y=70:w=6:h=48:color=0xD62839:t=fill:enable='{enable}'",
+            f"drawtext=fontfile={bold_font}:text='{label}':fontcolor=white:fontsize=21:x=68:y=83:enable='{enable}'"
+        ])
+    return filters
+
+
+def make_qc_contact_sheet(video_path, runtime):
+    contact_dir = OUT / "qc_frames"
+    contact_dir.mkdir(parents=True, exist_ok=True)
+    timestamps = list(range(0, max(1, int(runtime)), 30))
+    if not timestamps or timestamps[-1] < runtime - 5:
+        timestamps.append(max(0, runtime - 1))
+    frames = []
+    for index, timestamp in enumerate(timestamps):
+        frame_path = contact_dir / f"frame_{index:03d}.jpg"
+        run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-ss", f"{timestamp:.3f}", "-i", str(video_path), "-frames:v", "1",
+            "-vf", "scale=320:180:flags=lanczos", "-q:v", "3", str(frame_path)
+        ])
+        frames.append((timestamp, frame_path))
+
+    columns = 4
+    cell_w, cell_h, label_h = 320, 180, 28
+    rows = math.ceil(len(frames) / columns)
+    sheet = Image.new("RGB", (columns * cell_w, rows * (cell_h + label_h)), (16, 43, 82))
+    draw = ImageDraw.Draw(sheet)
+    for index, (timestamp, frame_path) in enumerate(frames):
+        row, column = divmod(index, columns)
+        x, y = column * cell_w, row * (cell_h + label_h)
+        image = Image.open(frame_path).convert("RGB")
+        sheet.paste(image, (x, y + label_h))
+        draw.rectangle((x, y, x + cell_w, y + label_h), fill=(23, 70, 162))
+        draw.text((x + 8, y + 6), f"{timestamp:05.1f}s", fill=(255, 255, 255))
+    destination = OUT / "qc_contact_sheet.jpg"
+    sheet.save(destination, quality=90, optimize=True)
+    return destination
+
+
+def run_freeze_detection(video_path):
+    result = subprocess.run([
+        "ffmpeg", "-hide_banner", "-i", str(video_path),
+        "-vf", "freezedetect=n=-50dB:d=2.5",
+        "-an", "-f", "null", "-"
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+    if result.returncode != 0:
+        raise RuntimeError("FFmpeg frozen-frame detection could not complete.")
+    durations = [float(value) for value in re.findall(r"freeze_duration:\s*([0-9.]+)", result.stderr)]
+    longest = max(durations, default=0.0)
+    if longest > 4.0:
+        raise RuntimeError(f"Frozen-frame detection found a {longest:.2f}s freeze; manual correction required.")
+    return {
+        "status": "PASS" if not durations else "PASS_WITH_REVIEW_FLAGS",
+        "freeze_events_over_2_5_seconds": len(durations),
+        "longest_freeze_seconds": round(longest, 3),
+        "threshold": "n=-50dB, d=2.5s; any event over 4.0s fails"
+    }
+
+
+
+def audio_level_check(audio_path):
+    result = subprocess.run([
+        "ffmpeg", "-hide_banner", "-i", str(audio_path),
+        "-af", "volumedetect", "-f", "null", "-"
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+    if result.returncode != 0:
+        raise RuntimeError("FFmpeg audio-level check could not complete.")
+    mean_match = re.search(r"mean_volume:\s*(-?[0-9.]+)\s*dB", result.stderr)
+    max_match = re.search(r"max_volume:\s*(-?[0-9.]+)\s*dB", result.stderr)
+    if not mean_match or not max_match:
+        raise RuntimeError("FFmpeg did not report narration mean and peak levels.")
+    mean_db = float(mean_match.group(1))
+    peak_db = float(max_match.group(1))
+    if mean_db <= -60:
+        raise RuntimeError("Narration WAV is effectively silent.")
+    if peak_db > 0.5:
+        raise RuntimeError(f"Narration peak is unexpectedly high at {peak_db:.2f} dB.")
+    return {
+        "mean_volume_db": round(mean_db, 2),
+        "max_volume_db": round(peak_db, 2),
+        "status": "PASS"
+    }
+
+
+def markdown_report(report):
+    return f"""# EP002 production report
+
+- Episode: EP002 — The Machine That Prints the World's Most Advanced Chips
+- Provider / voice: {report['narration_provider']} / {report['narration_voice_id']} (American English Echo)
+- Narration WAV: {report['narration_wav']} ({report['narration_wav_mb']} MB)
+- Narration MP3: {report['narration_mp3']} ({report['narration_mp3_mb']} MB)
+- Final master: {report['file']} ({report['file_size_mb']} MB)
+- Runtime: {report['runtime_seconds']} seconds
+- Measured frame rate: {report['fps_measured']}
+- Video/audio: {report['video_codec']} / {report['audio_codec']}
+- Resolution: {report['resolution']}
+- Relevant moving real-world B-roll: {report['broll_coverage_percent']}% ({report['broll_seconds']} seconds; {report['unique_broll_clips']} unique clips used)
+- Subject-specific / context-only B-roll: {report['subject_specific_clips']} / {report['context_only_clips']} unique clips
+- Original conceptual 3D motion graphics: {report['graphics_percent']}% ({report['graphics_seconds']} seconds; ten 12-second scenes)
+- Source reuse: maximum {report['max_source_clip_uses']} uses per clip
+- Subtitles: burned into picture; SRT sidecar included
+- Chapter labels / channel bug: included over moving footage
+- Thumbnail: {report['thumbnail']} ({report['thumbnail_size_mb']} MB)
+- QC contact sheet: {report['qc_contact_sheet']}
+- Audio level check: mean {report['audio_level_check']['mean_volume_db']} dB, peak {report['audio_level_check']['max_volume_db']} dB
+- Full decode: {report['full_decode_check']}
+- Freeze detection: {report['freeze_detection']['status']}
+- Rights manifest: {report['rights_manifest']} ({report['rights_records_count']} records); third-party rights review still requires human confirmation
+- B-roll visual-review contact sheets: {report['broll_contact_sheets_count']} sections
+- Shorts: concepts only; no Shorts export
+- Git commit: {report['git_commit_sha']}
+- Auto-publish: disabled
+
+## Approval state
+
+Automated technical QC has passed. This is not public-release approval. Watch the complete episode, review every B-roll contact sheet and rights record, listen to the full narration mix, and approve the thumbnail before publication.
+"""
+
+
 def main():
-    OUT.mkdir(exist_ok=True, parents=True)
+    OUT.mkdir(parents=True, exist_ok=True)
     narration_report_path = OUT / "kokoro_narration_report.json"
     if not narration_report_path.is_file():
-        raise RuntimeError("Kokoro narration report missing; no silent voice substitution.")
-    narration_report = json.loads(narration_report_path.read_text(encoding="utf-8"))
-    if narration_report.get("provider") != "Kokoro-82M" or narration_report.get("voice_id") != "am_echo":
-        raise RuntimeError("The release voice must be Kokoro Echo (am_echo).")
-    wav = OUT / narration_report["wav"]
-    if not wav.is_file() or wav.stat().st_size < 10000:
-        raise RuntimeError("Kokoro WAV is missing or empty.")
+        raise RuntimeError("Kokoro narration report missing; no silent voice substitution is permitted.")
+    narration = json.loads(narration_report_path.read_text(encoding="utf-8"))
+    if narration.get("provider") != "Kokoro-82M" or narration.get("voice_id") != "am_echo":
+        raise RuntimeError("Release narration must use Kokoro-82M Echo (am_echo).")
+
+    wav = OUT / narration["wav"]
+    mp3 = OUT / narration["mp3"]
+    srt = OUT / narration["srt"]
+    for required in (wav, mp3, srt):
+        if not required.is_file() or required.stat().st_size < 1000:
+            raise RuntimeError(f"Required Kokoro narration deliverable is missing: {required.name}")
+
     audio_seconds = duration(wav)
     if not 480 <= audio_seconds <= 720:
-        raise RuntimeError("Narration length outside 8-12 minutes; revise naturally, do not pad.")
-    sections = narration_report.get("sections", [])
+        raise RuntimeError(f"Kokoro narration is {audio_seconds:.1f}s; expected natural 8–12 minutes. Do not pad.")
+    sections = narration.get("sections", [])
     if len(sections) != 10:
-        raise RuntimeError(f"Expected ten narration sections, found {len(sections)}.")
+        raise RuntimeError(f"Expected ten timed narration sections, found {len(sections)}.")
 
     manifest = load_manifest()
     clipmap = {}
     clip_durations = {}
-    count = 0
-    for sec in sections:
-        sid = sec["id"]
-        clips = sorted((ASSETS / sid).glob("*.mp4"))
-        cut_seconds = 5 if sid in CUTS else 0
-        section_audio = ROOT / sec["audio_file"]
+    for section in sections:
+        section_id = section["id"]
+        clips = sorted((ASSETS / section_id).glob("*.mp4"))
+        section_audio = ROOT / section["audio_file"]
         section_seconds = duration(section_audio)
-        shots_needed = max(1, math.ceil(max(0.1, section_seconds - cut_seconds) / SHOT_SECONDS))
+        remaining = section_seconds - CUTAWAY_SECONDS
+        shots_needed = max(1, math.ceil(remaining / SHOT_SECONDS))
         minimum_unique = max(4, math.ceil(shots_needed / MAX_SOURCE_USES))
         if len(clips) < minimum_unique:
             raise RuntimeError(
-                f"{sid}: {len(clips)} relevant clips available; {minimum_unique} are required "
-                f"to keep every source to at most {MAX_SOURCE_USES} uses."
+                f"{section_id}: {len(clips)} relevant clips available; {minimum_unique} are required "
+                "for the two-use cap. No unrelated filler will be substituted."
             )
         for clip in clips:
-            rel = clip.relative_to(ROOT).as_posix()
-            if rel not in manifest:
-                raise RuntimeError(f"Clip is absent from the rights/relevance manifest: {rel}")
+            relative = clip.relative_to(ROOT).as_posix()
+            if relative not in manifest:
+                raise RuntimeError(f"Clip is absent from the rights/relevance manifest: {relative}")
             clip_durations[clip] = validate_clip(clip)
-        clipmap[sid] = clips
-        count += len(clips)
+        clipmap[section_id] = clips
 
-    if count < 40:
-        raise RuntimeError(f"Only {count} relevant unique clips found; 40 are required for this 10-section episode.")
-
-    blender = shutil.which("blender")
-    if not blender:
-        raise RuntimeError("Blender executable missing; original 3D cutaways cannot be rendered.")
-    frames = OUT / "3d_frames"
-    frames.mkdir(exist_ok=True)
-    run([
-        blender, "--background", "--factory-startup",
-        "--python", str(ROOT / "scripts" / "generate_3d_cutaways.py"),
-        "--", "--output-dir", str(frames)
-    ])
-    cutclips = {}
-    for folder in sorted(frames.glob("scene_*")):
-        pngs = sorted(folder.glob("frame_*.png"))
-        if len(pngs) != 120:
-            raise RuntimeError(f"{folder.name} did not produce 120 frames (produced {len(pngs)}).")
-        dest = OUT / "3d_clips" / f"{folder.name}.mp4"
-        dest.parent.mkdir(exist_ok=True)
-        run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-framerate", "24", "-start_number", "1",
-            "-i", str(folder / "frame_%04d.png"), "-frames:v", "120",
-            "-vf", "scale=1280:720:flags=lanczos,setsar=1,fps=24,format=yuv420p",
-            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-            "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48", str(dest)
-        ])
-        cutclips[folder.name] = dest
+    frames_dir = OUT / "3d_frames"
+    frames_dir.mkdir(exist_ok=True)
+    cutclips = make_3d_clips(frames_dir)
     if not all(name in cutclips for name in CUTS.values()):
-        raise RuntimeError("A conceptual 3D cutaway did not render.")
+        raise RuntimeError("One or more original explanatory 3D cutaways are missing.")
 
-    shotdir = OUT / "broll_shots"
-    shotdir.mkdir(exist_ok=True)
-    concat, timeline = [], []
+    shot_dir = OUT / "broll_shots"
+    shot_dir.mkdir(exist_ok=True)
+    concat_files = []
+    timeline = []
+    chapter_rows = []
     cursor = 0.0
-    broll_time = 0.0
-    index = 0
+    broll_seconds = 0.0
     source_uses = {}
+    unique_sources = set()
+    shot_index = 0
 
-    for sec in sections:
-        sid = sec["id"]
-        total = float(duration(ROOT / sec["audio_file"]))
-        cutname = CUTS.get(sid)
-        cutsecs = 5 if cutname else 0
-        left = total - cutsecs
-        clips = clipmap[sid]
-        section_uses = {p: 0 for p in clips}
+    for section in sections:
+        section_id = section["id"]
+        chapter_rows.append({
+            "start_seconds": round(cursor, 3),
+            "label": SECTION_LABELS[section_id]
+        })
+        section_seconds = duration(ROOT / section["audio_file"])
+        remaining = section_seconds - CUTAWAY_SECONDS
+        clips = clipmap[section_id]
+        uses = {clip: 0 for clip in clips}
         previous = None
-        shot_number = 0
-        while left > 0.01:
-            length = min(SHOT_SECONDS, left)
-            available = [p for p in clips if section_uses[p] < MAX_SOURCE_USES]
-            if not available:
-                raise RuntimeError(f"{sid}: clip-use limit reached before the narration section was covered.")
-            available.sort(key=lambda p: (section_uses[p], p == previous, p.name))
-            src = available[0]
-            used_before = section_uses[src]
-            section_uses[src] += 1
-            source_uses[src.relative_to(ROOT).as_posix()] = section_uses[src]
-            sd = clip_durations[src]
-            max_seek = max(0.0, sd - min(length, sd - 0.05))
-            seek = (used_before * 2.13) % max(0.1, max_seek)
-            dst = shotdir / f"shot_{index:05d}.mp4"
-            index += 1
-            encode(src, dst, length, seek)
-            actual = duration(dst)
-            concat.append(dst)
-            rel = src.relative_to(ROOT).as_posix()
-            asset = manifest[rel]
-            timeline.append({
-                "start_seconds": round(cursor, 3),
-                "duration_seconds": round(actual, 3),
-                "section_id": sid,
-                "visual_type": "topic-matched real-world moving footage",
-                "source": rel,
-                "source_tags": asset.get("tags", ""),
-                "search_query": asset.get("search_query", ""),
-                "relevance_groups_matched": asset.get("relevance_groups_matched")
-            })
-            cursor += actual
-            broll_time += actual
-            left -= length
-            previous = src
-            shot_number += 1
 
-        if max(section_uses.values(), default=0) > MAX_SOURCE_USES:
-            raise RuntimeError(f"{sid}: a source clip exceeded the {MAX_SOURCE_USES}-use limit.")
-        if cutname:
-            cut = cutclips[cutname]
-            actual = duration(cut)
-            concat.append(cut)
+        while remaining > 0.01:
+            shot_seconds = min(SHOT_SECONDS, remaining)
+            available = [clip for clip in clips if uses[clip] < MAX_SOURCE_USES]
+            if not available:
+                raise RuntimeError(f"{section_id}: source-use cap reached before covering narration.")
+            available.sort(key=lambda clip: (uses[clip], clip == previous, clip.name))
+            source = available[0]
+            used_before = uses[source]
+            uses[source] += 1
+            relative = source.relative_to(ROOT).as_posix()
+            record = manifest[relative]
+            unique_sources.add(relative)
+            source_uses[relative] = uses[source]
+
+            source_duration = clip_durations[source]
+            max_seek = max(0.0, source_duration - min(shot_seconds, source_duration - 0.05))
+            seek = min(used_before * 2.13, max_seek) if max_seek > 0 else 0.0
+            destination = shot_dir / f"shot_{shot_index:05d}.mp4"
+            shot_index += 1
+            make_shot(source, destination, shot_seconds, seek)
+            actual = duration(destination)
+            concat_files.append(destination)
             timeline.append({
                 "start_seconds": round(cursor, 3),
                 "duration_seconds": round(actual, 3),
-                "section_id": sid,
-                "visual_type": "original conceptual 3D reconstruction, not proprietary machine footage"
+                "section_id": section_id,
+                "visual_type": "relevant real-world moving B-roll",
+                "source_file": relative,
+                "source_url": record["source_url"],
+                "creator": record["creator"],
+                "license": record["license"],
+                "search_query": record["search_query"],
+                "fallback_used": record.get("fallback_used", "False"),
+                "relevance_groups_matched": record.get("relevance_groups_matched"),
+                "relevance_level": record.get("relevance_level"),
+                "ai_generated_check": record.get("ai_generated_check")
             })
             cursor += actual
+            broll_seconds += actual
+            remaining -= actual
+            previous = source
+
+        if max(uses.values(), default=0) > MAX_SOURCE_USES:
+            raise RuntimeError(f"{section_id}: source clip reuse exceeded {MAX_SOURCE_USES}.")
+
+        cut = cutclips[CUTS[section_id]]
+        cut_duration = duration(cut)
+        concat_files.append(cut)
+        timeline.append({
+            "start_seconds": round(cursor, 3),
+            "duration_seconds": round(cut_duration, 3),
+            "section_id": section_id,
+            "visual_type": "original conceptual 3D reconstruction; not proprietary factory footage",
+            "source_file": str(cut.relative_to(ROOT))
+        })
+        cursor += cut_duration
 
     max_uses = max(source_uses.values(), default=0)
     if max_uses > MAX_SOURCE_USES:
-        raise RuntimeError(f"A source clip was used {max_uses} times; limit is {MAX_SOURCE_USES}.")
+        raise RuntimeError(f"A B-roll source was used {max_uses} times; maximum is {MAX_SOURCE_USES}.")
+    subject_specific_sources = {
+        filename for filename in unique_sources
+        if manifest[filename].get("relevance_level") == "subject-specific"
+    }
+    context_only_sources = unique_sources - subject_specific_sources
+    subject_specific_sections = {
+        item["section_id"] for item in timeline
+        if item.get("visual_type") == "relevant real-world moving B-roll"
+        and item.get("relevance_level") == "subject-specific"
+    }
+    if len(subject_specific_sections) < 8:
+        raise RuntimeError(
+            f"Only {len(subject_specific_sections)} sections have subject-specific footage; at least 8 are required."
+        )
+    if len(unique_sources) < 40:
+        raise RuntimeError(f"Only {len(unique_sources)} unique B-roll clips were used; minimum is 40.")
 
-    concatfile = OUT / "concat_timeline.txt"
-    concatfile.write_text("\n".join("file '" + p.as_posix() + "'" for p in concat) + "\n", encoding="utf-8")
+    concat_file = OUT / "concat_timeline.txt"
+    concat_file.write_text(
+        "\n".join(f"file '{path.as_posix()}'" for path in concat_files) + "\n",
+        encoding="utf-8"
+    )
     silent = OUT / "temporary_720p_video.mp4"
     run([
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat",
-        "-safe", "0", "-i", str(concatfile), "-fflags", "+genpts",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-profile:v", "high",
-        "-pix_fmt", "yuv420p", "-r", "24", "-g", "48", "-an", str(silent)
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-f", "concat", "-safe", "0", "-i", str(concat_file),
+        "-fflags", "+genpts", "-c:v", "libx264", "-preset", "veryfast",
+        "-crf", "20", "-profile:v", "high", "-pix_fmt", "yuv420p",
+        "-r", "24", "-g", "48", "-an", str(silent)
     ])
     if abs(duration(silent) - audio_seconds) > 0.35:
-        raise RuntimeError("Video timeline and narration duration differ by more than 0.35 seconds.")
+        raise RuntimeError(
+            f"Video timeline ({duration(silent):.3f}s) and narration ({audio_seconds:.3f}s) differ by over 0.35s."
+        )
+
+    thumbnail = OUT / "thumbnail_rwb.png"
+    run([sys.executable, str(ROOT / "scripts" / "create_thumbnail.py")])
+    if not thumbnail.is_file():
+        raise RuntimeError("Original vector thumbnail was not created.")
 
     final = OUT / "Underneath_Everything_EP002_Kokoro_Broll_720p.mp4"
+    filters = overlay_filters(chapter_rows)
+    filters.append(make_subtitle_filter(srt))
+    filter_graph = ",".join(filters)
     run([
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(silent), "-i", str(wav),
-        "-map", "0:v:0", "-map", "1:a:0", "-sn", "-c:v", "copy",
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-i", str(silent), "-i", str(wav),
+        "-map", "0:v:0", "-map", "1:a:0",
+        "-vf", filter_graph,
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+        "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
         "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
         "-shortest", "-movflags", "+faststart", str(final)
     ])
-    meta = probe(final)
-    video = next(s for s in meta["streams"] if s["codec_type"] == "video")
-    audio = next(s for s in meta["streams"] if s["codec_type"] == "audio")
-    if (video["width"], video["height"]) != (1280, 720) or video["codec_name"] != "h264" or audio["codec_name"] != "aac":
-        raise RuntimeError("Strict 720p H.264/AAC validation failed.")
+
+    metadata = probe(final)
+    video = next(stream for stream in metadata["streams"] if stream["codec_type"] == "video")
+    audio = next(stream for stream in metadata["streams"] if stream["codec_type"] == "audio")
+    if (video["width"], video["height"]) != (1280, 720):
+        raise RuntimeError(f"Final resolution is {video['width']}x{video['height']}; exactly 1280x720 is required.")
+    if video["codec_name"] != "h264" or audio["codec_name"] != "aac":
+        raise RuntimeError("Final codec must be H.264 video and AAC audio.")
     if video.get("avg_frame_rate") != "24/1":
-        raise RuntimeError(f"Measured master frame rate is {video.get('avg_frame_rate')}, expected 24fps.")
+        raise RuntimeError(f"Measured frame rate is {video.get('avg_frame_rate')}; expected 24/1.")
     if audio.get("sample_rate") != "48000" or int(audio.get("channels", 0)) != 2:
-        raise RuntimeError("Master audio must be stereo AAC at 48 kHz.")
-    if any(s.get("codec_type") == "subtitle" for s in meta["streams"]):
-        raise RuntimeError("Subtitle track is forbidden.")
-    runtime = float(meta["format"]["duration"])
+        raise RuntimeError("Final audio must be stereo AAC at 48 kHz.")
+    if any(stream.get("codec_type") == "subtitle" for stream in metadata["streams"]):
+        raise RuntimeError("Subtitles must be burned into picture; no separate subtitle stream is expected.")
+
+    runtime = float(metadata["format"]["duration"])
     if not 480 <= runtime <= 720:
-        raise RuntimeError("Final runtime outside 8-12 minutes; no padding.")
+        raise RuntimeError(f"Final runtime is {runtime:.1f}s; expected 8–12 minutes without padding.")
     run(["ffmpeg", "-v", "error", "-i", str(final), "-f", "null", "-"])
 
-    derivative = OUT / "Underneath_Everything_EP002_Kokoro_Broll_360p_24fps_450k_nocaptions.mp4"
-    run([
-        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(final),
-        "-map", "0:v:0", "-map", "0:a:0", "-sn",
-        "-vf", "scale=640:360:force_original_aspect_ratio=increase,crop=640:360,setsar=1,fps=24,format=yuv420p",
-        "-c:v", "libx264", "-preset", "slow", "-b:v", "450k", "-maxrate", "500k", "-bufsize", "900k",
-        "-profile:v", "main", "-level", "3.1", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
-        "-c:a", "aac", "-b:a", "96k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", str(derivative)
-    ])
-    low_meta = probe(derivative)
-    low_video = next(s for s in low_meta["streams"] if s["codec_type"] == "video")
-    low_audio = next(s for s in low_meta["streams"] if s["codec_type"] == "audio")
-    if (low_video["width"], low_video["height"]) != (640, 360) or low_video["codec_name"] != "h264" or low_video.get("avg_frame_rate") != "24/1":
-        raise RuntimeError("360p derivative must be H.264 at 640x360 and measured 24fps.")
-    if low_audio["codec_name"] != "aac" or low_audio.get("sample_rate") != "48000" or int(low_audio.get("channels", 0)) != 2:
-        raise RuntimeError("360p derivative audio must be stereo AAC at 48 kHz.")
-    if abs(duration(derivative) - runtime) > 0.5:
-        raise RuntimeError("360p derivative duration differs from the 720p master.")
-    run(["ffmpeg", "-v", "error", "-i", str(derivative), "-f", "null", "-"])
+    broll_percent = round(100 * broll_seconds / max(runtime, 0.001), 2)
+    graphics_seconds = max(0.0, runtime - broll_seconds)
+    graphics_percent = round(100 * graphics_seconds / max(runtime, 0.001), 2)
+    if not MIN_BROLL_PERCENT <= broll_percent <= MAX_BROLL_PERCENT:
+        raise RuntimeError(
+            f"Measured real B-roll is {broll_percent}%; target is 75–85% and hard minimum is 70%."
+        )
+    if not 15.0 <= graphics_percent <= 25.0:
+        raise RuntimeError(f"Explanatory motion graphics are {graphics_percent}%; target is 15–25%.")
 
-    coverage = round(100 * broll_time / max(runtime, 0.001), 2)
-    if coverage < 70:
-        raise RuntimeError(f"Relevant real B-roll coverage is {coverage}%; minimum is 70%.")
-    run([sys.executable, str(ROOT / "scripts" / "create_thumbnail.py")])
+    freeze_report = run_freeze_detection(final)
+    audio_levels = audio_level_check(wav)
+    contact_sheet = make_qc_contact_sheet(final, runtime)
+    try:
+        with Image.open(thumbnail) as thumbnail_image:
+            thumbnail_size = thumbnail_image.size
+    except Exception as error:
+        raise RuntimeError(f"Thumbnail could not be inspected: {error}")
 
-    derivative_report = {
-        "file": derivative.name,
-        "file_size_bytes": derivative.stat().st_size,
-        "file_size_mb_decimal": round(derivative.stat().st_size / 1_000_000, 2),
-        "resolution": "640x360",
-        "fps_measured": low_video.get("avg_frame_rate"),
-        "video_bitrate_target_bps": 450000,
-        "audio_codec": low_audio["codec_name"],
-        "audio_sample_rate": low_audio["sample_rate"],
-        "audio_channels": low_audio["channels"],
-        "profile": "H.264 450 kb/s target + stereo AAC 96 kb/s at 48 kHz"
-    }
     report = {
         "episode": "EP002",
         "title": "The Machine That Prints the World's Most Advanced Chips",
         "file": final.name,
         "file_size_bytes": final.stat().st_size,
-        "file_size_mb_decimal": round(final.stat().st_size / 1_000_000, 2),
-        "low_data_derivative": derivative_report,
-        "duration_seconds": round(runtime, 3),
+        "file_size_mb": round(final.stat().st_size / 1_000_000, 2),
+        "runtime_seconds": round(runtime, 3),
         "resolution": "1280x720",
+        "aspect_ratio": "16:9",
         "fps_measured": video["avg_frame_rate"],
         "video_codec": video["codec_name"],
         "audio_codec": audio["codec_name"],
@@ -297,25 +533,58 @@ def main():
         "audio_channels": audio["channels"],
         "narration_provider": "Kokoro-82M",
         "narration_voice_id": "am_echo",
+        "narration_wav": wav.name,
+        "narration_wav_mb": round(wav.stat().st_size / 1_000_000, 2),
+        "narration_mp3": mp3.name,
+        "narration_mp3_mb": round(mp3.stat().st_size / 1_000_000, 2),
         "narration_seconds": round(audio_seconds, 3),
-        "broll_assets": count,
-        "unique_broll_clips": count,
-        "broll_seconds": round(broll_time, 3),
-        "broll_coverage_percent": coverage,
+        "srt_sidecar": srt.name,
+        "srt_size_mb": round(srt.stat().st_size / 1_000_000, 3),
+        "unique_broll_clips": len(unique_sources),
+        "subject_specific_clips": len(subject_specific_sources),
+        "context_only_clips": len(context_only_sources),
+        "subject_specific_sections": len(subject_specific_sections),
+        "broll_seconds": round(broll_seconds, 3),
+        "broll_coverage_percent": broll_percent,
+        "graphics_seconds": round(graphics_seconds, 3),
+        "graphics_percent": graphics_percent,
         "max_source_clip_uses": max_uses,
         "source_clip_uses": source_uses,
-        "original_3d_cutaways": sorted(CUTS.values()),
-        "captions": "none",
-        "subtitle_streams": "none",
-        "visual_text_overlays": "none",
-        "thumbnail": "thumbnail_rwb.png",
+        "original_3d_cutaways": list(CUTS.values()),
+        "original_3d_cutaway_count": len(CUTS),
+        "original_3d_cutaway_seconds_each": CUTAWAY_SECONDS,
+        "rights_manifest": "asset-manifest-broll.csv",
+        "rights_records_count": len(manifest),
+        "broll_contact_sheets_count": len(list((OUT / "broll_review").glob("*_contact_sheet.jpg"))),
+        "subtitles_burned_in": True,
+        "chapter_labels": True,
+        "channel_bug": True,
+        "subtitle_streams": "none; subtitles are burned in",
+        "thumbnail": thumbnail.name,
+        "thumbnail_size_mb": round(thumbnail.stat().st_size / 1_000_000, 3),
+        "thumbnail_dimensions": f"{thumbnail_size[0]}x{thumbnail_size[1]}",
+        "qc_contact_sheet": contact_sheet.name,
+        "qc_contact_sheet_size_mb": round(contact_sheet.stat().st_size / 1_000_000, 2),
+        "freeze_detection": freeze_report,
+        "audio_level_check": audio_levels,
+        "temporary_silent_video_mb": round(silent.stat().st_size / 1_000_000, 2),
+        "intermediate_3d_files": [
+            {"file": path.name, "size_mb": round(path.stat().st_size / 1_000_000, 2), "duration_seconds": round(duration(path), 3)}
+            for path in cutclips.values()
+        ],
         "full_decode_check": "PASS",
-        "auto_publish": False,
-        "rights_status": "Awaiting human review of every selected asset and full playback."
+        "git_commit_sha": os.environ.get("GITHUB_SHA", "local-run"),
+        "shorts_status": "Concepts only; no vertical Shorts exported.",
+        "public_release_status": "NOT APPROVED; full human playback and rights review are pending.",
+        "rights_review_status": "Pixabay source/license metadata recorded; human review of every clip remains required.",
+        "auto_publish": False
     }
+
     (OUT / "render_report_broll_echo.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     (OUT / "broll_timeline.json").write_text(json.dumps(timeline, indent=2), encoding="utf-8")
+    (OUT / "production_report.md").write_text(markdown_report(report), encoding="utf-8")
     print(json.dumps(report, indent=2), flush=True)
+
 
 if __name__ == "__main__":
     main()

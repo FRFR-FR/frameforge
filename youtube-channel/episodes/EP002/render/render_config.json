@@ -17,35 +17,61 @@
     "audio_sample_rate_hz": 48000,
     "audio_channels": 2
   },
-  "captions": "none",
-  "subtitles": "none",
-  "burned_in_text": "none",
-  "forbidden_resolutions": [
-    "1080p master",
-    "4K master",
-    "all non-720p master resolutions"
-  ],
-  "low_data_derivative": {
-    "only_when_explicitly_requested": true,
-    "width": 640,
-    "height": 360,
-    "fps_target": 12,
-    "video_codec": "H.264",
-    "video_bitrate_kbps_target": 180,
-    "audio_codec": "AAC",
-    "audio_bitrate_kbps_target": 40,
-    "audio_sample_rate_hz": 32000,
-    "audio_channels": 1
-  },
   "narration": {
     "provider": "Kokoro-82M",
     "voice_id": "am_echo",
-    "language": "American English"
+    "language": "American English",
+    "deliverables": [
+      "narration_echo_kokoro.wav",
+      "narration_echo_kokoro.mp3"
+    ]
+  },
+  "subtitles": {
+    "burned_in": true,
+    "sidecar": "narration_echo_kokoro.srt",
+    "timing_source": "Kokoro sentence timestamps",
+    "subtitle_stream": false
+  },
+  "overlays": {
+    "channel_bug": true,
+    "chapter_labels": true,
+    "thin_red_top_rule": true,
+    "palette": {
+      "red": "#D62839",
+      "white": "#FFFFFF",
+      "blue": "#1746A2",
+      "deep_navy": "#102B52"
+    }
   },
   "visual": {
-    "minimum_relevant_moving_broll_percent": 70,
-    "target_percent": 80,
-    "original_3d_cutaways": "conceptual explanatory reconstructions, not real footage"
+    "target_relevant_moving_broll_percent": [
+      75,
+      85
+    ],
+    "hard_minimum_relevant_moving_broll_percent": 70,
+    "original_3d_cutaways": 10,
+    "seconds_per_cutaway": 12,
+    "target_motion_graphics_percent": [
+      15,
+      25
+    ],
+    "no_static_slides": true,
+    "no_still_photo_zooms": true
   },
+  "rights": {
+    "minimum_clips_budgeted_from_actual_section_timings": true,
+    "max_source_uses": 2,
+    "pixabay_cache_hours": 24,
+    "sequential_downloads": true,
+    "third_party_rights_human_review_required": true
+  },
+  "shorts": {
+    "rendered": false,
+    "if_rendered_resolution": "720x1280"
+  },
+  "forbidden_resolutions": [
+    "1080p",
+    "4K"
+  ],
   "auto_publish": false
 }

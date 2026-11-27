@@ -9,8 +9,8 @@
       "chip manufacturing cleanroom wafer robot",
       "semiconductor fabrication equipment close up"
     ],
-    "count": 6,
-    "cutaway_seconds": 0,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "semiconductor",
@@ -30,7 +30,8 @@
         "factory",
         "production"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_02",
@@ -42,8 +43,8 @@
       "microchip wafer inspection equipment",
       "semiconductor wafer fabrication cleanroom"
     ],
-    "count": 6,
-    "cutaway_seconds": 0,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "semiconductor",
@@ -63,7 +64,8 @@
         "machine",
         "cleanroom"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_03",
@@ -75,8 +77,8 @@
       "precision optical mirror manufacturing",
       "semiconductor lithography optics equipment"
     ],
-    "count": 6,
-    "cutaway_seconds": 0,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "lithography",
@@ -96,7 +98,8 @@
         "cleanroom",
         "equipment"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_04",
@@ -108,8 +111,8 @@
       "laser precision manufacturing system",
       "plasma process industrial machine"
     ],
-    "count": 6,
-    "cutaway_seconds": 5,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "laser",
@@ -127,7 +130,8 @@
         "precision",
         "equipment"
       ]
-    ]
+    ],
+    "context_only_allowed": false
   },
   {
     "id": "section_05",
@@ -139,8 +143,8 @@
       "lens manufacturing optical equipment",
       "vacuum coating optics industrial"
     ],
-    "count": 6,
-    "cutaway_seconds": 5,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "mirror",
@@ -159,7 +163,8 @@
         "machine",
         "factory"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_06",
@@ -171,8 +176,8 @@
       "silicon wafer lithography processing",
       "semiconductor wafer coating cleanroom"
     ],
-    "count": 6,
-    "cutaway_seconds": 5,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "wafer",
@@ -193,7 +198,8 @@
         "manufacturing",
         "factory"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_07",
@@ -205,8 +211,8 @@
       "wafer alignment metrology equipment",
       "semiconductor wafer inspection robotics"
     ],
-    "count": 6,
-    "cutaway_seconds": 5,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "wafer",
@@ -226,7 +232,8 @@
         "handling",
         "inspection"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_08",
@@ -238,8 +245,8 @@
       "semiconductor etching equipment cleanroom",
       "wafer fabrication process machine"
     ],
-    "count": 6,
-    "cutaway_seconds": 5,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "wafer",
@@ -259,7 +266,8 @@
         "cleanroom",
         "machine"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_09",
@@ -271,8 +279,8 @@
       "processor chip production equipment",
       "high performance semiconductor manufacturing"
     ],
-    "count": 6,
-    "cutaway_seconds": 0,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "semiconductor",
@@ -291,7 +299,8 @@
         "production",
         "equipment"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   },
   {
     "id": "section_10",
@@ -303,8 +312,8 @@
       "processor chip packaging facility",
       "semiconductor cleanroom robotic production"
     ],
-    "count": 6,
-    "cutaway_seconds": 0,
+    "count": 4,
+    "cutaway_seconds": 12,
     "match_groups": [
       [
         "semiconductor",
@@ -323,6 +332,7 @@
         "machine",
         "equipment"
       ]
-    ]
+    ],
+    "context_only_allowed": true
   }
 ]
