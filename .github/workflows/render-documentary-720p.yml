@@ -203,6 +203,10 @@ jobs:
           import json, os, subprocess, sys
           video, report_path, episode_dir = sys.argv[1:]
           report = json.load(open(report_path, encoding="utf-8"))
+          acquisition = json.load(open(os.path.join(episode_dir, "broll_acquisition_report.json"), encoding="utf-8"))
+          section_counts = acquisition.get("sections", {})
+          assert int(acquisition.get("minimum_clips_per_section", 0)) >= 6, "B-roll acquisition minimum must be six clips per section"
+          assert len(section_counts) == 10 and all(int(count) >= 6 for count in section_counts.values()), f"Every one of the ten sections must have at least six acquired clips: {section_counts}"
           meta = json.loads(subprocess.check_output(
               ["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", video],
               text=True
@@ -227,7 +231,7 @@ jobs:
           assert report.get("full_decode_check") == "PASS", "Full-file decode did not pass"
           assert report.get("audio_level_check", {}).get("status") == "PASS", "Narration audio-level check did not pass"
           assert report.get("freeze_detection", {}).get("longest_freeze_seconds", 99) <= 4.0, "Frozen frame exceeded four seconds"
-          assert int(report.get("rights_records_count", 0)) >= 40, "Rights manifest is incomplete"
+          assert int(report.get("rights_records_count", 0)) >= 60, "Rights manifest must contain at least six clips for each of ten sections"
           assert int(report.get("broll_contact_sheets_count", 0)) >= 10, "Per-section B-roll visual-review sheets are missing"
           assert report.get("public_release_status", "").startswith("NOT APPROVED"), "Human approval lock must remain active"
           for name in (report["narration_wav"], report["narration_mp3"]):
