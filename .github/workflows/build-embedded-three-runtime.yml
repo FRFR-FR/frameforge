@@ -1,0 +1,44 @@
+name: Build offline Three.js runtime bundle
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-embedded-three-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Bundle Three.js and GLTFLoader into one browser script
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/frameforge-three-runtime
+          cd /tmp/frameforge-three-runtime
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund three@0.164.1 esbuild@0.24.2
+          cat > entry.js <<'JS'
+          import * as THREE from "three";
+          import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+          globalThis.THREE = { ...THREE, GLTFLoader };
+          JS
+          ./node_modules/.bin/esbuild entry.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=frameforge-three-runtime.js
+          test -s frameforge-three-runtime.js
+          ls -lh frameforge-three-runtime.js
+          sha256sum frameforge-three-runtime.js > frameforge-three-runtime.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-ThreeJS-Offline-Runtime
+          path: |
+            /tmp/frameforge-three-runtime/frameforge-three-runtime.js
+            /tmp/frameforge-three-runtime/frameforge-three-runtime.sha256
+          if-no-files-found: error
+          retention-days: 14
