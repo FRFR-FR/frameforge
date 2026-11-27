@@ -39,7 +39,7 @@ jobs:
           curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/realistic-cars/realistic-cars-part-2.zip -o cars-2.zip
           curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/houses/houses.zip -o houses.zip
           curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/trees/trees.zip -o trees.zip
-          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/street-props/street-props.zip -o street-props.zip
+          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/street/street.zip -o street-props.zip
           unzip -q cars-1.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
           unzip -q cars-2.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
           unzip -q houses.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/houses"
@@ -85,7 +85,7 @@ jobs:
               target_names=[]
               for m in d.get("meshes",[]):
                   for p in m.get("primitives",[]):
-                      target_names += p.get("extras",{}).get("targetNames",[])
+                      target_names += m.get("extras",{}).get("targetNames",[]) + p.get("extras",{}).get("targetNames",[])
               node_names=[n.get("name","") for n in d.get("nodes",[])]
               return {"file":os.path.relpath(path,root),"bytes":os.path.getsize(path),"skins":len(skins),"animations":anims,"morph_targets":target_names,"nodes":node_names,"materials":len(d.get("materials",[])),"meshes":len(d.get("meshes",[]))}
           for category in ["humans","cars","houses","trees","street-props"]:
