@@ -91,10 +91,13 @@ def search_coverr(query, key):
             continue
         creator = hit.get("creator") or hit.get("user") or hit.get("author") or {}
         if isinstance(creator, dict):
-            creator_name = creator.get("name") or creator.get("username") or "Coverr creator (not listed)"
+            creator_name = creator.get("name") or creator.get("username") or ""
             creator_url = creator.get("url") or creator.get("profile_url") or ""
         else:
-            creator_name, creator_url = str(creator or "Coverr creator (not listed)"), ""
+            creator_name, creator_url = str(creator or ""), ""
+        if not creator_name.strip() or not creator_url.strip():
+            print(f"Coverr clip skipped {hit.get('id')}: API response lacks creator name/profile needed for Demo attribution.", flush=True)
+            continue
         slug = hit.get("slug") or hit.get("id")
         page = f"https://coverr.co/videos/{slug}" if slug else "https://coverr.co/"
         urls = hit.get("urls") or {}
@@ -277,7 +280,7 @@ def credit(item):
     provider = item["provider"]
     title, source, creator = item["title"], item["source_url"], item["creator"]
     if provider == "Coverr":
-        profile = f" | Creator: {item['creator_url']}" if item.get("creator_url") else ""
+        profile = f" | Creator profile: {item['creator_url']}"
         return f"- Video by {creator} on Coverr: {title}. Source: {source}{profile} | https://coverr.co"
     if provider == "NASA":
         return f"- {title} — NASA. Source: {source} | NASA Media Usage Guidelines: {LICENCES['NASA'][1]}"
