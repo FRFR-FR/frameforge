@@ -156,7 +156,7 @@ def search_wikimedia(query):
             continue
         artist_raw = (meta.get("Artist") or {}).get("value", "")
         artist = clean(artist_raw) or info.get("user", "Wikimedia contributor")
-        match = re.search(r'href=["\\']([^"\\']+)', artist_raw)
+        match = re.search(r"href=['\"]([^'\"]+)", artist_raw)
         title = page.get("title", "").removeprefix("File:")
         page_url = "https://commons.wikimedia.org/wiki/" + quote(page.get("title", "").replace(" ", "_"))
         item = make("Wikimedia Commons", page.get("pageid"), title,
@@ -213,7 +213,9 @@ def search_pexels(query, key):
         if not f:
             continue
         user = hit.get("user") or {}
-        item = make("Pexels", hit.get("id"), hit.get("url"), query, query, hit.get("duration"),
+        slug = str(hit.get("url", "")).rstrip("/").split("/")[-1]
+        title = re.sub(r"-[0-9]+$", "", slug).replace("-", " ")
+        item = make("Pexels", hit.get("id"), title, "", title, hit.get("duration"),
                     f.get("width"), f.get("height"), f.get("link"), hit.get("url"),
                     user.get("name", "Pexels contributor"), creator_url=user.get("url", ""))
         if item:
