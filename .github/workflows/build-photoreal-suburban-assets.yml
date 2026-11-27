@@ -1,0 +1,159 @@
+name: Build photoreal suburban scene asset library
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-photoreal-suburban-assets.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Create asset folders
+        run: |
+          mkdir -p assets/photoreal-suburban/{humans,cars,houses,trees,street-props,textures,lighting,licences}
+      - name: Generate ten high-detail realistic rigged humans
+        env:
+          ARA3D_CACHE: ${{ github.workspace }}/.ara3d-cache
+        run: |
+          set -euo pipefail
+          npx --yes ara3d@0.19.0 presets > /tmp/ara3d-presets.txt
+          npx --yes ara3d@0.19.0 export --random 21-30 --detail high --animations idle,walk,run,emotes,vehicles --formats glb --out assets/photoreal-suburban/humans
+          find assets/photoreal-suburban/humans -type f -name '*.glb' -printf '%f %s bytes\\n' | sort
+          count=$(find assets/photoreal-suburban/humans -type f -name '*.glb' | wc -l)
+          test "$count" -eq 10
+      - name: Download detailed real-scale cars, houses, trees and street props
+        run: |
+          set -euo pipefail
+          cd /tmp
+          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/realistic-cars/realistic-cars-part-1.zip -o cars-1.zip
+          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/realistic-cars/realistic-cars-part-2.zip -o cars-2.zip
+          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/houses/houses.zip -o houses.zip
+          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/trees/trees.zip -o trees.zip
+          curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/street-props/street-props.zip -o street-props.zip
+          unzip -q cars-1.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
+          unzip -q cars-2.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
+          unzip -q houses.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/houses"
+          unzip -q trees.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/trees"
+          unzip -q street-props.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/street-props"
+          cd "$GITHUB_WORKSPACE"
+          for folder in cars houses trees street-props; do
+            echo "$folder GLB count:"
+            find "assets/photoreal-suburban/$folder" -type f -name '*.glb' | wc -l
+          done
+          test "$(find assets/photoreal-suburban/cars -type f -name '*.glb' | wc -l)" -ge 10
+          test "$(find assets/photoreal-suburban/houses -type f -name '*.glb' | wc -l)" -ge 10
+          test "$(find assets/photoreal-suburban/trees -type f -name '*.glb' | wc -l)" -ge 15
+          test "$(find assets/photoreal-suburban/street-props -type f -name '*.glb' | wc -l)" -ge 15
+      - name: Download CC0 photogrammetry PBR surfaces and real-world HDR lighting
+        run: |
+          set -euo pipefail
+          cd /tmp
+          curl -fL --retry 4 https://ambientcg.com/get?file=Asphalt002_1K-JPG.zip -o asphalt.zip
+          curl -fL --retry 4 https://ambientcg.com/get?file=Concrete007_1K-JPG.zip -o concrete.zip
+          curl -fL --retry 4 https://ambientcg.com/get?file=Grass001_1K-JPG.zip -o grass.zip
+          unzip -q asphalt.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/asphalt"
+          unzip -q concrete.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/concrete"
+          unzip -q grass.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/grass"
+          curl -fL --retry 4 https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/lebombo_1k.hdr -o "$GITHUB_WORKSPACE/assets/photoreal-suburban/lighting/lebombo_1k.hdr"
+      - name: Validate GLB integrity, rigs, animations, face visemes and asset counts
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, struct, glob
+          root="assets/photoreal-suburban"
+          report={"humans":[],"cars":[],"houses":[],"trees":[],"street_props":[],"textures":[],"lighting":[]}
+          def parse_glb(path):
+              with open(path,"rb") as f:
+                  h=f.read(12)
+                  if len(h)!=12 or h[:4]!=b"glTF": raise RuntimeError("bad GLB header: "+path)
+                  total=struct.unpack("<I",h[8:12])[0]
+                  chunk_len,chunk_type=struct.unpack("<II",f.read(8))
+                  if chunk_type!=0x4E4F534A: raise RuntimeError("GLB JSON chunk missing: "+path)
+                  d=json.loads(f.read(chunk_len).decode("utf-8"))
+              skins=d.get("skins",[])
+              anims=[x.get("name","") for x in d.get("animations",[])]
+              target_names=[]
+              for m in d.get("meshes",[]):
+                  for p in m.get("primitives",[]):
+                      target_names += p.get("extras",{}).get("targetNames",[])
+              node_names=[n.get("name","") for n in d.get("nodes",[])]
+              return {"file":os.path.relpath(path,root),"bytes":os.path.getsize(path),"skins":len(skins),"animations":anims,"morph_targets":target_names,"nodes":node_names,"materials":len(d.get("materials",[])),"meshes":len(d.get("meshes",[]))}
+          for category in ["humans","cars","houses","trees","street-props"]:
+              files=sorted(glob.glob(root+"/"+category+"/**/*.glb",recursive=True))
+              if not files: raise SystemExit("No GLB models found in "+category)
+              for p in files:
+                  v=parse_glb(p)
+                  if category=="humans" and (v["skins"]<1 or not v["animations"]):
+                      raise SystemExit("Human is missing its skin or animation clips: "+p)
+                  report[{"humans":"humans","cars":"cars","houses":"houses","trees":"trees","street-props":"street_props"}[category]].append(v)
+          if len(report["humans"])!=10: raise SystemExit("Expected exactly 10 humans")
+          for v in report["humans"]:
+              names=v["morph_targets"]
+              if not any(str(n).startswith("viseme_") for n in names):
+                  raise SystemExit("Human is missing viseme shape targets: "+v["file"])
+          for category in ["textures","lighting"]:
+              for p in sorted(glob.glob(root+"/"+category+"/**/*",recursive=True)):
+                  if os.path.isfile(p): report[category].append({"file":os.path.relpath(p,root),"bytes":os.path.getsize(p)})
+          os.makedirs(root+"/reports",exist_ok=True)
+          with open(root+"/reports/asset-validation.json","w") as f: json.dump(report,f,indent=2)
+          with open(root+"/reports/asset-summary.txt","w") as f:
+              for k,v in report.items(): f.write(f"{k}: {len(v)}\\n")
+          print(json.dumps({k:len(v) for k,v in report.items()},indent=2))
+          PY
+      - name: Preserve source credits and licence records
+        run: |
+          cat > assets/photoreal-suburban/ASSETS_AND_LICENCES.md <<'EOF'
+          # Photoreal Suburban Asset Library
+
+          ## Human characters
+          Ara 3D Gen / MakeHuman CC0 character data. The character assets are generated using the Ara 3D Gen command-line exporter; source generator: https://github.com/olatunde85/3d-gen
+          The MakeHuman base dataset is CC0. Ara 3D Gen code is MIT-licensed. Each generated GLB is expected to include a rig, animation clips, facial expression shapes and 14 viseme morph targets; see the validation report.
+
+          ## Cars and houses
+          Models by vinish.dev, Creative Commons Attribution 4.0 (CC BY 4.0).
+          Source: https://vinish.dev/free-3d-models/realistic-cars
+          Source: https://vinish.dev/free-3d-models/houses
+          Required credit: "Models by vinish.dev (https://vinish.dev/free-3d-models/), CC BY 4.0."
+
+          ## Trees and street furniture
+          Models by vinish.dev, Creative Commons Attribution 4.0 (CC BY 4.0).
+          Source: https://vinish.dev/free-3d-models/trees
+          Source: https://vinish.dev/free-3d-models/street-props
+          Required credit: "Models by vinish.dev (https://vinish.dev/free-3d-models/), CC BY 4.0."
+
+          ## PBR surfaces
+          Asphalt 002, Concrete 007 and Grass 001 from ambientCG, CC0 1.0.
+          https://ambientcg.com/
+
+          ## Lighting
+          Lebombo HDRI from Poly Haven, CC0 1.0.
+          https://polyhaven.com/
+
+          Keep this file and the original per-pack credits when redistributing modified assets.
+          EOF
+      - name: Bundle the validated library
+        run: |
+          set -euo pipefail
+          cd assets
+          zip -qr "$GITHUB_WORKSPACE/frameforge-photoreal-suburban-library.zip" photoreal-suburban
+          cd "$GITHUB_WORKSPACE"
+          sha256sum frameforge-photoreal-suburban-library.zip > frameforge-photoreal-suburban-library.sha256
+          ls -lh frameforge-photoreal-suburban-library.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-Photoreal-Suburban-Library
+          path: |
+            frameforge-photoreal-suburban-library.zip
+            frameforge-photoreal-suburban-library.sha256
+          if-no-files-found: error
+          retention-days: 14
