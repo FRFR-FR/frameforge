@@ -65,8 +65,8 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y ffmpeg libsndfile1 fonts-dejavu-core xvfb libgl1 libegl1 libegl-mesa0 libglx-mesa0 libgbm1 libxkbcommon0 curl xz-utils
-          # Install the official Blender binary because the Ubuntu package lacks
-          # the Workbench renderer used by the episode's 3D cutaways.
+          # Install the official Blender binary; this CI build uses Eevee
+          # with Mesa software OpenGL under Xvfb for headless 3D rendering.
           BLENDER_ARCHIVE="blender-5.0.1-linux-x64.tar.xz"
           BLENDER_BASE="https://download.blender.org/release/Blender5.0"
           CHECKSUM_FILE="/tmp/blender-5.0.1.sha256"
@@ -112,7 +112,35 @@ jobs:
           sudo ln -sfn /opt/blender-5.0.1-linux-x64/blender /usr/local/bin/blender
           hash -r
           blender --version
-          blender --background --factory-startup --python-expr "import bpy; engines={item.identifier for item in bpy.context.scene.render.bl_rna.properties['engine'].enum_items}; print('AVAILABLE_RENDER_ENGINES', sorted(engines)); assert 'BLENDER_WORKBENCH' in engines, 'Official Blender binary is missing Workbench support'"
+          cat > /tmp/frameforge_eevee_preflight.py <<'PY'
+          import bpy, os
+          from mathutils import Vector
+          scene = bpy.context.scene
+          engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
+          print("AVAILABLE_RENDER_ENGINES", sorted(engines), flush=True)
+          if "BLENDER_EEVEE" not in engines:
+              raise RuntimeError(f"Blender Eevee renderer is unavailable: {sorted(engines)}")
+          scene.render.engine = "BLENDER_EEVEE"
+          bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
+          bpy.ops.object.camera_add(location=(4, -6, 4))
+          camera = bpy.context.object
+          camera.rotation_euler = (Vector((0, 0, 0)) - camera.location).to_track_quat("-Z", "Y").to_euler()
+          scene.camera = camera
+          bpy.ops.object.light_add(type="AREA", location=(2, -3, 5))
+          bpy.context.object.data.energy = 1000
+          scene.render.resolution_x = 128
+          scene.render.resolution_y = 128
+          scene.render.resolution_percentage = 100
+          scene.render.image_settings.file_format = "PNG"
+          scene.render.filepath = "/tmp/frameforge_eevee_preflight.png"
+          bpy.ops.render.render(write_still=True)
+          size = os.path.getsize(scene.render.filepath)
+          print("EEVEE_RENDER_PREFLIGHT_PASS", size, flush=True)
+          if size < 1000:
+              raise RuntimeError("Eevee preflight image is unexpectedly small.")
+          PY
+          xvfb-run -a blender --background --factory-startup --python /tmp/frameforge_eevee_preflight.py
+          test -s /tmp/frameforge_eevee_preflight.png
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install "kokoro>=0.9.4" soundfile numpy requests Pillow
