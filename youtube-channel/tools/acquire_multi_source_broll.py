@@ -341,7 +341,7 @@ def main():
             seconds = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "csv=p=0", str(root / audio_file)], text=True).strip())
         shots = max(1, int((max(0, seconds - 12) + SHOT - .001) // SHOT) + 1)
-        minimum = max(4, (shots + 1) // 2)
+        minimum = max(6, (shots + 1) // 2)
         target = max(int(section["count"]), minimum)
         targets[sid] = target
         candidates = {}
@@ -446,7 +446,7 @@ def main():
       "unique_clips": len(manifest), "subject_specific_clips": sum(x["relevance_level"] == "subject-specific" for x in manifest),
       "context_only_clips": sum(x["relevance_level"] == "context-only" for x in manifest),
       "target_clips": sum(targets.values()), "sections": section_counts, "queries_used": queries_used,
-      "source_errors": errors, "minimum_clips_per_section": 4,
+      "source_errors": errors, "minimum_clips_per_section": 6,
       "max_source_uses_per_video": pix.MAX_SOURCE_USES, "max_rejection_checks_per_candidate": pix.MAX_REJECTION_CHECKS,
       "generic_fallbacks": "disabled", "ai_generated_footage": "Metadata/text filtering applied; human visual review remains required",
       "download_limits": {"max_bytes": MAX_BYTES, "minimum_resolution": "1280x720", "minimum_duration_seconds": SHOT},
