@@ -34,7 +34,8 @@ def setup(folder,camloc=(8,-12,7),target=(0,0,0)):
  world=bpy.data.worlds.new("studio world"); scene.world=world; world.use_nodes=True; world.node_tree.nodes["Background"].inputs["Color"].default_value=(.006,.014,.028,1); world.node_tree.nodes["Background"].inputs["Strength"].default_value=.35
  for loc,power,size,col in [((2,-7,9),1700,8,(.7,.82,1)),((-6,2,5),1300,6,(.18,.4,1)),((5,5,4),900,5,(1,.28,.12))]:
   bpy.ops.object.light_add(type="AREA",location=loc); l=bpy.context.object; l.data.energy=power; l.data.shape="DISK"; l.data.size=size; l.data.color=col; l.rotation_euler=(Vector((0,0,0))-l.location).to_track_quat("-Z","Y").to_euler()
- scene.render.engine="BLENDER_EEVEE_NEXT"
+ available_engines={item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
+ scene.render.engine="BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in available_engines else "BLENDER_EEVEE"
  scene.render.resolution_x=W; scene.render.resolution_y=H; scene.render.resolution_percentage=100
  scene.render.fps=FPS; scene.frame_start=1; scene.frame_end=FRAMES
  scene.render.image_settings.file_format="PNG"; scene.render.image_settings.color_mode="RGB"
