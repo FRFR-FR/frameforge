@@ -402,6 +402,7 @@ def main():
             row = {
               "asset_id": aid, "provider": item["provider"], "section_id": sid, "intended_use": section["title"],
               "filename": dest.relative_to(root).as_posix(), "source_url": item["source_url"],
+              "title": item.get("title", "Untitled footage"), "description": item.get("description", ""),
               "creator": item["creator"], "creator_url": item.get("creator_url", ""), "credit": credit(item),
               "license": item["license"], "license_url": item["license_url"], "terms_url": item["license_url"],
               "license_checked_date": datetime.now(timezone.utc).date().isoformat(),
