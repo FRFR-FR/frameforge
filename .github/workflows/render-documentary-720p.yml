@@ -20,8 +20,8 @@ permissions:
   actions: read
 
 concurrency:
-  group: documentary-render-${{ github.ref }}
-  cancel-in-progress: true
+  group: documentary-render-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   render:
