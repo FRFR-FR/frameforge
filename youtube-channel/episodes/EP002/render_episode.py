@@ -270,7 +270,7 @@ def markdown_report(report):
 - Subject-specific / context-only B-roll: {report['subject_specific_clips']} / {report['context_only_clips']} unique clips
 - Original conceptual 3D motion graphics: {report['graphics_percent']}% ({report['graphics_seconds']} seconds; ten 12-second scenes)
 - Source reuse: maximum {report['max_source_clip_uses']} uses per clip
-- Subtitles: burned into picture; SRT sidecar included
+- Captions/subtitles: none
 - Chapter labels / channel bug: included over moving footage
 - Thumbnail: {report['thumbnail']} ({report['thumbnail_size_mb']} MB)
 - QC contact sheet: {report['qc_contact_sheet']}
@@ -300,8 +300,7 @@ def main():
 
     wav = OUT / narration["wav"]
     mp3 = OUT / narration["mp3"]
-    srt = OUT / narration["srt"]
-    for required in (wav, mp3, srt):
+    for required in (wav, mp3):
         if not required.is_file() or required.stat().st_size < 1000:
             raise RuntimeError(f"Required Kokoro narration deliverable is missing: {required.name}")
 
@@ -466,7 +465,6 @@ def main():
 
     final = OUT / "Underneath_Everything_EP002_Kokoro_Broll_720p.mp4"
     filters = overlay_filters(chapter_rows)
-    filters.append(make_subtitle_filter(srt))
     filter_graph = ",".join(filters)
     run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
@@ -538,8 +536,6 @@ def main():
         "narration_mp3": mp3.name,
         "narration_mp3_mb": round(mp3.stat().st_size / 1_000_000, 2),
         "narration_seconds": round(audio_seconds, 3),
-        "srt_sidecar": srt.name,
-        "srt_size_mb": round(srt.stat().st_size / 1_000_000, 3),
         "unique_broll_clips": len(unique_sources),
         "subject_specific_clips": len(subject_specific_sources),
         "context_only_clips": len(context_only_sources),
@@ -556,10 +552,10 @@ def main():
         "rights_manifest": "asset-manifest-broll.csv",
         "rights_records_count": len(manifest),
         "broll_contact_sheets_count": len(list((OUT / "broll_review").glob("*_contact_sheet.jpg"))),
-        "subtitles_burned_in": True,
+        "captions": "none",
         "chapter_labels": True,
         "channel_bug": True,
-        "subtitle_streams": "none; subtitles are burned in",
+        "subtitle_streams": "none",
         "thumbnail": thumbnail.name,
         "thumbnail_size_mb": round(thumbnail.stat().st_size / 1_000_000, 3),
         "thumbnail_dimensions": f"{thumbnail_size[0]}x{thumbnail_size[1]}",
@@ -576,7 +572,7 @@ def main():
         "git_commit_sha": os.environ.get("GITHUB_SHA", "local-run"),
         "shorts_status": "Concepts only; no vertical Shorts exported.",
         "public_release_status": "NOT APPROVED; full human playback and rights review are pending.",
-        "rights_review_status": "Pixabay source/license metadata recorded; human review of every clip remains required.",
+        "rights_review_status": "Multi-source provider metadata and licence records captured; human review of every clip remains required.",
         "auto_publish": False
     }
 
