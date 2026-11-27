@@ -26,7 +26,7 @@ concurrency:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 350
     outputs:
       artifact_name: ${{ steps.episode.outputs.artifact_name }}
       video_ready: ${{ steps.validate.outputs.video_ready }}
@@ -121,6 +121,14 @@ jobs:
           if "BLENDER_EEVEE" not in engines:
               raise RuntimeError(f"Blender Eevee renderer is unavailable: {sorted(engines)}")
           scene.render.engine = "BLENDER_EEVEE"
+          eevee = getattr(scene, "eevee", None)
+          if eevee is not None:
+              if hasattr(eevee, "taa_render_samples"):
+                  eevee.taa_render_samples = 4
+              if hasattr(eevee, "use_gtao"):
+                  eevee.use_gtao = False
+              if hasattr(eevee, "use_soft_shadows"):
+                  eevee.use_soft_shadows = False
           bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
           bpy.ops.object.camera_add(location=(4, -6, 4))
           camera = bpy.context.object
@@ -128,6 +136,8 @@ jobs:
           scene.camera = camera
           bpy.ops.object.light_add(type="AREA", location=(2, -3, 5))
           bpy.context.object.data.energy = 1000
+          if hasattr(bpy.context.object.data, "use_shadow"):
+              bpy.context.object.data.use_shadow = False
           scene.render.resolution_x = 128
           scene.render.resolution_y = 128
           scene.render.resolution_percentage = 100
