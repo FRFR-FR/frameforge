@@ -64,16 +64,50 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y ffmpeg libsndfile1 fonts-dejavu-core blender xvfb libgl1 libegl1 libegl-mesa0 libglx-mesa0 libgbm1 libxkbcommon0 curl xz-utils
-          # The Ubuntu-packaged Blender build on this runner omits the Workbench
-          # render engine. Use the official upstream binary, checksum-verified,
-          # so the 3D cutaways can use Workbench instead of slow software Eevee.
+          sudo apt-get install -y ffmpeg libsndfile1 fonts-dejavu-core xvfb libgl1 libegl1 libegl-mesa0 libglx-mesa0 libgbm1 libxkbcommon0 curl xz-utils
+          # Install the official Blender binary because the Ubuntu package lacks
+          # the Workbench renderer used by the episode's 3D cutaways.
           BLENDER_ARCHIVE="blender-5.0.1-linux-x64.tar.xz"
           BLENDER_BASE="https://download.blender.org/release/Blender5.0"
-          curl --fail --location --retry 3 "$BLENDER_BASE/$BLENDER_ARCHIVE" --output "/tmp/$BLENDER_ARCHIVE"
-          curl --fail --location --retry 3 "$BLENDER_BASE/blender-5.0.1.sha256" --output /tmp/blender-5.0.1.sha256
-          EXPECTED_SHA="$(awk 'NR==1 {print $1}' /tmp/blender-5.0.1.sha256 | tr -d '\\r\\n')"
-          printf '%s  %s\n' "$EXPECTED_SHA" "/tmp/$BLENDER_ARCHIVE" | sha256sum --check -
+          CHECKSUM_FILE="/tmp/blender-5.0.1.sha256"
+          curl --fail --location --retry 3 --retry-all-errors "$BLENDER_BASE/blender-5.0.1.sha256" --output "$CHECKSUM_FILE"
+          EXPECTED_SHA="$(awk -v archive="$BLENDER_ARCHIVE" '
+            {
+              filename=$2
+              sub(/^\*/, "", filename)
+              sub(/^.*\//, "", filename)
+              if (filename == archive) {
+                print tolower($1)
+                matches++
+              }
+            }
+            END { if (matches != 1) exit 1 }
+          ' "$CHECKSUM_FILE")" || {
+            echo "::error::Could not find exactly one checksum entry for $BLENDER_ARCHIVE."
+            cat "$CHECKSUM_FILE"
+            exit 1
+          }
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::The checksum entry for $BLENDER_ARCHIVE is malformed."
+            exit 1
+          fi
+          BLENDER_VERIFIED=0
+          for attempt in 1 2 3; do
+            echo "Downloading Blender archive (attempt $attempt/3)."
+            curl --fail --location --retry 3 --retry-all-errors "$BLENDER_BASE/$BLENDER_ARCHIVE" --output "/tmp/$BLENDER_ARCHIVE"
+            if printf '%s  %s\n' "$EXPECTED_SHA" "/tmp/$BLENDER_ARCHIVE" | sha256sum --check -; then
+              BLENDER_VERIFIED=1
+              break
+            fi
+            echo "::warning::Blender archive checksum mismatch on attempt $attempt."
+            rm -f "/tmp/$BLENDER_ARCHIVE"
+            sleep 2
+          done
+          if [ "$BLENDER_VERIFIED" -ne 1 ]; then
+            echo "::error::Blender archive did not pass SHA-256 verification after three downloads."
+            exit 1
+          fi
+          tar -tJf "/tmp/$BLENDER_ARCHIVE" >/dev/null
           sudo tar -xJf "/tmp/$BLENDER_ARCHIVE" -C /opt
           sudo ln -sfn /opt/blender-5.0.1-linux-x64/blender /usr/local/bin/blender
           hash -r
@@ -159,7 +193,6 @@ jobs:
           test -s "$REPORT" || { echo "::error::Render/QC report is missing."; exit 1; }
           test -s "$EPISODE_DIR/output/narration_echo_kokoro.wav"
           test -s "$EPISODE_DIR/output/narration_echo_kokoro.mp3"
-          test -s "$EPISODE_DIR/output/narration_echo_kokoro.srt"
           test -s "$EPISODE_DIR/output/thumbnail_rwb.png"
           test -s "$EPISODE_DIR/output/qc_contact_sheet.jpg"
           test -s "$EPISODE_DIR/asset-manifest-broll.csv"
@@ -179,7 +212,7 @@ jobs:
           assert (v["width"], v["height"]) == (1280, 720), "Master must be exactly 1280x720"
           assert v["codec_name"] == "h264" and v.get("avg_frame_rate") == "24/1", "Master must be measured H.264 24fps"
           assert a["codec_name"] == "aac" and a.get("sample_rate") == "48000" and int(a.get("channels", 0)) == 2, "Audio must be stereo AAC 48kHz"
-          assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "Subtitles must be burned into picture"
+          assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "MP4 must not contain a subtitle stream"
           assert report.get("narration_provider") == "Kokoro-82M" and report.get("narration_voice_id") == "am_echo", "Kokoro Echo is mandatory"
           assert report.get("captions") == "none", "Captions/subtitles must not be included"
           assert report.get("chapter_labels") is True and report.get("channel_bug") is True, "Brand overlays are required"
