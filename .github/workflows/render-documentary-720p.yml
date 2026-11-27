@@ -32,6 +32,8 @@ jobs:
       video_ready: ${{ steps.validate.outputs.video_ready }}
     env:
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+      COVERR_API_KEY: ${{ secrets.COVERR_API_KEY }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       HF_HOME: ~/.cache/huggingface
       LIBGL_ALWAYS_SOFTWARE: "1"
       MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
@@ -52,6 +54,7 @@ jobs:
           path: |
             ~/.cache/huggingface
             ~/.cache/pixabay
+            ~/.cache/frameforge-footage
           key: documentary-kokoro-echo-${{ runner.os }}-${{ hashFiles('youtube-channel/tools/generate_kokoro.py') }}
           restore-keys: |
             documentary-kokoro-echo-${{ runner.os }}-
@@ -83,7 +86,7 @@ jobs:
           echo "artifact_name=$(basename "$EPISODE_DIR")" >> "$GITHUB_OUTPUT"
           echo "Selected $EPISODE_DIR"
 
-      - name: Generate approved Kokoro Echo narration and timed subtitles
+      - name: Generate approved Kokoro Echo narration
         id: narration
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
@@ -93,23 +96,20 @@ jobs:
           python youtube-channel/tools/generate_kokoro.py --episode-dir "$EPISODE_DIR"
           test -s "$EPISODE_DIR/output/narration_echo_kokoro.wav"
           test -s "$EPISODE_DIR/output/narration_echo_kokoro.mp3"
-          test -s "$EPISODE_DIR/output/narration_echo_kokoro.srt"
 
-      - name: Acquire only the minimum relevant, rights-documented B-roll
+      - name: Acquire relevant, rights-documented footage from all enabled providers
         id: broll
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "$PIXABAY_API_KEY" ]; then
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            mkdir -p "$EPISODE_DIR/output"
-            printf '%s\n' "Narration may be generated, but rendering is blocked: PIXABAY_API_KEY is empty. No unrelated filler or slides were created." > "$EPISODE_DIR/output/production_status.md"
-            echo "::warning::PIXABAY_API_KEY is missing. Rendering is skipped rather than substituting unrelated footage."
-            exit 0
-          fi
-          python youtube-channel/tools/acquire_pixabay_broll.py --episode-dir "$EPISODE_DIR"
+          mkdir -p "$EPISODE_DIR/output"
+          python -m py_compile youtube-channel/tools/acquire_multi_source_broll.py youtube-channel/tools/acquire_pixabay_broll.py
+          python youtube-channel/tools/acquire_multi_source_broll.py --episode-dir "$EPISODE_DIR"
+          test -s "$EPISODE_DIR/asset-manifest-broll.csv"
+          test -s "$EPISODE_DIR/broll_acquisition_report.json"
+          test -s "$EPISODE_DIR/output/footage_attribution_description.txt"
           echo "available=true" >> "$GITHUB_OUTPUT"
 
       - name: Build per-clip visual-review contact sheets
@@ -131,7 +131,7 @@ jobs:
           set -euo pipefail
           python "$EPISODE_DIR/render_episode.py"
 
-      - name: Validate master, timeline coverage, subtitles and full decode
+      - name: Validate master, footage coverage, no-caption rule and full decode
         id: validate
         if: steps.broll.outputs.available == 'true' && steps.render.outcome == 'success'
         env:
@@ -167,7 +167,7 @@ jobs:
           assert a["codec_name"] == "aac" and a.get("sample_rate") == "48000" and int(a.get("channels", 0)) == 2, "Audio must be stereo AAC 48kHz"
           assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "Subtitles must be burned into picture"
           assert report.get("narration_provider") == "Kokoro-82M" and report.get("narration_voice_id") == "am_echo", "Kokoro Echo is mandatory"
-          assert report.get("subtitles_burned_in") is True, "Readable burned-in subtitles are required"
+          assert report.get("captions") == "none", "Captions/subtitles must not be included"
           assert report.get("chapter_labels") is True and report.get("channel_bug") is True, "Brand overlays are required"
           coverage = float(report.get("broll_coverage_percent", 0))
           graphics = float(report.get("graphics_percent", 0))
@@ -183,7 +183,7 @@ jobs:
           assert int(report.get("rights_records_count", 0)) >= 40, "Rights manifest is incomplete"
           assert int(report.get("broll_contact_sheets_count", 0)) >= 10, "Per-section B-roll visual-review sheets are missing"
           assert report.get("public_release_status", "").startswith("NOT APPROVED"), "Human approval lock must remain active"
-          for name in (report["narration_wav"], report["narration_mp3"], report["srt_sidecar"]):
+          for name in (report["narration_wav"], report["narration_mp3"]):
               assert os.path.isfile(os.path.join(episode_dir, "output", name)), f"Missing deliverable: {name}"
           print(
               f"PASS: {video}; {int(meta['format']['size'])/1_000_000:.2f} MB; "
@@ -215,7 +215,6 @@ jobs:
             ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
             ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.wav
             ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.mp3
-            ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.srt
             ${{ steps.episode.outputs.dir }}/output/kokoro_narration_report.json
             ${{ steps.episode.outputs.dir }}/output/render_report_broll_echo.json
             ${{ steps.episode.outputs.dir }}/output/broll_timeline.json
@@ -227,5 +226,6 @@ jobs:
             ${{ steps.episode.outputs.dir }}/output/production_status.md
             ${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
             ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
+            ${{ steps.episode.outputs.dir }}/output/footage_attribution_description.txt
           if-no-files-found: warn
           retention-days: 14
