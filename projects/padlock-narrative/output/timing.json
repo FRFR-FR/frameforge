@@ -1,0 +1,118 @@
+{
+  "status": "PASS",
+  "voice": "Kokoro Echo (am_echo)",
+  "model": "hexgrad/Kokoro-82M",
+  "language": "American English",
+  "sample_rate_hz": 24000,
+  "channels": 1,
+  "wav_duration_seconds": 30.0,
+  "mp3_duration_seconds": 30.048,
+  "mp3_bitrate": "160 kbps",
+  "cta_start_seconds": 10.0,
+  "segment_count": 11,
+  "segments": [
+    {
+      "id": "hook",
+      "start_seconds": 0.0,
+      "end_seconds": 3.0,
+      "text": "This lock is useless. Anyone can just pull it open.",
+      "source_duration_seconds": 4.025,
+      "slot_duration_seconds": 3.0,
+      "atempo": 1.3417
+    },
+    {
+      "id": "bolt",
+      "start_seconds": 3.0,
+      "end_seconds": 6.0,
+      "text": "So add a bolt to hold the shackle down.",
+      "source_duration_seconds": 3.075,
+      "slot_duration_seconds": 3.0,
+      "atempo": 1.025
+    },
+    {
+      "id": "pushback",
+      "start_seconds": 6.0,
+      "end_seconds": 8.0,
+      "text": "Now someone pushes the bolt back.",
+      "source_duration_seconds": 2.85,
+      "slot_duration_seconds": 2.0,
+      "atempo": 1.425
+    },
+    {
+      "id": "spring",
+      "start_seconds": 8.0,
+      "end_seconds": 10.0,
+      "text": "Fix that with a spring.",
+      "source_duration_seconds": 2.325,
+      "slot_duration_seconds": 2.0,
+      "atempo": 1.1625
+    },
+    {
+      "id": "cta",
+      "start_seconds": 10.0,
+      "end_seconds": 13.0,
+      "text": "Like and subscribe, because a thin shim beats that spring.",
+      "source_duration_seconds": 4.125,
+      "slot_duration_seconds": 3.0,
+      "atempo": 1.375
+    },
+    {
+      "id": "plug",
+      "start_seconds": 13.0,
+      "end_seconds": 16.0,
+      "text": "So hide the bolt behind a plug that must turn.",
+      "source_duration_seconds": 3.55,
+      "slot_duration_seconds": 3.0,
+      "atempo": 1.1833
+    },
+    {
+      "id": "turn",
+      "start_seconds": 16.0,
+      "end_seconds": 18.5,
+      "text": "But now anyone can turn it.",
+      "source_duration_seconds": 2.6,
+      "slot_duration_seconds": 2.5,
+      "atempo": 1.04
+    },
+    {
+      "id": "pins",
+      "start_seconds": 18.5,
+      "end_seconds": 21.0,
+      "text": "Add spring-loaded pins that block the plug.",
+      "source_duration_seconds": 3.4,
+      "slot_duration_seconds": 2.5,
+      "atempo": 1.36
+    },
+    {
+      "id": "blocked",
+      "start_seconds": 21.0,
+      "end_seconds": 23.5,
+      "text": "Now nobody can turn it,",
+      "source_duration_seconds": 2.425,
+      "slot_duration_seconds": 2.5,
+      "atempo": 0.97
+    },
+    {
+      "id": "key",
+      "start_seconds": 23.5,
+      "end_seconds": 27.0,
+      "text": "except the right key, which lifts every pin to the exact height.",
+      "source_duration_seconds": 4.525,
+      "slot_duration_seconds": 3.5,
+      "atempo": 1.2929
+    },
+    {
+      "id": "close",
+      "start_seconds": 27.0,
+      "end_seconds": 30.0,
+      "text": "Plug turns, bolt slides, lock opens. That's your padlock.",
+      "source_duration_seconds": 4.35,
+      "slot_duration_seconds": 3.0,
+      "atempo": 1.45
+    }
+  ],
+  "files": {
+    "mp3": "padlock-narration-kokoro-echo.mp3",
+    "wav": "padlock-narration-kokoro-echo.wav"
+  }
+}
