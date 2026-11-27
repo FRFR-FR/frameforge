@@ -56,7 +56,7 @@ def run_checked(args: list[str]) -> None:
     )
     if result.returncode:
         raise RuntimeError(
-            f"Command failed: {' '.join(args)}\\n{result.stderr[-6000:]}"
+            f"Command failed: {' '.join(args)}\n{result.stderr[-6000:]}"
         )
 
 
@@ -241,7 +241,7 @@ def main() -> None:
         },
     }
     (output_dir / "timing.json").write_text(
-        json.dumps(metadata, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps(metadata, indent=2), flush=True)
     print(f"MP3_READY={mp3_path.resolve()}", flush=True)
