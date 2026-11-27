@@ -95,7 +95,16 @@ jobs:
           git add projects/mechanical-watch-narrative/output/watch-voice-timing.json
           git add projects/mechanical-watch-narrative/output/watch-tts-sample-kokoro-echo.mp3
           git add projects/mechanical-watch-narrative/output/watch-tts-sample-espeak.mp3
-          if git diff --cached --quiet; then echo "No audio changes"; else git commit -m "Add mechanical watch Kokoro Echo and eSpeak voice samples"; git push origin HEAD:main; fi
+          if git diff --cached --quiet; then
+            echo "No audio changes"
+          else
+            git commit -m "Add mechanical watch Kokoro Echo and eSpeak voice samples"
+            # Other FrameForge edits may land while the TTS models render.
+            # Rebase our generated-audio commit on the latest main before pushing.
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
   f5:
     name: F5-TTS sample (CPU; non-commercial checkpoint)
     needs: kokoro
