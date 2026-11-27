@@ -1,0 +1,149 @@
+name: FrameForge — Mechanical Watch Kokoro & TTS Samples
+run-name: Generate mechanical watch narration and TTS samples
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/mechanical-watch-tts.yml"
+      - "projects/mechanical-watch-narrative/generate_echo.py"
+      - "projects/mechanical-watch-narrative/narration.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: frameforge-mechanical-watch-tts-v1
+  cancel-in-progress: true
+
+jobs:
+  kokoro:
+    name: Kokoro Echo narration and eSpeak baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      OMP_NUM_THREADS: "4"
+      MKL_NUM_THREADS: "4"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: .cache/huggingface
+          key: frameforge-watch-kokoro-82m-echo-v1
+      - name: Install FFmpeg and eSpeak NG
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg espeak-ng
+          ffmpeg -version | head -n 1
+          espeak-ng --version | head -n 1
+      - name: Install CPU-only PyTorch and Kokoro
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0+cpu torchaudio==2.6.0+cpu
+          python -m pip install "kokoro==0.9.4" "numpy==1.26.4" soundfile
+          python - <<'PY'
+          import torch, kokoro, soundfile
+          print("torch",torch.__version__,"Kokoro loaded","soundfile",soundfile.__version__)
+          PY
+      - name: Generate narration and Kokoro voice sample
+        run: python projects/mechanical-watch-narrative/generate_echo.py
+      - name: Generate eSpeak NG baseline sample
+        run: |
+          set -euo pipefail
+          printf '%s\n' "This tiny balance wheel swings back and forth, keeping a mechanical watch ticking with remarkable precision." | espeak-ng -v en-us -s 150 -p 48 --stdout > projects/mechanical-watch-narrative/output/watch-tts-sample-espeak.wav
+          ffmpeg -y -v error -i projects/mechanical-watch-narrative/output/watch-tts-sample-espeak.wav -codec:a libmp3lame -b:a 160k projects/mechanical-watch-narrative/output/watch-tts-sample-espeak.mp3
+      - name: Verify narration and samples
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=Path("projects/mechanical-watch-narrative/output")
+          m=json.loads((d/"watch-voice-timing.json").read_text())
+          assert m["status"]=="PASS" and m["voice"]=="Kokoro Echo (am_echo)"
+          assert abs(m["duration_seconds"]-30)<.15 and m["cta_start_seconds"]==10
+          for name in ["watch-narration-echo.mp3","watch-tts-sample-kokoro-echo.mp3","watch-tts-sample-espeak.mp3"]:
+              p=d/name
+              assert p.is_file() and p.stat().st_size>5000,(name,p.stat().st_size if p.exists() else 0)
+              print(name,p.stat().st_size,"bytes")
+          print(json.dumps(m,indent=2))
+          PY
+      - name: Upload narration and generated samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-Mechanical-Watch-Kokoro-and-eSpeak
+          path: |
+            projects/mechanical-watch-narrative/output/watch-narration-echo.mp3
+            projects/mechanical-watch-narrative/output/watch-narration-echo.wav
+            projects/mechanical-watch-narrative/output/watch-tts-sample-kokoro-echo.mp3
+            projects/mechanical-watch-narrative/output/watch-tts-sample-espeak.mp3
+            projects/mechanical-watch-narrative/output/watch-voice-timing.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Save generated Echo narration and sample in FrameForge
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects/mechanical-watch-narrative/output/watch-narration-echo.mp3
+          git add projects/mechanical-watch-narrative/output/watch-voice-timing.json
+          git add projects/mechanical-watch-narrative/output/watch-tts-sample-kokoro-echo.mp3
+          git add projects/mechanical-watch-narrative/output/watch-tts-sample-espeak.mp3
+          if git diff --cached --quiet; then echo "No audio changes"; else git commit -m "Add mechanical watch Kokoro Echo and eSpeak voice samples"; git push origin HEAD:main; fi
+  f5:
+    name: F5-TTS sample (CPU; non-commercial checkpoint)
+    needs: kokoro
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface-f5
+      OMP_NUM_THREADS: "4"
+      MKL_NUM_THREADS: "4"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: FrameForge-Mechanical-Watch-Kokoro-and-eSpeak
+          path: input
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - name: Install CPU PyTorch and F5-TTS
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0+cpu torchaudio==2.6.0+cpu
+          python -m pip install f5-tts soundfile
+      - name: Prepare 10-second Echo reference
+        run: |
+          mkdir -p projects/mechanical-watch-narrative/output
+          ffmpeg -y -v error -i input/watch-narration-echo.wav -t 10 -ar 24000 -ac 1 -c:a pcm_s16le projects/mechanical-watch-narrative/output/echo-reference.wav
+      - name: Generate F5 sample cloned from Echo reference
+        run: |
+          python - <<'PY'
+          import torch
+          from f5_tts.api import F5TTS
+          ref_text="A mechanical watch turns one wound spring into every second. Inside, a steel mainspring stores energy, not electricity. Tiny gears carry that power forward without a battery."
+          sample_text="This tiny balance wheel swings back and forth, keeping a mechanical watch ticking with remarkable precision."
+          tts=F5TTS(model="F5TTS_v1_Base",device="cpu")
+          wav,sr,spec=tts.infer(ref_file="projects/mechanical-watch-narrative/output/echo-reference.wav",ref_text=ref_text,gen_text=sample_text,file_wave="projects/mechanical-watch-narrative/output/watch-tts-sample-f5.wav")
+          print("F5 sample",sr,"Hz")
+          PY
+          ffmpeg -y -v error -i projects/mechanical-watch-narrative/output/watch-tts-sample-f5.wav -codec:a libmp3lame -b:a 160k projects/mechanical-watch-narrative/output/watch-tts-sample-f5.mp3
+      - name: Upload F5 sample and reference details
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-Mechanical-Watch-F5-sample-NONCOMMERCIAL
+          path: |
+            projects/mechanical-watch-narrative/output/watch-tts-sample-f5.mp3
+          if-no-files-found: error
+          retention-days: 30
