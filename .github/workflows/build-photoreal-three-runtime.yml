@@ -33,7 +33,8 @@ jobs:
           import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
           import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
           import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-          globalThis.THREE = { ...THREE, GLTFLoader, RGBELoader, EffectComposer, RenderPass, UnrealBloomPass, OutputPass };
+          import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js";
+          globalThis.THREE = { ...THREE, GLTFLoader, RGBELoader, EffectComposer, RenderPass, UnrealBloomPass, OutputPass, BufferGeometryUtils };
           JS
           ./node_modules/.bin/esbuild entry.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=frameforge-three-cinematic-runtime.js
           test -s frameforge-three-cinematic-runtime.js
