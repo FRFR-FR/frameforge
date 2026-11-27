@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "voice": "Kokoro Echo (am_echo)",
+  "model": "hexgrad/Kokoro-82M",
+  "duration_seconds": 30.048,
+  "wav_samples": 720000,
+  "sample_rate": 24000,
+  "channels": 1,
+  "bitrate": "160 kbps",
+  "cta_start_seconds": 10.0,
+  "spoken_word_count": 81,
+  "sample_text": "This tiny balance wheel swings back and forth, keeping a mechanical watch ticking with remarkable precision."
+}
