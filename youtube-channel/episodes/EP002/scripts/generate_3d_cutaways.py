@@ -6,7 +6,7 @@ from mathutils import Vector
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 out = os.path.abspath(args[args.index("--output-dir") + 1]) if "--output-dir" in args else os.path.abspath("output/3d_frames")
 os.makedirs(out, exist_ok=True)
-W, H, FPS, FRAMES = 1280, 720, 24, 288
+W, H, FPS, FRAMES = 960, 540, 24, 288
 
 def mat(n, c, metal=0.2, emit=None):
     m = bpy.data.materials.new(n)
@@ -38,14 +38,17 @@ def cube(n, loc, dim, material, bevel=.05):
     o.dimensions = dim
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     o.data.materials.append(material)
-    if bevel:
+    # Skip micro-bevel modifiers on tiny repeated circuit details; on
+    # llvmpipe software rendering these multiply geometry cost with little
+    # visible benefit at the final 720p delivery size.
+    if bevel >= 0.025:
         b = o.modifiers.new("edge bevel", "BEVEL")
         b.width = bevel
-        b.segments = 3
+        b.segments = 2
     return o
 
 def sphere(n, loc, r, material):
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=20, radius=r, location=loc)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=r, location=loc)
     o = bpy.context.object
     o.name = n
     o.data.materials.append(material)
@@ -53,7 +56,7 @@ def sphere(n, loc, r, material):
     return o
 
 def cyl(n, loc, r, depth, material):
-    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=r, depth=depth, location=loc)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=r, depth=depth, location=loc)
     o = bpy.context.object
     o.name = n
     o.data.materials.append(material)
@@ -107,6 +110,22 @@ def setup(folder, camloc=(8, -12, 7), target=(0, 0, 0)):
     if "BLENDER_EEVEE" not in supported:
         raise RuntimeError(f"Blender Eevee renderer is unavailable: {sorted(supported)}")
     scene.render.engine = "BLENDER_EEVEE"
+    # GitHub-hosted runners render through Mesa/llvmpipe (software OpenGL).
+    # The former 1280x720 / default-sample setup took ~43 seconds per frame
+    # and hit the three-hour job limit before completing even scene 1.
+    # Render clean 960x540 frames with low TAA sampling, no expensive Eevee
+    # AO/soft-shadow passes, then upscale the cutaways to the 720p master.
+    eevee = getattr(scene, "eevee", None)
+    if eevee is not None:
+        if hasattr(eevee, "taa_render_samples"):
+            eevee.taa_render_samples = 4
+        if hasattr(eevee, "use_gtao"):
+            eevee.use_gtao = False
+        if hasattr(eevee, "use_soft_shadows"):
+            eevee.use_soft_shadows = False
+    for light_data in bpy.data.lights:
+        if hasattr(light_data, "use_shadow"):
+            light_data.use_shadow = False
     scene.render.film_transparent = False
     scene.render.threads_mode = "FIXED"
     scene.render.threads = max(1, min(8, os.cpu_count() or 2))
@@ -317,7 +336,9 @@ for name, function in SCENES:
     function(folder)
     handler = make_progress_handler(name)
     bpy.app.handlers.render_write.append(handler)
-    print(f"STARTING_RENDER {name} engine={bpy.context.scene.render.engine} size={W}x{H} fps={FPS} frames={FRAMES}", flush=True)
+    eevee = getattr(bpy.context.scene, "eevee", None)
+    samples = getattr(eevee, "taa_render_samples", "default") if eevee is not None else "default"
+    print(f"STARTING_RENDER {name} engine={bpy.context.scene.render.engine} size={W}x{H} fps={FPS} frames={FRAMES} taa_samples={samples} shadows=off", flush=True)
     bpy.ops.render.render(animation=True)
     bpy.app.handlers.render_write.remove(handler)
     print("RENDERED", name, flush=True)
