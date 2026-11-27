@@ -72,8 +72,8 @@ jobs:
           BLENDER_BASE="https://download.blender.org/release/Blender5.0"
           curl --fail --location --retry 3 "$BLENDER_BASE/$BLENDER_ARCHIVE" --output "/tmp/$BLENDER_ARCHIVE"
           curl --fail --location --retry 3 "$BLENDER_BASE/blender-5.0.1.sha256" --output /tmp/blender-5.0.1.sha256
-          EXPECTED_SHA="$(awk 'NR==1 {print $1}' /tmp/blender-5.0.1.sha256)"
-          printf '%s  %s\\n' "$EXPECTED_SHA" "/tmp/$BLENDER_ARCHIVE" | sha256sum --check -
+          EXPECTED_SHA="$(awk 'NR==1 {print $1}' /tmp/blender-5.0.1.sha256 | tr -d '\\r\\n')"
+          printf '%s  %s\n' "$EXPECTED_SHA" "/tmp/$BLENDER_ARCHIVE" | sha256sum --check -
           sudo tar -xJf "/tmp/$BLENDER_ARCHIVE" -C /opt
           sudo ln -sfn /opt/blender-5.0.1-linux-x64/blender /usr/local/bin/blender
           hash -r
