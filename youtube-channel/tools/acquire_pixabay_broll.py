@@ -132,11 +132,14 @@ def main():
                 asset_id = str(hit.get("id", ""))
                 if not asset_id or asset_id in selected_global:
                     continue
+                # Do not repeatedly reconsider a candidate after two failed relevance checks.
+                if rejected_checks.get(asset_id, 0) >= MAX_REJECTION_CHECKS:
+                    continue
                 tags = hit.get("tags", "")
                 matched = group_hits(tags, section["match_groups"])
                 if matched < len(section["match_groups"]):
-                    # A candidate is checked at most twice across overlapping search results.
-                    rejected_checks[asset_id] = min(MAX_REJECTION_CHECKS, rejected_checks.get(asset_id, 0) + 1)
+                    rejected_checks[asset_id] = rejected_checks.get(asset_id, 0) + 1
+                    print(f"REJECTED [{sid}] candidate {asset_id}: relevance check {rejected_checks[asset_id]}/{MAX_REJECTION_CHECKS}", flush=True)
                     continue
                 videos = hit.get("videos", {})
                 rendition = next((
