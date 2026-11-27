@@ -21,11 +21,22 @@
   "subtitles": "none",
   "burned_in_text": "none",
   "forbidden_resolutions": [
-    "1080p",
-    "4K",
-    "360p",
-    "all non-720p resolutions"
+    "1080p master",
+    "4K master",
+    "all non-720p master resolutions"
   ],
+  "low_data_derivative": {
+    "only_when_explicitly_requested": true,
+    "width": 640,
+    "height": 360,
+    "fps_target": 12,
+    "video_codec": "H.264",
+    "video_bitrate_kbps_target": 180,
+    "audio_codec": "AAC",
+    "audio_bitrate_kbps_target": 40,
+    "audio_sample_rate_hz": 32000,
+    "audio_channels": 1
+  },
   "narration": {
     "provider": "Kokoro-82M",
     "voice_id": "am_echo",

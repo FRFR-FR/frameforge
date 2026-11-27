@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Footage-first 720p-only master renderer for EP002. No text, captions or subtitles."""
+"""Footage-first 720p master plus requested 360p low-data derivative for EP002. No text, captions or subtitles."""
 from pathlib import Path
 import csv,json,math,shutil,subprocess,sys,os
 ROOT=Path(__file__).resolve().parent; OUT=ROOT/"output"; ASSETS=ROOT/"assets"/"broll"
@@ -76,10 +76,18 @@ def main():
  runtime=float(m["format"]["duration"])
  if not 480<=runtime<=720: raise RuntimeError("Final runtime outside 8–12 minutes; no padding.")
  run(["ffmpeg","-v","error","-i",str(final),"-f","null","-"])
+ low_data=OUT/"Underneath_Everything_EP002_Kokoro_Broll_360p_12fps_lowdata.mp4"
+ run(["ffmpeg","-hide_banner","-loglevel","error","-y","-i",str(final),"-map","0:v:0","-map","0:a:0","-sn","-vf","scale=640:360:force_original_aspect_ratio=increase,crop=640:360,setsar=1,fps=12,format=yuv420p","-c:v","libx264","-preset","slow","-b:v","180k","-maxrate","200k","-bufsize","400k","-profile:v","baseline","-level","3.0","-pix_fmt","yuv420p","-r","12","-g","24","-c:a","aac","-b:a","40k","-ar","32000","-ac","1","-movflags","+faststart",str(low_data)])
+ low_meta=probe(low_data); low_v=next(s for s in low_meta["streams"] if s["codec_type"]=="video"); low_a=next(s for s in low_meta["streams"] if s["codec_type"]=="audio")
+ if (low_v["width"],low_v["height"])!=(640,360) or low_v["codec_name"]!="h264" or low_v.get("avg_frame_rate")!="12/1": raise RuntimeError("360p derivative resolution, codec or measured FPS validation failed.")
+ if low_a["codec_name"]!="aac" or low_a.get("sample_rate")!="32000" or int(low_a.get("channels",0))!=1: raise RuntimeError("360p derivative audio must be 32kHz mono AAC.")
+ if abs(duration(low_data)-runtime)>.5: raise RuntimeError("360p derivative duration differs from the 720p master.")
+ run(["ffmpeg","-v","error","-i",str(low_data),"-f","null","-"])
+ low_data_report={"file":low_data.name,"file_size_bytes":low_data.stat().st_size,"file_size_mb_decimal":round(low_data.stat().st_size/1e6,2),"resolution":"640x360","fps_measured":low_v.get("avg_frame_rate","unknown"),"video_bitrate_bps":int(low_v.get("bit_rate",0)),"audio_codec":low_a["codec_name"],"audio_bitrate_bps":int(low_a.get("bit_rate",0)),"audio_sample_rate":low_a["sample_rate"],"audio_channels":low_a["channels"],"compression_profile":"H.264 target 180 kb/s; AAC mono target 40 kb/s"}
  coverage=round(100*broll_time/max(runtime,.001),2)
  if coverage<70: raise RuntimeError("Relevant moving B-roll share below 70 percent.")
  run([sys.executable,str(ROOT/"scripts"/"create_thumbnail.py")])
- report={"episode":"EP002","title":"The Machine That Prints the World's Most Advanced Chips","file":final.name,"file_size_bytes":final.stat().st_size,"file_size_mb_decimal":round(final.stat().st_size/1e6,2),"duration_seconds":round(runtime,3),"resolution":"1280x720","fps_measured":measured,"video_codec":v["codec_name"],"audio_codec":a["codec_name"],"audio_sample_rate":a["sample_rate"],"audio_channels":a["channels"],"narration_provider":"Kokoro-82M","narration_voice_id":"am_echo","narration_seconds":round(audio_seconds,3),"broll_assets":count,"broll_seconds":round(broll_time,3),"broll_coverage_percent":coverage,"original_3d_cutaways":sorted(CUTS.values()),"captions":"none","subtitle_streams":"none","visual_text_overlays":"none","thumbnail":"thumbnail_rwb.png","full_decode_check":"PASS","auto_publish":False,"rights_status":"Awaiting human review of every selected asset and full playback."}
+ report={"episode":"EP002","title":"The Machine That Prints the World's Most Advanced Chips","file":final.name,"file_size_bytes":final.stat().st_size,"file_size_mb_decimal":round(final.stat().st_size/1e6,2),"low_data_derivative":low_data_report,"duration_seconds":round(runtime,3),"resolution":"1280x720","fps_measured":measured,"video_codec":v["codec_name"],"audio_codec":a["codec_name"],"audio_sample_rate":a["sample_rate"],"audio_channels":a["channels"],"narration_provider":"Kokoro-82M","narration_voice_id":"am_echo","narration_seconds":round(audio_seconds,3),"broll_assets":count,"broll_seconds":round(broll_time,3),"broll_coverage_percent":coverage,"original_3d_cutaways":sorted(CUTS.values()),"captions":"none","subtitle_streams":"none","visual_text_overlays":"none","thumbnail":"thumbnail_rwb.png","full_decode_check":"PASS","auto_publish":False,"rights_status":"Awaiting human review of every selected asset and full playback."}
  (OUT/"render_report_broll_echo.json").write_text(json.dumps(report,indent=2))
  (OUT/"broll_timeline.json").write_text(json.dumps(timeline,indent=2))
  print(json.dumps(report,indent=2))

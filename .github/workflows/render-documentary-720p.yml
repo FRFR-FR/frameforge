@@ -153,6 +153,21 @@ jobs:
           PY
           ffmpeg -v error -i "$VIDEO" -f null -
           echo "Full-file decode check passed."
+          LOW_VIDEO="$(find "$EPISODE_DIR/output" -maxdepth 1 -type f -name "*_360p_12fps_lowdata.mp4" | sort | tail -n 1)"
+          test -n "$LOW_VIDEO" && test -s "$LOW_VIDEO" || { echo "::error::Low-data 360p derivative is missing."; exit 1; }
+          python - "$LOW_VIDEO" <<'PY'
+          import json, subprocess, sys
+          video = sys.argv[1]
+          meta = json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-of","json",video], text=True))
+          v = next(s for s in meta["streams"] if s["codec_type"] == "video")
+          a = next(s for s in meta["streams"] if s["codec_type"] == "audio")
+          assert (v["width"],v["height"]) == (640,360)
+          assert v["codec_name"] == "h264" and v.get("avg_frame_rate") == "12/1"
+          assert a["codec_name"] == "aac" and a.get("sample_rate") == "32000" and int(a.get("channels",0)) == 1
+          print(f"PASS: 360p low-data copy; measured {v['avg_frame_rate']} fps; mono AAC {a.get('sample_rate')} Hz")
+          PY
+          ffmpeg -v error -i "$LOW_VIDEO" -f null -
+          echo "Low-data derivative decode check passed."
           echo "video_ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload no-caption 720p master and QC reports
@@ -162,6 +177,7 @@ jobs:
           name: ${{ steps.episode.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
           path: |
             ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
+            ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_360p_12fps_lowdata.mp4
             ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.wav
             ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.mp3
             ${{ steps.episode.outputs.dir }}/output/kokoro_narration_report.json
