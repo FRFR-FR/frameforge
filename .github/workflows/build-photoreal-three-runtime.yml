@@ -1,0 +1,49 @@
+name: Build embedded Three.js cinematic runtime
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-photoreal-three-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Bundle Three.js, GLB/HDR loaders and cinematic post-processing
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/frameforge-runtime
+          cd /tmp/frameforge-runtime
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund three@0.164.1 esbuild@0.24.2
+          cat > entry.js <<'JS'
+          import * as THREE from "three";
+          import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+          import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
+          import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+          import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+          import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+          import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+          globalThis.THREE = { ...THREE, GLTFLoader, RGBELoader, EffectComposer, RenderPass, UnrealBloomPass, OutputPass };
+          JS
+          ./node_modules/.bin/esbuild entry.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=frameforge-three-cinematic-runtime.js
+          test -s frameforge-three-cinematic-runtime.js
+          sha256sum frameforge-three-cinematic-runtime.js > frameforge-three-cinematic-runtime.sha256
+          ls -lh frameforge-three-cinematic-runtime.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-ThreeJS-Cinematic-Offline-Runtime
+          path: |
+            /tmp/frameforge-runtime/frameforge-three-cinematic-runtime.js
+            /tmp/frameforge-runtime/frameforge-three-cinematic-runtime.sha256
+          if-no-files-found: error
+          retention-days: 14
