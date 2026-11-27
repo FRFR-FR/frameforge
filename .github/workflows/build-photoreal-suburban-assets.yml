@@ -61,9 +61,15 @@ jobs:
           curl -fL --retry 4 https://ambientcg.com/get?file=Asphalt002_1K-JPG.zip -o asphalt.zip
           curl -fL --retry 4 https://ambientcg.com/get?file=Concrete007_1K-JPG.zip -o concrete.zip
           curl -fL --retry 4 https://ambientcg.com/get?file=Grass001_1K-JPG.zip -o grass.zip
+          curl -fL --retry 4 https://ambientcg.com/get?file=Bricks101_2K-JPG.zip -o bricks.zip
+          curl -fL --retry 4 https://ambientcg.com/get?file=WoodSiding001_2K-JPG.zip -o siding.zip
+          curl -fL --retry 4 https://ambientcg.com/get?file=RoofingTiles012A_2K-JPG.zip -o roof-tiles.zip
           unzip -oq asphalt.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/asphalt"
           unzip -oq concrete.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/concrete"
           unzip -oq grass.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/grass"
+          unzip -oq bricks.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/bricks-101"
+          unzip -oq siding.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/wood-siding-001"
+          unzip -oq roof-tiles.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/roof-tiles-012a"
           curl -fL --retry 4 https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/lebombo_1k.hdr -o "$GITHUB_WORKSPACE/assets/photoreal-suburban/lighting/lebombo_1k.hdr"
       - name: Validate GLB integrity, rigs, animations, face visemes and asset counts
         run: |
@@ -132,7 +138,7 @@ jobs:
           Required credit: "Models by vinish.dev (https://vinish.dev/free-3d-models/), CC BY 4.0."
 
           ## PBR surfaces
-          Asphalt 002, Concrete 007 and Grass 001 from ambientCG, CC0 1.0.
+          Asphalt 002, Concrete 007, Grass 001, Bricks 101 (photogrammetry), Wood Siding 001 and Roofing Tiles 012 A from ambientCG, CC0 1.0.
           https://ambientcg.com/
 
           ## Lighting
