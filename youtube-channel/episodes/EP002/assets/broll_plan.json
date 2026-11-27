@@ -2,71 +2,327 @@
   {
     "id": "section_01",
     "title": "The flash that helps build a chip",
-    "query": "semiconductor manufacturing cleanroom",
-    "fallback": "clean room industrial manufacturing",
-    "count": 3
+    "query": "semiconductor lithography scanner cleanroom",
+    "queries": [
+      "EUV lithography machine semiconductor cleanroom",
+      "semiconductor wafer fab scanner machine",
+      "chip manufacturing cleanroom wafer robot",
+      "semiconductor fabrication equipment close up"
+    ],
+    "count": 6,
+    "cutaway_seconds": 0,
+    "match_groups": [
+      [
+        "semiconductor",
+        "microchip",
+        "wafer",
+        "chip",
+        "lithography",
+        "euv"
+      ],
+      [
+        "cleanroom",
+        "fab",
+        "fabrication",
+        "scanner",
+        "machine",
+        "manufacturing",
+        "factory",
+        "production"
+      ]
+    ]
   },
   {
     "id": "section_02",
     "title": "A chip is a city built in layers",
-    "query": "silicon wafer semiconductor fab",
-    "fallback": "semiconductor wafer inspection",
-    "count": 3
+    "query": "silicon wafer semiconductor manufacturing",
+    "queries": [
+      "silicon wafer polishing manufacturing",
+      "semiconductor wafer handling robot",
+      "microchip wafer inspection equipment",
+      "semiconductor wafer fabrication cleanroom"
+    ],
+    "count": 6,
+    "cutaway_seconds": 0,
+    "match_groups": [
+      [
+        "semiconductor",
+        "microchip",
+        "wafer",
+        "silicon",
+        "chip"
+      ],
+      [
+        "inspection",
+        "robot",
+        "handling",
+        "polishing",
+        "fabrication",
+        "manufacturing",
+        "processing",
+        "machine",
+        "cleanroom"
+      ]
+    ]
   },
   {
     "id": "section_03",
     "title": "Why the industry needed a different kind of light",
-    "query": "semiconductor lithography machine cleanroom",
-    "fallback": "precision optical manufacturing",
-    "count": 3
+    "query": "semiconductor photolithography machine optics",
+    "queries": [
+      "EUV lithography scanner semiconductor",
+      "photolithography semiconductor machine cleanroom",
+      "precision optical mirror manufacturing",
+      "semiconductor lithography optics equipment"
+    ],
+    "count": 6,
+    "cutaway_seconds": 0,
+    "match_groups": [
+      [
+        "lithography",
+        "semiconductor",
+        "euv",
+        "photolithography",
+        "wafer",
+        "microchip"
+      ],
+      [
+        "optics",
+        "optical",
+        "mirror",
+        "lens",
+        "scanner",
+        "machine",
+        "cleanroom",
+        "equipment"
+      ]
+    ]
   },
   {
     "id": "section_04",
     "title": "Turning a tin droplet into a flash of light",
-    "query": "industrial laser cutting close up",
-    "fallback": "laser precision manufacturing",
-    "count": 3
+    "query": "industrial laser precision manufacturing machine",
+    "queries": [
+      "laser processing machine industrial close up",
+      "industrial laser source equipment",
+      "laser precision manufacturing system",
+      "plasma process industrial machine"
+    ],
+    "count": 6,
+    "cutaway_seconds": 5,
+    "match_groups": [
+      [
+        "laser",
+        "plasma",
+        "tin",
+        "euv",
+        "lithography"
+      ],
+      [
+        "industrial",
+        "manufacturing",
+        "machine",
+        "processing",
+        "factory",
+        "precision",
+        "equipment"
+      ]
+    ]
   },
   {
     "id": "section_05",
     "title": "Why the machine uses mirrors and a vacuum",
-    "query": "precision mirror optics manufacturing",
-    "fallback": "optical lens polishing factory",
-    "count": 3
+    "query": "precision optical mirror polishing manufacturing",
+    "queries": [
+      "optical mirror polishing machine",
+      "precision optics coating vacuum chamber",
+      "lens manufacturing optical equipment",
+      "vacuum coating optics industrial"
+    ],
+    "count": 6,
+    "cutaway_seconds": 5,
+    "match_groups": [
+      [
+        "mirror",
+        "optics",
+        "optical",
+        "lens",
+        "multilayer"
+      ],
+      [
+        "polishing",
+        "coating",
+        "vacuum",
+        "precision",
+        "manufacturing",
+        "testing",
+        "machine",
+        "factory"
+      ]
+    ]
   },
   {
     "id": "section_06",
     "title": "From a pattern on a mask to a pattern on silicon",
-    "query": "wafer photoresist semiconductor processing",
-    "fallback": "semiconductor wafer spin coating",
-    "count": 3
+    "query": "semiconductor wafer photoresist lithography processing",
+    "queries": [
+      "wafer photoresist spin coating machine",
+      "semiconductor photomask reticle manufacturing",
+      "silicon wafer lithography processing",
+      "semiconductor wafer coating cleanroom"
+    ],
+    "count": 6,
+    "cutaway_seconds": 5,
+    "match_groups": [
+      [
+        "wafer",
+        "semiconductor",
+        "photoresist",
+        "photomask",
+        "reticle",
+        "lithography",
+        "microchip"
+      ],
+      [
+        "coating",
+        "spin",
+        "processing",
+        "inspection",
+        "machine",
+        "cleanroom",
+        "manufacturing",
+        "factory"
+      ]
+    ]
   },
   {
     "id": "section_07",
     "title": "The wafer stage: precision while in motion",
-    "query": "industrial precision robotics cleanroom",
-    "fallback": "automated manufacturing robot arm",
-    "count": 3
+    "query": "semiconductor wafer robot precision alignment",
+    "queries": [
+      "wafer handling robot cleanroom semiconductor",
+      "precision motion stage manufacturing machine",
+      "wafer alignment metrology equipment",
+      "semiconductor wafer inspection robotics"
+    ],
+    "count": 6,
+    "cutaway_seconds": 5,
+    "match_groups": [
+      [
+        "wafer",
+        "semiconductor",
+        "chip",
+        "microchip",
+        "silicon"
+      ],
+      [
+        "robot",
+        "stage",
+        "alignment",
+        "metrology",
+        "precision",
+        "machine",
+        "sensor",
+        "handling",
+        "inspection"
+      ]
+    ]
   },
   {
     "id": "section_08",
     "title": "Repeating the process without losing alignment",
-    "query": "semiconductor wafer inspection microscopy",
-    "fallback": "microelectronics quality inspection",
-    "count": 3
+    "query": "semiconductor wafer inspection metrology machine",
+    "queries": [
+      "semiconductor wafer inspection machine",
+      "microchip wafer metrology equipment",
+      "semiconductor etching equipment cleanroom",
+      "wafer fabrication process machine"
+    ],
+    "count": 6,
+    "cutaway_seconds": 5,
+    "match_groups": [
+      [
+        "wafer",
+        "semiconductor",
+        "chip",
+        "microchip",
+        "lithography"
+      ],
+      [
+        "inspection",
+        "metrology",
+        "etching",
+        "etch",
+        "deposition",
+        "measurement",
+        "processing",
+        "cleanroom",
+        "machine"
+      ]
+    ]
   },
   {
     "id": "section_09",
     "title": "High-NA: the next step is entering production",
-    "query": "advanced semiconductor chip manufacturing",
-    "fallback": "semiconductor processor packaging factory",
-    "count": 3
+    "query": "advanced semiconductor fabrication cleanroom",
+    "queries": [
+      "advanced chip manufacturing cleanroom",
+      "semiconductor fab wafer processing",
+      "processor chip production equipment",
+      "high performance semiconductor manufacturing"
+    ],
+    "count": 6,
+    "cutaway_seconds": 0,
+    "match_groups": [
+      [
+        "semiconductor",
+        "microchip",
+        "wafer",
+        "chip",
+        "processor"
+      ],
+      [
+        "advanced",
+        "fabrication",
+        "manufacturing",
+        "cleanroom",
+        "lithography",
+        "factory",
+        "production",
+        "equipment"
+      ]
+    ]
   },
   {
     "id": "section_10",
     "title": "The machine is only one part of the breakthrough",
-    "query": "semiconductor fabrication plant",
-    "fallback": "electronics manufacturing machinery",
-    "count": 3
+    "query": "semiconductor fabrication factory cleanroom",
+    "queries": [
+      "silicon wafer processing factory",
+      "microchip manufacturing production line",
+      "processor chip packaging facility",
+      "semiconductor cleanroom robotic production"
+    ],
+    "count": 6,
+    "cutaway_seconds": 0,
+    "match_groups": [
+      [
+        "semiconductor",
+        "microchip",
+        "wafer",
+        "chip",
+        "processor"
+      ],
+      [
+        "factory",
+        "fabrication",
+        "manufacturing",
+        "cleanroom",
+        "packaging",
+        "production",
+        "machine",
+        "equipment"
+      ]
+    ]
   }
 ]

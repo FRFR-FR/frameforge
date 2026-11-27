@@ -20,20 +20,21 @@ permissions:
   actions: read
 
 concurrency:
-  group: documentary-render-${{ github.ref }}
+  group: documentary-render-\${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   render:
     runs-on: ubuntu-latest
     outputs:
-      artifact_name: ${{ steps.episode.outputs.artifact_name }}
-      video_ready: ${{ steps.validate.outputs.video_ready }}
+      artifact_name: \${{ steps.episode.outputs.artifact_name }}
+      video_ready: \${{ steps.validate.outputs.video_ready }}
     timeout-minutes: 180
     env:
-      PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+      PIXABAY_API_KEY: \${{ secrets.PIXABAY_API_KEY }}
       HF_HOME: ~/.cache/huggingface
       LIBGL_ALWAYS_SOFTWARE: "1"
+      MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
 
     steps:
       - name: Check out episode source
@@ -50,16 +51,16 @@ jobs:
           path: |
             ~/.cache/huggingface
             ~/.cache/pixabay
-          key: documentary-kokoro-echo-${{ runner.os }}-${{ hashFiles('youtube-channel/tools/generate_kokoro.py') }}
+          key: documentary-kokoro-echo-\${{ runner.os }}-\${{ hashFiles('youtube-channel/tools/generate_kokoro.py') }}
           restore-keys: |
-            documentary-kokoro-echo-${{ runner.os }}-
+            documentary-kokoro-echo-\${{ runner.os }}-
 
       - name: Install system and Python dependencies
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y ffmpeg espeak-ng libsndfile1 fonts-dejavu-core blender libgl1-mesa-dri libegl-mesa0 libglx-mesa0
+          sudo apt-get install -y ffmpeg espeak-ng libsndfile1 fonts-dejavu-core blender libgl1 libegl1 libegl-mesa0 libglx-mesa0 libgles2-mesa0 libgbm1 libxkbcommon0
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install "kokoro>=0.9.4" soundfile numpy requests Pillow
@@ -69,11 +70,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REQUESTED="${{ inputs.episode_directory }}"
+          REQUESTED="\${{ inputs.episode_directory }}"
           if [ -n "$REQUESTED" ]; then
             EPISODE_DIR="$REQUESTED"
           else
-            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\n' | sort -V | tail -n 1)"
+            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\\n' | sort -V | tail -n 1)"
           fi
           test -n "$EPISODE_DIR" || { echo "::error::No episode folder containing render_episode.py was found."; exit 1; }
           test -f "$EPISODE_DIR/narration.md" || { echo "::error::Missing narration.md in $EPISODE_DIR"; exit 1; }
@@ -83,110 +84,107 @@ jobs:
 
       - name: Generate approved Kokoro Echo narration
         env:
-          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
           python youtube-channel/tools/generate_kokoro.py --episode-dir "$EPISODE_DIR"
 
-      - name: Acquire rights-documented B-roll sequentially
+      - name: Acquire topic-verified, rights-documented B-roll (no generic fallback)
         id: broll
         env:
-          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
           if [ -z "$PIXABAY_API_KEY" ]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
             mkdir -p "$EPISODE_DIR/output"
-            printf '%s\n' "Kokoro narration generated. Video rendering is blocked because PIXABAY_API_KEY is empty or unavailable. No slide-based substitute was created." > "$EPISODE_DIR/output/production_status.md"
-            echo "::warning::PIXABAY_API_KEY is missing. Narration will still be packaged; video rendering is skipped rather than replaced with slides."
+            printf '%s\\n' "Kokoro narration generated. Video rendering is blocked because PIXABAY_API_KEY is empty. No generic filler or slides were created." > "$EPISODE_DIR/output/production_status.md"
+            echo "::warning::PIXABAY_API_KEY is missing. Rendering is skipped rather than using unrelated footage."
             exit 0
           fi
           python youtube-channel/tools/acquire_pixabay_broll.py --episode-dir "$EPISODE_DIR"
           echo "available=true" >> "$GITHUB_OUTPUT"
 
-      - name: Render B-roll-first documentary
+      - name: Render footage-first documentary
         id: render
         if: steps.broll.outputs.available == 'true'
         env:
-          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
           python "$EPISODE_DIR/render_episode.py"
 
-      - name: Validate exact 720p, Kokoro voice, B-roll ratio, no captions and full decode
+      - name: Validate master, clip relevance, reuse cap, derivative and full decode
         id: validate
         if: steps.broll.outputs.available == 'true' && steps.render.outcome == 'success'
         env:
-          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
           VIDEO="$(find "$EPISODE_DIR/output" -maxdepth 1 -type f -name "*_Kokoro_Broll_720p.mp4" | sort | tail -n 1)"
           test -n "$VIDEO" || { echo "::error::No B-roll + Kokoro 720p master found."; exit 1; }
           REPORT="$EPISODE_DIR/output/render_report_broll_echo.json"
-          test -s "$VIDEO" || { echo "::error::Rendered MP4 is missing or empty."; exit 1; }
-          test -s "$REPORT" || { echo "::error::Render report is missing."; exit 1; }
+          test -s "$VIDEO" && test -s "$REPORT" || { echo "::error::Master or render report is missing."; exit 1; }
           python - "$VIDEO" "$REPORT" <<'PY'
           import json, subprocess, sys
           video, report_path = sys.argv[1:]
           report = json.load(open(report_path, encoding="utf-8"))
-          meta = json.loads(subprocess.check_output([
-              "ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", video
-          ], text=True))
+          meta = json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-show_format","-of","json",video], text=True))
           v = next(s for s in meta["streams"] if s["codec_type"] == "video")
           a = next(s for s in meta["streams"] if s["codec_type"] == "audio")
-          assert (v["width"], v["height"]) == (1280, 720), f"Only 1280x720 allowed, got {v.get('width')}x{v.get('height')}"
-          assert v["codec_name"] == "h264", f"Expected H.264, got {v['codec_name']}"
-          assert a["codec_name"] == "aac", f"Expected AAC, got {a['codec_name']}"
-          assert a.get("sample_rate") == "48000", f"Expected 48kHz, got {a.get('sample_rate')}"
-          assert v.get("avg_frame_rate") == "24/1", f"Expected measured 24fps, got {v.get('avg_frame_rate')}"
+          assert (v["width"],v["height"]) == (1280,720), "720p master dimensions are mandatory"
+          assert v["codec_name"] == "h264" and v.get("avg_frame_rate") == "24/1", "Master must be measured H.264 24fps"
+          assert a["codec_name"] == "aac" and a.get("sample_rate") == "48000" and int(a.get("channels",0)) == 2, "Master audio must be stereo AAC 48kHz"
           assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "Subtitle streams are forbidden"
           assert report.get("captions") == "none", "Captions must be disabled"
-          assert report.get("narration_provider") == "Kokoro-82M", "Kokoro narration is mandatory"
-          assert report.get("narration_voice_id") == "am_echo", "Echo voice is mandatory"
-          coverage = float(report.get("broll_coverage_percent", 0))
-          assert coverage >= 70, f"B-roll coverage {coverage}% is below 70% minimum"
-          print(f"PASS: {video}; {int(meta['format']['size'])/1_000_000:.2f} MB; {float(meta['format']['duration']):.1f}s; B-roll {coverage:.1f}%")
+          assert report.get("narration_provider") == "Kokoro-82M" and report.get("narration_voice_id") == "am_echo", "Kokoro Echo is mandatory"
+          coverage = float(report.get("broll_coverage_percent",0))
+          assert coverage >= 70, f"B-roll coverage {coverage}% is below the 70% minimum"
+          unique = int(report.get("unique_broll_clips",0))
+          assert unique >= 40, f"Only {unique} unique relevant clips; minimum is 40"
+          max_uses = int(report.get("max_source_clip_uses",99))
+          assert max_uses <= 2, f"A source clip was reused {max_uses} times; maximum is 2"
+          print(f"PASS: {video}; {int(meta['format']['size'])/1_000_000:.2f} MB; {float(meta['format']['duration']):.1f}s; {unique} unique clips; max uses {max_uses}; B-roll {coverage:.1f}%")
           PY
           ffmpeg -v error -i "$VIDEO" -f null -
-          echo "Full-file decode check passed."
-          LOW_VIDEO="$(find "$EPISODE_DIR/output" -maxdepth 1 -type f -name "*_360p_12fps_lowdata.mp4" | sort | tail -n 1)"
-          test -n "$LOW_VIDEO" && test -s "$LOW_VIDEO" || { echo "::error::Low-data 360p derivative is missing."; exit 1; }
+          echo "720p full-file decode check passed."
+          LOW_VIDEO="$(find "$EPISODE_DIR/output" -maxdepth 1 -type f -name "*_360p_24fps_450k_nocaptions.mp4" | sort | tail -n 1)"
+          test -n "$LOW_VIDEO" && test -s "$LOW_VIDEO" || { echo "::error::No-caption 360p 24fps derivative is missing."; exit 1; }
           python - "$LOW_VIDEO" <<'PY'
           import json, subprocess, sys
           video = sys.argv[1]
-          meta = json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-of","json",video], text=True))
+          meta = json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-show-format","-of","json",video], text=True))
           v = next(s for s in meta["streams"] if s["codec_type"] == "video")
           a = next(s for s in meta["streams"] if s["codec_type"] == "audio")
-          assert (v["width"],v["height"]) == (640,360)
-          assert v["codec_name"] == "h264" and v.get("avg_frame_rate") == "12/1"
-          assert a["codec_name"] == "aac" and a.get("sample_rate") == "32000" and int(a.get("channels",0)) == 1
-          print(f"PASS: 360p low-data copy; measured {v['avg_frame_rate']} fps; mono AAC {a.get('sample_rate')} Hz")
+          assert (v["width"],v["height"]) == (640,360), "Derivative must be 640x360"
+          assert v["codec_name"] == "h264" and v.get("avg_frame_rate") == "24/1", "Derivative must be measured 24fps H.264"
+          assert a["codec_name"] == "aac" and a.get("sample_rate") == "48000" and int(a.get("channels",0)) == 2, "Derivative audio must be stereo AAC 48kHz"
+          print(f"PASS: no-caption 360p derivative; measured {v['avg_frame_rate']} fps; stereo AAC {a['sample_rate']} Hz")
           PY
           ffmpeg -v error -i "$LOW_VIDEO" -f null -
-          echo "Low-data derivative decode check passed."
+          echo "360p full-file decode check passed."
           echo "video_ready=true" >> "$GITHUB_OUTPUT"
 
-      - name: Upload no-caption 720p master and QC reports
+      - name: Upload no-caption masters, derivatives and QC reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.episode.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
+          name: \${{ steps.episode.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
           path: |
-            ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
-            ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_360p_12fps_lowdata.mp4
-            ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.wav
-            ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.mp3
-            ${{ steps.episode.outputs.dir }}/output/kokoro_narration_report.json
-            ${{ steps.episode.outputs.dir }}/output/render_report_broll_echo.json
-            ${{ steps.episode.outputs.dir }}/output/broll_timeline.json
-            ${{ steps.episode.outputs.dir }}/output/thumbnail_rwb.png
-            ${{ steps.episode.outputs.dir }}/output/production_status.md
-            ${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
-            ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
+            \${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
+            \${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_360p_24fps_450k_nocaptions.mp4
+            \${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.wav
+            \${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.mp3
+            \${{ steps.episode.outputs.dir }}/output/kokoro_narration_report.json
+            \${{ steps.episode.outputs.dir }}/output/render_report_broll_echo.json
+            \${{ steps.episode.outputs.dir }}/output/broll_timeline.json
+            \${{ steps.episode.outputs.dir }}/output/thumbnail_rwb.png
+            \${{ steps.episode.outputs.dir }}/output/production_status.md
+            \${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
+            \${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
           if-no-files-found: warn
           retention-days: 14
-

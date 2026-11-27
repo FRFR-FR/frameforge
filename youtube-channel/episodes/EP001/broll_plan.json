@@ -2,64 +2,286 @@
   {
     "id": "section_01",
     "title": "The invisible network",
-    "query": "ocean aerial cargo ship city night",
-    "fallback": "smartphone city night aerial",
-    "count": 3
+    "query": "submarine internet fiber optic cable",
+    "queries": [
+      "undersea telecommunications cable",
+      "submarine fiber optic cable",
+      "internet cable landing station",
+      "submarine communications cable ocean"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "submarine",
+        "undersea",
+        "underwater",
+        "fiber",
+        "fibre",
+        "optic",
+        "cable"
+      ],
+      [
+        "telecommunication",
+        "internet",
+        "communication",
+        "seabed",
+        "landing",
+        "ocean",
+        "network",
+        "ship"
+      ]
+    ]
   },
   {
     "id": "section_02",
     "title": "A network under the sea",
-    "query": "container ship ocean shipping vessel",
-    "fallback": "commercial ship at sea",
-    "count": 3
+    "query": "submarine cable ship ocean",
+    "queries": [
+      "submarine cable laying ship",
+      "marine cable ship at sea",
+      "undersea cable deployment vessel",
+      "subsea cable plough ship"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "submarine",
+        "undersea",
+        "underwater",
+        "subsea",
+        "cable"
+      ],
+      [
+        "ship",
+        "vessel",
+        "laying",
+        "deployment",
+        "ocean",
+        "marine",
+        "plough"
+      ]
+    ]
   },
   {
     "id": "section_03",
     "title": "How light carries information",
     "query": "fiber optic cable close up glass fiber",
-    "fallback": "optical fiber cable technology",
-    "count": 3
+    "queries": [
+      "fiber optic cable close up",
+      "optical fiber splicing machine",
+      "fiber optic glass cable",
+      "fiber optic transmission equipment"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "fiber",
+        "fibre",
+        "optic",
+        "optical",
+        "glass"
+      ],
+      [
+        "cable",
+        "splicing",
+        "light",
+        "transmission",
+        "network",
+        "telecommunication",
+        "equipment"
+      ]
+    ]
   },
   {
     "id": "section_04",
     "title": "Keeping the signal strong",
-    "query": "data center server racks",
-    "fallback": "server room computers",
-    "count": 3
+    "query": "fiber optic amplifier telecommunications equipment",
+    "queries": [
+      "optical fiber amplifier equipment",
+      "fiber optic repeater station",
+      "telecommunication optical network equipment",
+      "data center network server racks"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "fiber",
+        "fibre",
+        "optic",
+        "optical",
+        "telecommunication",
+        "server"
+      ],
+      [
+        "amplifier",
+        "repeater",
+        "network",
+        "signal",
+        "equipment",
+        "data",
+        "center",
+        "rack"
+      ]
+    ]
   },
   {
     "id": "section_05",
     "title": "Why the cable is built in layers",
-    "query": "industrial cable manufacturing machinery",
-    "fallback": "wire cable factory",
-    "count": 3
+    "query": "fiber optic cable manufacturing machinery",
+    "queries": [
+      "submarine armored cable manufacturing",
+      "fiber optic cable production line",
+      "industrial cable extrusion machine",
+      "telecommunications cable cross section"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "fiber",
+        "fibre",
+        "optic",
+        "cable",
+        "telecommunication"
+      ],
+      [
+        "manufacturing",
+        "armored",
+        "armoured",
+        "production",
+        "machine",
+        "factory",
+        "layers",
+        "industrial",
+        "extrusion"
+      ]
+    ]
   },
   {
     "id": "section_06",
     "title": "How a cable reaches the seabed",
     "query": "submarine cable laying ship ocean",
-    "fallback": "offshore marine vessel cable ship",
-    "count": 3
+    "queries": [
+      "undersea cable deployment vessel",
+      "subsea cable plough ship",
+      "marine cable laying ship deck",
+      "submarine telecommunications cable installation"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "submarine",
+        "undersea",
+        "subsea",
+        "underwater",
+        "cable"
+      ],
+      [
+        "ship",
+        "vessel",
+        "laying",
+        "installation",
+        "deployment",
+        "ocean",
+        "marine",
+        "plough"
+      ]
+    ]
   },
   {
     "id": "section_07",
     "title": "When a cable needs repair",
-    "query": "marine repair vessel crane ship",
-    "fallback": "research vessel ocean deck",
-    "count": 3
+    "query": "submarine cable repair vessel marine",
+    "queries": [
+      "undersea cable repair ship",
+      "subsea cable maintenance vessel",
+      "marine cable recovery ship",
+      "telecommunications cable repair vessel"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "submarine",
+        "undersea",
+        "subsea",
+        "cable",
+        "telecommunication"
+      ],
+      [
+        "repair",
+        "maintenance",
+        "recovery",
+        "ship",
+        "vessel",
+        "marine",
+        "ocean"
+      ]
+    ]
   },
   {
     "id": "section_08",
     "title": "Why one break does not always mean disconnection",
-    "query": "data center infrastructure network server racks",
-    "fallback": "city aerial night traffic",
-    "count": 3
+    "query": "data center network infrastructure server racks",
+    "queries": [
+      "internet exchange point network hardware",
+      "data center router switch network",
+      "fiber optic network equipment server room",
+      "telecommunications network infrastructure"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "data",
+        "server",
+        "network",
+        "fiber",
+        "fibre",
+        "telecommunication",
+        "internet"
+      ],
+      [
+        "center",
+        "centre",
+        "router",
+        "switch",
+        "rack",
+        "hardware",
+        "infrastructure",
+        "exchange",
+        "equipment"
+      ]
+    ]
   },
   {
     "id": "section_09",
     "title": "The world beneath the connection",
-    "query": "deep sea underwater ocean exploration",
-    "fallback": "ocean aerial ship sunset",
-    "count": 3
+    "query": "underwater submarine cable seabed",
+    "queries": [
+      "underwater cable ocean floor ROV",
+      "subsea cable seabed inspection",
+      "underwater remotely operated vehicle ocean",
+      "deep sea marine cable"
+    ],
+    "count": 6,
+    "match_groups": [
+      [
+        "underwater",
+        "subsea",
+        "undersea",
+        "submarine",
+        "ocean",
+        "seabed"
+      ],
+      [
+        "cable",
+        "rov",
+        "vehicle",
+        "inspection",
+        "marine",
+        "deep",
+        "floor",
+        "fiber",
+        "fibre"
+      ]
+    ]
   }
 ]
