@@ -99,11 +99,31 @@ def setup(folder, camloc=(8, -12, 7), target=(0, 0, 0)):
         light.data.color = col
         light.rotation_euler = (Vector((0, 0, 0)) - light.location).to_track_quat("-Z", "Y").to_euler()
 
+    # GitHub-hosted runners do not expose a physical GPU. Eevee therefore
+    # falls back to software OpenGL and makes a 2,880-frame animation take
+    # impractically long. Workbench is still a true geometry-based 3D renderer;
+    # studio lighting, material colours, shadows and cavity shading preserve
+    # the technical explainer look while rendering much faster on CPU.
     supported = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
-    engine = next((name for name in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES", "BLENDER_WORKBENCH") if name in supported), None)
-    if engine is None:
-        raise RuntimeError(f"No supported Blender render engine found: {sorted(supported)}")
-    scene.render.engine = engine
+    if "BLENDER_WORKBENCH" not in supported:
+        raise RuntimeError(f"Blender Workbench renderer is unavailable: {sorted(supported)}")
+    scene.render.engine = "BLENDER_WORKBENCH"
+    shading = scene.display.shading
+    shading.light = "STUDIO"
+    shading.color_type = "MATERIAL"
+    shading.show_shadows = True
+    shading.show_cavity = True
+    shading.cavity_type = "BOTH"
+    shading.curvature_ridge_factor = 1.35
+    shading.curvature_valley_factor = 1.1
+    shading.show_specular_highlight = True
+    shading.show_object_outline = True
+    shading.object_outline_color = (0.008, 0.02, 0.04)
+    shading.show_floor = False
+    shading.show_axis_x = False
+    shading.show_axis_y = False
+    scene.render.threads_mode = "FIXED"
+    scene.render.threads = max(1, min(8, os.cpu_count() or 2))
     scene.render.resolution_x = W
     scene.render.resolution_y = H
     scene.render.resolution_percentage = 100
@@ -297,9 +317,19 @@ SCENES = [
     ("scene_09_high_na", scene_high_na),
     ("scene_10_supply_chain", scene_supply_chain)
 ]
+def progress_handler(scene, name):
+    frame = scene.frame_current
+    if frame == 1 or frame % 48 == 0 or frame == FRAMES:
+        print(f"FRAME_PROGRESS {name} {frame}/{FRAMES}", flush=True)
+
+
 for name, function in SCENES:
     folder = os.path.join(out, name)
     os.makedirs(folder, exist_ok=True)
     function(folder)
+    handler = lambda scene, scene_name=name: progress_handler(scene, scene_name)
+    bpy.app.handlers.render_post.append(handler)
+    print(f"STARTING_RENDER {name} engine={bpy.context.scene.render.engine} size={W}x{H} fps={FPS} frames={FRAMES}", flush=True)
     bpy.ops.render.render(animation=True)
+    bpy.app.handlers.render_post.remove(handler)
     print("RENDERED", name, flush=True)
