@@ -17,12 +17,6 @@ jobs:
       - name: Check out FrameForge
         uses: actions/checkout@v4
 
-      - name: Install asset tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y blender
-          python -m pip install --upgrade pip gdown
-
       - name: Download ten rigged CC0 character models
         shell: bash
         run: |
@@ -46,77 +40,55 @@ jobs:
           CompanyCeo|https://gobkit.com/freebies/human002/CompanyCeo.glb
           EOF
 
-      - name: Download CC0 vehicle, house, road and nature packs
+      - name: Fetch 129-model CC0 city kit (houses, roads, vehicles, vegetation)
         shell: bash
         run: |
           set -euo pipefail
-          ROOT="assets/suburban-short/source-packs"
-          gdown --folder "https://drive.google.com/drive/folders/1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA" -O "$ROOT/cars"
-          gdown --folder "https://drive.google.com/drive/folders/1r-FcNFxC6ziN0oI3GqZJdEkdzglFQHQH" -O "$ROOT/simple-buildings"
-          gdown --folder "https://drive.google.com/drive/folders/1-YvMpLDYBIy-0Ms7ZlFmUpChTbHku8IJ" -O "$ROOT/modular-streets"
-          gdown --folder "https://drive.google.com/drive/folders/18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts" -O "$ROOT/simple-nature"
-          find "$ROOT" -type f -printf '%p %s bytes\n' | sort | head -200
+          ROOT="assets/suburban-short"
+          mkdir -p "$ROOT/source-packs"
+          git clone --depth 1 https://github.com/kayquer/kit-cidade-lowpoly.git "$ROOT/source-packs/city-kit"
+          count=$(find "$ROOT/source-packs/city-kit/models" -type f -iname '*.glb' | wc -l)
+          echo "City kit GLB count: $count"
+          test "$count" -eq 129
+          mkdir -p "$ROOT/licences"
+          cp "$ROOT/source-packs/city-kit/README.md" "$ROOT/licences/CC0-City-Kit-README.md"
+          if [ -f "$ROOT/source-packs/city-kit/CITATION.cff" ]; then cp "$ROOT/source-packs/city-kit/CITATION.cff" "$ROOT/licences/City-Kit-CITATION.cff"; fi
+          find "$ROOT/source-packs/city-kit/models" -type f -iname '*.glb' -printf '%P %s bytes\\n' | sort > "$ROOT/environment-model-list.txt"
 
-      - name: Convert FBX and OBJ scene assets to GLB
+      - name: Validate CC0 city assets and character rigs
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p assets/suburban-short/converted
-          cat > /tmp/convert_assets.py <<'PY'
-          import bpy, os, sys, re
-          root = os.path.abspath(sys.argv[sys.argv.index("--") + 1])
-          src = os.path.join(root, "source-packs")
-          out = os.path.join(root, "converted")
-          os.makedirs(out, exist_ok=True)
-          seen = set()
-          converted = []
-          failures = []
-          def safe(s):
-              s = re.sub(r"[^A-Za-z0-9._-]+", "-", s).strip("-")
-              return s[:90] or "asset"
-          for base, dirs, files in os.walk(src):
-              dirs.sort()
-              files.sort()
-              candidates = [f for f in files if os.path.splitext(f)[1].lower() in (".fbx", ".obj")]
-              # Prefer FBX where both formats of the same model are supplied.
-              candidates.sort(key=lambda f: (0 if f.lower().endswith(".fbx") else 1, f.lower()))
-              for filename in candidates:
-                  stem = os.path.splitext(filename)[0]
-                  key = stem.lower()
-                  if key in seen:
-                      continue
-                  seen.add(key)
-                  srcfile = os.path.join(base, filename)
-                  rel = os.path.relpath(base, src)
-                  destdir = os.path.join(out, safe(rel.replace(os.sep, "-")))
-                  os.makedirs(destdir, exist_ok=True)
-                  dest = os.path.join(destdir, safe(stem) + ".glb")
-                  try:
-                      bpy.ops.wm.read_factory_settings(use_empty=True)
-                      ext = os.path.splitext(filename)[1].lower()
-                      if ext == ".fbx":
-                          bpy.ops.import_scene.fbx(filepath=srcfile, use_image_search=True)
-                      else:
-                          bpy.ops.wm.obj_import(filepath=srcfile)
-                      meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"]
-                      if not meshes:
-                          raise RuntimeError("import produced no mesh objects")
-                      bpy.ops.export_scene.gltf(filepath=dest, export_format="GLB", export_apply=True, export_image_format="AUTO", export_cameras=False, export_lights=False)
-                      if not os.path.exists(dest) or os.path.getsize(dest) < 1024:
-                          raise RuntimeError("GLB export missing or unexpectedly small")
-                      converted.append({"source": os.path.relpath(srcfile, root), "glb": os.path.relpath(dest, root), "bytes": os.path.getsize(dest), "mesh_objects": len(meshes)})
-                      print("CONVERTED", srcfile, "->", dest)
-                  except Exception as exc:
-                      failures.append({"source": os.path.relpath(srcfile, root), "error": str(exc)})
-                      print("FAILED", srcfile, repr(exc))
-          import json
-          with open(os.path.join(root, "conversion-report.json"), "w") as f:
-              json.dump({"converted": converted, "failures": failures}, f, indent=2)
-          print("ASSET_CONVERSION_SUMMARY", len(converted), "converted,", len(failures), "failed")
-          if not converted:
-              raise SystemExit("No building/vehicle/environment files could be converted")
+          ROOT="assets/suburban-short"
+          python - <<'PY'
+          import json, os, struct
+          root="assets/suburban-short"
+          inventory=[]
+          for base, _, files in os.walk(os.path.join(root,"characters")):
+              for fn in sorted(files):
+                  if not fn.endswith(".glb"): continue
+                  p=os.path.join(base,fn)
+                  with open(p,"rb") as f:
+                      head=f.read(12)
+                      if len(head)<12 or head[:4]!=b"glTF": raise SystemExit("Invalid GLB header: "+p)
+                      chunklen,chunktype=struct.unpack("<II",f.read(8))
+                      if chunktype!=0x4E4F534A: raise SystemExit("Missing JSON chunk: "+p)
+                      doc=json.loads(f.read(chunklen).decode("utf-8"))
+                  skins=doc.get("skins",[])
+                  meshes=doc.get("meshes",[])
+                  anims=[a.get("name","") for a in doc.get("animations",[])]
+                  targets=sum(len(pr.get("targets",[])) for m in meshes for pr in m.get("primitives",[]))
+                  inventory.append({"name":fn,"bytes":os.path.getsize(p),"skins":len(skins),"animations":anims,"morph_targets":targets})
+          if len(inventory)!=10: raise SystemExit(f"Expected 10 character GLBs, got {len(inventory)}")
+          if any(x["skins"]<1 for x in inventory): raise SystemExit("At least one character is not skinned")
+          city=os.path.join(root,"source-packs","city-kit","models")
+          env=[os.path.join(b,f) for b,_,fs in os.walk(city) for f in fs if f.lower().endswith(".glb")]
+          if len(env)!=129: raise SystemExit(f"Expected 129 CC0 city GLBs, got {len(env)}")
+          with open(os.path.join(root,"character-inventory.json"),"w") as f: json.dump(inventory,f,indent=2)
+          with open(os.path.join(root,"environment-inventory.json"),"w") as f: json.dump([os.path.relpath(p,root) for p in sorted(env)],f,indent=2)
+          print("CHARACTER_INVENTORY",json.dumps(inventory))
+          print("CITY_GLB_COUNT",len(env))
           PY
-          blender -b --python-exit-code 1 --python /tmp/convert_assets.py -- "$PWD/assets/suburban-short"
 
       - name: Add source, licence and rig inventory
         shell: bash
