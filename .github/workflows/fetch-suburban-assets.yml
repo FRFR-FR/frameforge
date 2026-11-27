@@ -51,10 +51,10 @@ jobs:
         run: |
           set -euo pipefail
           ROOT="assets/suburban-short/source-packs"
-          gdown --folder --remaining-ok "https://drive.google.com/drive/folders/1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA" -O "$ROOT/cars"
-          gdown --folder --remaining-ok "https://drive.google.com/drive/folders/1r-FcNFxC6ziN0oI3GqZJdEkdzglFQHQH" -O "$ROOT/simple-buildings"
-          gdown --folder --remaining-ok "https://drive.google.com/drive/folders/1-YvMpLDYBIy-0Ms7ZlFmUpChTbHku8IJ" -O "$ROOT/modular-streets"
-          gdown --folder --remaining-ok "https://drive.google.com/drive/folders/18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts" -O "$ROOT/simple-nature"
+          gdown --folder "https://drive.google.com/drive/folders/1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA" -O "$ROOT/cars"
+          gdown --folder "https://drive.google.com/drive/folders/1r-FcNFxC6ziN0oI3GqZJdEkdzglFQHQH" -O "$ROOT/simple-buildings"
+          gdown --folder "https://drive.google.com/drive/folders/1-YvMpLDYBIy-0Ms7ZlFmUpChTbHku8IJ" -O "$ROOT/modular-streets"
+          gdown --folder "https://drive.google.com/drive/folders/18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts" -O "$ROOT/simple-nature"
           find "$ROOT" -type f -printf '%p %s bytes\n' | sort | head -200
 
       - name: Convert FBX and OBJ scene assets to GLB
