@@ -12,7 +12,7 @@ SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "FrameforgeDocumentaryBroll/1.0 (https://github.com/FRFR-FR/frameforge)"})
 SHOT, MIN_W, MIN_H, MAX_BYTES = 7.0, 1280, 720, 500_000_000
 COVERR_LIMIT = 10
-AI_RE = re.compile(r"ai[- ]generated|synthetic footage|computer[- ]generated|\\bcgi\\b|animation|animated|artist.?s concept|visualization|rendered scene", re.I)
+AI_RE = re.compile(r"ai[- ]generated|synthetic footage|computer[- ]generated|\bcgi\b|animation|animated|artist.?s concept|visualization|rendered scene", re.I)
 LICENCES = {
  "Pixabay": ("Pixabay Content License", "https://pixabay.com/service/license-summary/"),
  "Coverr": ("Coverr Stock Library License", "https://coverr.co/license"),
@@ -431,7 +431,7 @@ def main():
     credits = ["FOOTAGE CREDITS — append this block to the YouTube video description", ""]
     credits += list(dict.fromkeys(credit(item) for item in manifest))
     credits += ["", "Footage is incorporated into an edited educational documentary. Each asset remains subject to its listed licence."]
-    (root / "output" / "footage_attribution_description.txt").write_text("\\n".join(credits) + "\\n", encoding="utf-8")
+    (root / "output" / "footage_attribution_description.txt").write_text("\n".join(credits) + "\n", encoding="utf-8")
     used = {}
     for row in manifest:
         used[row["provider"]] = used.get(row["provider"], 0) + 1
