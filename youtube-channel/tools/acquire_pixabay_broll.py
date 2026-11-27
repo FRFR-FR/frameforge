@@ -10,6 +10,7 @@ import os
 import re
 import subprocess
 import time
+import math
 import requests
 
 API = "https://pixabay.com/api/videos/"
@@ -66,8 +67,8 @@ def section_minimum(root, section):
     seconds = max(0.0, seconds - float(section.get("cutaway_seconds", 0) or 0))
     if seconds <= 0:
         return MIN_SECTION_CLIPS
-    shot_count = max(1, int((seconds + SHOT_SECONDS - 0.001) // SHOT_SECONDS) + 1)
-    return max(MIN_SECTION_CLIPS, (shot_count + MAX_SOURCE_USES - 1) // MAX_SOURCE_USES)
+    shot_count = max(1, math.ceil(seconds / SHOT_SECONDS))
+    return max(MIN_SECTION_CLIPS, math.ceil(shot_count / MAX_SOURCE_USES))
 
 def main():
     ap = argparse.ArgumentParser()

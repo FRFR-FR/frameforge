@@ -20,18 +20,18 @@ permissions:
   actions: read
 
 concurrency:
-  group: documentary-render-\${{ github.ref }}
+  group: documentary-render-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   render:
     runs-on: ubuntu-latest
     outputs:
-      artifact_name: \${{ steps.episode.outputs.artifact_name }}
-      video_ready: \${{ steps.validate.outputs.video_ready }}
+      artifact_name: ${{ steps.episode.outputs.artifact_name }}
+      video_ready: ${{ steps.validate.outputs.video_ready }}
     timeout-minutes: 180
     env:
-      PIXABAY_API_KEY: \${{ secrets.PIXABAY_API_KEY }}
+      PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
       HF_HOME: ~/.cache/huggingface
       LIBGL_ALWAYS_SOFTWARE: "1"
       MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
@@ -51,9 +51,9 @@ jobs:
           path: |
             ~/.cache/huggingface
             ~/.cache/pixabay
-          key: documentary-kokoro-echo-\${{ runner.os }}-\${{ hashFiles('youtube-channel/tools/generate_kokoro.py') }}
+          key: documentary-kokoro-echo-${{ runner.os }}-${{ hashFiles('youtube-channel/tools/generate_kokoro.py') }}
           restore-keys: |
-            documentary-kokoro-echo-\${{ runner.os }}-
+            documentary-kokoro-echo-${{ runner.os }}-
 
       - name: Install system and Python dependencies
         shell: bash
@@ -70,11 +70,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REQUESTED="\${{ inputs.episode_directory }}"
+          REQUESTED="${{ inputs.episode_directory }}"
           if [ -n "$REQUESTED" ]; then
             EPISODE_DIR="$REQUESTED"
           else
-            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\\n' | sort -V | tail -n 1)"
+            EPISODE_DIR="$(find youtube-channel/episodes -mindepth 2 -maxdepth 2 -name render_episode.py -printf '%h\n' | sort -V | tail -n 1)"
           fi
           test -n "$EPISODE_DIR" || { echo "::error::No episode folder containing render_episode.py was found."; exit 1; }
           test -f "$EPISODE_DIR/narration.md" || { echo "::error::Missing narration.md in $EPISODE_DIR"; exit 1; }
@@ -84,7 +84,7 @@ jobs:
 
       - name: Generate approved Kokoro Echo narration
         env:
-          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
@@ -93,14 +93,14 @@ jobs:
       - name: Acquire topic-verified, rights-documented B-roll (no generic fallback)
         id: broll
         env:
-          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
           if [ -z "$PIXABAY_API_KEY" ]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
             mkdir -p "$EPISODE_DIR/output"
-            printf '%s\\n' "Kokoro narration generated. Video rendering is blocked because PIXABAY_API_KEY is empty. No generic filler or slides were created." > "$EPISODE_DIR/output/production_status.md"
+            printf '%s\n' "Kokoro narration generated. Video rendering is blocked because PIXABAY_API_KEY is empty. No generic filler or slides were created." > "$EPISODE_DIR/output/production_status.md"
             echo "::warning::PIXABAY_API_KEY is missing. Rendering is skipped rather than using unrelated footage."
             exit 0
           fi
@@ -111,7 +111,7 @@ jobs:
         id: render
         if: steps.broll.outputs.available == 'true'
         env:
-          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
@@ -121,7 +121,7 @@ jobs:
         id: validate
         if: steps.broll.outputs.available == 'true' && steps.render.outcome == 'success'
         env:
-          EPISODE_DIR: \${{ steps.episode.outputs.dir }}
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
@@ -173,18 +173,18 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: \${{ steps.episode.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
+          name: ${{ steps.episode.outputs.artifact_name }}-720p-broll-echo-nocaptions-master
           path: |
-            \${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
-            \${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_360p_24fps_450k_nocaptions.mp4
-            \${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.wav
-            \${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.mp3
-            \${{ steps.episode.outputs.dir }}/output/kokoro_narration_report.json
-            \${{ steps.episode.outputs.dir }}/output/render_report_broll_echo.json
-            \${{ steps.episode.outputs.dir }}/output/broll_timeline.json
-            \${{ steps.episode.outputs.dir }}/output/thumbnail_rwb.png
-            \${{ steps.episode.outputs.dir }}/output/production_status.md
-            \${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
-            \${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
+            ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_Kokoro_Broll_720p.mp4
+            ${{ steps.episode.outputs.dir }}/output/Underneath_Everything_*_360p_24fps_450k_nocaptions.mp4
+            ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.wav
+            ${{ steps.episode.outputs.dir }}/output/narration_echo_kokoro.mp3
+            ${{ steps.episode.outputs.dir }}/output/kokoro_narration_report.json
+            ${{ steps.episode.outputs.dir }}/output/render_report_broll_echo.json
+            ${{ steps.episode.outputs.dir }}/output/broll_timeline.json
+            ${{ steps.episode.outputs.dir }}/output/thumbnail_rwb.png
+            ${{ steps.episode.outputs.dir }}/output/production_status.md
+            ${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
+            ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
           if-no-files-found: warn
           retention-days: 14
