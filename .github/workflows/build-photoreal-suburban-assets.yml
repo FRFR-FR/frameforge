@@ -40,11 +40,11 @@ jobs:
           curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/houses/houses.zip -o houses.zip
           curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/trees/trees.zip -o trees.zip
           curl -fL --retry 4 --retry-delay 2 https://models.vinish.dev/street/street.zip -o street-props.zip
-          unzip -q cars-1.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
-          unzip -q cars-2.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
-          unzip -q houses.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/houses"
-          unzip -q trees.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/trees"
-          unzip -q street-props.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/street-props"
+          unzip -oq cars-1.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
+          unzip -oq cars-2.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/cars"
+          unzip -oq houses.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/houses"
+          unzip -oq trees.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/trees"
+          unzip -oq street-props.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/street-props"
           cd "$GITHUB_WORKSPACE"
           for folder in cars houses trees street-props; do
             echo "$folder GLB count:"
@@ -61,9 +61,9 @@ jobs:
           curl -fL --retry 4 https://ambientcg.com/get?file=Asphalt002_1K-JPG.zip -o asphalt.zip
           curl -fL --retry 4 https://ambientcg.com/get?file=Concrete007_1K-JPG.zip -o concrete.zip
           curl -fL --retry 4 https://ambientcg.com/get?file=Grass001_1K-JPG.zip -o grass.zip
-          unzip -q asphalt.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/asphalt"
-          unzip -q concrete.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/concrete"
-          unzip -q grass.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/grass"
+          unzip -oq asphalt.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/asphalt"
+          unzip -oq concrete.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/concrete"
+          unzip -oq grass.zip -d "$GITHUB_WORKSPACE/assets/photoreal-suburban/textures/grass"
           curl -fL --retry 4 https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/lebombo_1k.hdr -o "$GITHUB_WORKSPACE/assets/photoreal-suburban/lighting/lebombo_1k.hdr"
       - name: Validate GLB integrity, rigs, animations, face visemes and asset counts
         run: |
