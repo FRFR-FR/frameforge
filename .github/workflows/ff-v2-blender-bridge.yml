@@ -30,7 +30,7 @@ jobs:
       - name: Install Blender and Python validation dependency
         run: |
           sudo apt-get update
-          sudo apt-get install --yes blender python3-numpy
+          sudo apt-get install --yes blender python3-numpy libegl1 libgl1 libgl1-mesa-dri libgles2
           blender --version
       - name: Validate bridge manifest and Python helpers
         run: |
@@ -39,7 +39,7 @@ jobs:
       - name: Build editable Blender scene and glTF interchange
         run: |
           mkdir -p output/frameforge_v2_bridge
-          blender --background --python-exit-code 1 \
+          EGL_PLATFORM=surfaceless LIBGL_ALWAYS_SOFTWARE=1 blender --background --python-exit-code 1 \
             --python tools/frameforge_blender_bridge.py -- \
             --project examples/frameforge-3d-scene.example.json \
             --output-dir output/frameforge_v2_bridge --mode build
