@@ -5,7 +5,7 @@
 ## Inputs and hard limits
 
 - **validate** checks a V2 project JSON and media-rights manifest.
-- **merge-export** accepts browser chunk ZIPs under render-input/, requires a matching project/job signature, caps chunk input at 100 MB and defaults to 240 frames (10 seconds at 24 FPS). The configurable maximum is hard-capped at 480 frames. Export is limited to 720p horizontal or vertical at 24/30 FPS.
+- **merge-export** accepts browser chunk ZIPs under render-input/, requires a matching project/job signature, caps chunk input at 100 MB and defaults to 240 frames (10 seconds at 24 FPS). The configurable maximum is hard-capped at 480 frames. Export is limited to a maximum of 921,600 pixels per frame (720p landscape or portrait) at 24/30 FPS.
 - **qa-review-package** accepts a video under render-input/ up to 100 MB and 30 seconds, with each video dimension at or below 1280 pixels. Outputs are confined to artifacts/manual-ops/ and packaging stops when technical QA fails.
 - Total output is capped at 100 MB. Workflow artifacts expire after three days.
 

@@ -41,6 +41,10 @@ Both demo MP4s were built as 1280×720, 24 FPS, 12-second H.264/AAC files on a s
 
 ## Verification
 
-The manual release workflow blocks publication unless the latest Foundation Validation and Pilot Builds/QA runs for the target commit succeed and a successful browser-smoke run exists on `main`. It then re-runs the Python and JavaScript core suites and validates both pilot projects before creating the annotated tag and GitHub Release.
+- Foundation Validation: [run 46146137686](https://github.com/FRFR-FR/frameforge/actions/runs/46146137686) — 74 JavaScript tests and 52 Python tests passed.
+- Browser Smoke: [run 46144474819](https://github.com/FRFR-FR/frameforge/actions/runs/46144474819) — all editor, audio, director, production, render-queue and mobile smoke checks passed.
+- Pilot Builds and QA: [run 46146137635](https://github.com/FRFR-FR/frameforge/actions/runs/46146137635) — both 720p MP4s passed full decode and technical QA without black/frozen segments or QA/rights warnings. The two video files are 1.52 MB and 1.36 MB; the combined artifact is 6.46 MB and expires on 2026-12-01 at 12:46 UTC.
+
+The manual release workflow blocks publication unless the latest Foundation Validation, Pilot Builds/QA and Browser Smoke runs on `main` succeeded. It then re-runs the Python and JavaScript core suites on the release commit and validates both pilot projects before creating the annotated tag and GitHub Release. The release publisher is ready but has not been dispatched, so no `v2.0.0` tag or GitHub Release exists yet.
 
 See [the progress log](FF_V2_PROGRESS.md), [handover guide](FF_V2_HANDOVER.md), [mobile guide](FF_V2_MOBILE.md), [manual Actions guide](FF_V2_MANUAL_ACTIONS.md) and [render/QA/delivery guide](FF_V2_RENDERING_QA_DELIVERY.md).

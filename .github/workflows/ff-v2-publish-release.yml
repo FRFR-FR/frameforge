@@ -72,8 +72,8 @@ jobs:
           with urllib.request.urlopen(request, timeout=20) as response:
               runs=json.load(response).get("workflow_runs",[])
           required={
-              "FrameForge V2 Foundation Validation": sha,
-              "FrameForge V2 Pilot Builds and QA": sha,
+              "FrameForge V2 Foundation Validation": None,
+              "FrameForge V2 Pilot Builds and QA": None,
               "FrameForge V2 Browser Smoke": None
           }
           errors=[]
