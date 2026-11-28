@@ -325,12 +325,11 @@ async function main() {
       buffer:glb
     });
     await page.waitForFunction(() => document.querySelectorAll('.ffv2-asset-card').length===2, null, {timeout:20000});
-    const modelMeta = await page.locator('.ffv2-asset-card').nth(1).locator('.ffv2-asset-details').innerText();
+    const modelMeta = await page.locator('.ffv2-asset-card').first().locator('.ffv2-asset-details').innerText();
     assert.match(modelMeta,/glTF Binary 2.0/);
     assert.match(modelMeta,/mesh/i);
-    await page.locator('.ffv2TargetTrack').count().catch(()=>{});
     await page.locator('#ffv2TargetTrack').selectOption('');
-    await page.locator('.ffv2-asset-card').nth(1).locator('button.primary').click();
+    await page.locator('.ffv2-asset-card').first().locator('button.primary').click();
     await page.waitForFunction(() => document.querySelectorAll('.ffv2-clip').length===6);
     await page.locator('.ffv2-clip').last().click();
     await page.waitForFunction(() => !document.getElementById('ffv23DClipControls').classList.contains('hidden'));
