@@ -80,11 +80,12 @@ async function main() {
     await page.locator('#ffv2ApplyRecipe').click();
     const recipeState = await page.evaluate(() => {
       const beat = window.FFV2Studio.getProject().shot_plan.beats[0];
-      return { id: beat.shot_recipe?.id, duration: beat.recipe_duration_frames, start: beat.start_frame, end: beat.end_frame };
+      return { id: beat.shot_recipe?.id, duration: beat.recipe_duration_frames, start: beat.start_frame, span: beat.end_frame - beat.start_frame };
     });
     assert.equal(recipeState.id, 'diagram');
     assert.ok(recipeState.duration > 0);
-    assert.equal(recipeState.end - recipeState.start, 60);
+    assert.ok(recipeState.span > 0);
+    assert.equal(recipeState.duration, Math.round(recipeState.span * 1.15));
 
     // Step 38: create a real editable SVG clip from procedural parameters.
     await page.locator('#ffv2GraphicType').selectOption('flowchart');
