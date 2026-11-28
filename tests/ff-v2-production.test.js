@@ -112,6 +112,21 @@ test('a manual CC0 source is classified as public-domain but never approved auto
   assert.equal(options.rights.attribution_required, false);
 });
 
+test('audio usage limits are retained in the catalogue until rights review', () => {
+  const project = Core.createDefaultProject('Audio terms');
+  Core.addAsset(project,makeAsset('music-terms','audio',{ attribution_required: true }));
+  Production.registerAudioMetadata(project,'music-terms',{
+    license_name:'CC BY-NC 4.0',
+    attribution_required:true,
+    attribution_text:'Composer credit',
+    restrictions:['Non-commercial use only','Attribution required in the video description']
+  });
+  const asset=project.assets.find(item=>item.id==='music-terms');
+  assert.ok(asset.rights.restrictions.includes('Non-commercial use only'));
+  assert.ok(asset.rights.restrictions.includes('Attribution required in the video description'));
+  assert.equal(asset.rights.status,'pending');
+});
+
 test('source adapter URLs are bounded and preserve provider-specific manual fallbacks', () => {
   const openverse = Production.providerSearchUrl('openverse','network security','image');
   assert.match(openverse, /^https:\/\/api\.openverse\.org\/v1\/images/);
