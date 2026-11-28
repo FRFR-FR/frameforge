@@ -207,7 +207,7 @@ A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU 
 **Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
 
 
-## FrameForge V2 — foundations, timeline, compositor, VFX, 3D and Blender (steps 1–25)
+## FrameForge V2 — foundations, timeline, compositor, VFX, 3D, Blender and audio (steps 1–30)
 
 The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). Batch status is recorded in [docs/FF_V2_PROGRESS.md](docs/FF_V2_PROGRESS.md).
 
@@ -223,7 +223,10 @@ Current editor workspace:
 - [V2 compositing, transforms, keyframes, masks and graphics guide](docs/FF_V2_COMPOSITING_AND_MOTION.md)
 - [V2 VFX, particles, shaders, atmosphere and transitions guide](docs/FF_V2_VFX_AND_TRANSITIONS.md)
 - [V2 3D scenes, GLB/glTF and Blender bridge guide](docs/FF_V2_3D_AND_BLENDER.md)
+- [V2 multi-track audio, waveforms, SFX cues, WAV mastering and FFmpeg mux guide](docs/FF_V2_AUDIO.md)
 - [V2 project/timeline/effects/3D scene core](ff-v2-core.js)
+- [V2 audio engine and WAV master renderer](ff-v2-audio.js)
+- [FFmpeg audio/video mux utility](tools/mux_ffmpeg.py)
 - [V2 Canvas 2D and 3D scene compositor](ff-v2-renderer.js)
 - [V2 optional WebGL shader pipeline](ff-v2-shaders.js)
 - [V2 local Three.js scene loader](ff-v2-3d-studio.js)
@@ -233,7 +236,9 @@ Current editor workspace:
 - [V2 browser studio](ff-v2-studio.js)
 - [V2 core regression tests](tests/ff-v2-core.test.js)
 - [V2 renderer tests](tests/ff-v2-renderer.test.js)
+- [V2 audio engine tests](tests/ff-v2-audio.test.js)
 - [V2 Chromium browser smoke test](tests/ff-v2-browser-smoke.js)
+- [V2 audio browser smoke test](tests/ff-v2-audio-browser-smoke.js)
 - [Foundation CI](.github/workflows/ff-v2-foundation-tests.yml)
 - [Browser smoke CI](.github/workflows/ff-v2-browser-smoke.yml)
 
@@ -252,4 +257,4 @@ python tools/validate_media_manifest.py examples/media-asset-manifest.example.js
 
 The checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) workflow. The real-browser integration check runs separately in [FrameForge V2 Browser Smoke](.github/workflows/ff-v2-browser-smoke.yml). Both use read-only repository permissions and do not start any Blender or media-render job.
 
-**Current V2 boundary:** steps 6–25 add validated local media import, an editable multi-track timeline, local recovery, a Canvas 2D layer compositor, transform/effect keyframes, masks/mattes/blend modes, generated graphics/particles, optional WebGL post-processing, stylised effects and transitions, a locally vendored Three.js r164.1 GLB/glTF scene renderer, 3D camera/light/environment controls, model animation and constraints, and a portable Blender bridge. The compositor renders the current frame and exports PNG; it is not yet a full-sequence or final MP4 renderer. 3D model pixels require WebGL. Project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB.
+**Current V2 boundary:** steps 6–29 add validated local media import, an editable multi-track timeline, local recovery, a Canvas 2D layer compositor, transform/effect keyframes, masks/mattes/blend modes, generated graphics/particles, optional WebGL post-processing, stylised effects and transitions, a locally vendored Three.js r164.1 GLB/glTF scene renderer, 3D camera/light/environment controls, model animation and constraints, a portable Blender bridge, editable multi-track audio, waveforms, event-linked SFX, gain automation, ducking and WAV mastering. Step 30 adds a tested FFmpeg mux utility for an already-rendered silent picture plus its WAV master. The compositor still renders only the current frame and exports PNG; it is not yet a full-sequence or automatic V2 MP4 renderer. 3D model pixels require WebGL. Project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB. See [the V2 progress log](docs/FF_V2_PROGRESS.md) for verified step status.
