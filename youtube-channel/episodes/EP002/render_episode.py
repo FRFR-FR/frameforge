@@ -142,47 +142,74 @@ def make_3d_clips(frames_dir):
     if not renderer_script.is_file() or not scene_file.is_file() or not html_file.is_file():
         raise RuntimeError("The Three.js scene module, render page or headless renderer is missing.")
 
-    scene_folders = [frames_dir / name for name in sorted(CUTS.values())]
-    frames_complete = all(folder.is_dir() and len(list(folder.glob("frame_*.png"))) == 288
-                          for folder in scene_folders)
-    if not frames_complete:
+    scene_names = sorted(CUTS.values())
+    direct_files = {name: frames_dir / f"{name}.mp4" for name in scene_names}
+    def direct_valid(name):
+        candidate = direct_files[name]
+        if not candidate.is_file() or candidate.stat().st_size < 1000:
+            return False
+        try:
+            metadata = probe(candidate)
+            video = next(stream for stream in metadata["streams"] if stream.get("codec_type") == "video")
+            return (
+                abs(float(metadata["format"]["duration"]) - CUTAWAY_SECONDS) <= 0.06
+                and (video.get("width"), video.get("height")) == (1280, 720)
+                and video.get("avg_frame_rate") == "24/1"
+                and video.get("codec_name") == "h264"
+            )
+        except Exception:
+            return False
+
+    direct_complete = all(direct_valid(name) for name in scene_names)
+    frames_complete = all(
+        (frames_dir / name).is_dir()
+        and len(list((frames_dir / name).glob("frame_*.png"))) == 288
+        for name in scene_names
+    )
+    if not direct_complete and not frames_complete:
         run([node, str(renderer_script), "--output-dir", str(frames_dir)])
+    elif direct_complete:
+        print("Reusing the ten directly encoded H.264 Three.js clips.", flush=True)
     else:
-        print("Reusing the verified 2,880-frame Three.js render.", flush=True)
+        print("Reusing the complete 2,880-frame Three.js PNG render.", flush=True)
 
     output = {}
     contact_dir = OUT / "threejs_qc_frames"
     contact_dir.mkdir(parents=True, exist_ok=True)
     contact_frames = []
-    for index, scene_name in enumerate(sorted(CUTS.values())):
-        folder = frames_dir / scene_name
-        pngs = sorted(folder.glob("frame_*.png"))
-        if len(pngs) != 288:
-            raise RuntimeError(f"{scene_name} produced {len(pngs)} frames; exactly 288 are required.")
+    for index, scene_name in enumerate(scene_names):
         clip_path = OUT / "3d_clips" / f"{scene_name}.mp4"
         clip_path.parent.mkdir(parents=True, exist_ok=True)
-        run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-framerate", "24", "-start_number", "1",
-            "-i", str(folder / "frame_%04d.png"), "-frames:v", "288",
-            "-vf", "setsar=1,fps=24,format=yuv420p",
-            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19",
-            "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
-            str(clip_path)
-        ])
+        if direct_valid(scene_name):
+            shutil.copy2(direct_files[scene_name], clip_path)
+        else:
+            folder = frames_dir / scene_name
+            pngs = sorted(folder.glob("frame_*.png"))
+            if len(pngs) != 288:
+                raise RuntimeError(f"{scene_name} produced {len(pngs)} frames; exactly 288 are required.")
+            run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-framerate", "24", "-start_number", "1",
+                "-i", str(folder / "frame_%04d.png"), "-frames:v", "288",
+                "-vf", "setsar=1,fps=24,format=yuv420p",
+                "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19",
+                "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
+                str(clip_path)
+            ])
         if abs(duration(clip_path) - CUTAWAY_SECONDS) > 0.06:
             raise RuntimeError(f"{scene_name} is not a measured 12-second cutaway.")
         metadata = probe(clip_path)
         video = next(stream for stream in metadata["streams"] if stream.get("codec_type") == "video")
         if (video.get("width"), video.get("height")) != (1280, 720) or video.get("avg_frame_rate") != "24/1":
             raise RuntimeError(f"{scene_name} is not a native 1280x720 24fps render.")
-        output[scene_name] = clip_path
+        run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(clip_path), "-f", "null", "-"])
 
         still = contact_dir / f"{index:02d}_{scene_name}.jpg"
         run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
              "-ss", "6.0", "-i", str(clip_path), "-frames:v", "1",
              "-vf", "scale=320:180:flags=lanczos", "-q:v", "3", str(still)])
         contact_frames.append((scene_name, still))
+        output[scene_name] = clip_path
 
     columns, cell_w, cell_h, label_h = 4, 320, 180, 28
     rows = math.ceil(len(contact_frames) / columns)
@@ -204,8 +231,11 @@ def make_3d_clips(frames_dir):
     collision_report = json.loads(collision_path.read_text(encoding="utf-8"))
     if len(collision_report.get("collision", [])) != 10:
         raise RuntimeError("Three.js collision report does not contain all ten scene sections.")
+    render_mode_path = frames_dir / "render_mode.json"
+    render_mode = json.loads(render_mode_path.read_text(encoding="utf-8")) if render_mode_path.is_file() else {}
     render_report = {
         "renderer": "Three.js r175 / Playwright Chromium / SwiftShader",
+        "encoding": render_mode.get("encoding", "PNG frames + FFmpeg"),
         "resolution": "1280x720",
         "fps": 24,
         "scenes": [{"name": name, "duration_seconds": duration(path)} for name, path in output.items()],
@@ -216,7 +246,6 @@ def make_3d_clips(frames_dir):
     }
     (OUT / "threejs_render_report.json").write_text(json.dumps(render_report, indent=2), encoding="utf-8")
     return output
-
 
 def make_subtitle_filter(srt_path):
     escaped_path = str(srt_path).replace("\\", "/").replace(":", "\\:")
