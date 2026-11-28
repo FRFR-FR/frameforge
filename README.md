@@ -204,3 +204,27 @@ The new scene is configured for 720 × 1280, 30 FPS and 2,700 frames. It uses si
 A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU Production](https://github.com/FRFR-FR/frameforge/actions/workflows/brown-blender-cpu.yml). Choose `audit` to build and validate or `render` to run the full CPU render, then download the workflow artifact.
 
 **Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
+
+
+## FrameForge V2 foundation (steps 1–5)
+
+The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). The current foundation documents are:
+
+- [Baseline audit](docs/FF_V2_BASELINE_AUDIT.md)
+- [Architecture blueprint](docs/FF_V2_ARCHITECTURE.md)
+- [Zero-cost and media-rights policy](docs/FF_V2_COST_AND_RIGHTS_POLICY.md)
+- [V2 project schema](schemas/frameforge-project-v2.schema.json)
+- [Media asset manifest schema](schemas/media-asset-manifest-v1.schema.json)
+
+### Validate V2 project and media metadata
+
+Python 3.12 is recommended. Install the pinned development validator dependency and run the regression suite:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -p "test_*.py" -v
+python tools/validate_project.py examples/frameforge-project-v2.example.json
+python tools/validate_media_manifest.py examples/media-asset-manifest.example.json
+```
+
+The same checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) GitHub Actions workflow. This workflow uses read-only repository permissions and does not start any Blender or media-render job.
