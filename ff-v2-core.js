@@ -90,7 +90,7 @@
       case 'mp3': return ascii(0, 3) === 'ID3' || (b[0] === 0xff && (b[1] & 0xe0) === 0xe0) ? '' : 'MP3 signature is invalid.';
       case 'flac': return ascii(0, 4) === 'fLaC' ? '' : 'FLAC signature is invalid.';
       case 'm4a': case 'aac': return ascii(4, 4) === 'ftyp' || (b[0] === 0xff && (b[1] & 0xf6) === 0xf0) ? '' : 'AAC/M4A signature is invalid.';
-      case 'glb': return ascii(0, 4) === 'glTF' && new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(4, true) === 2 ? '' : 'GLB header or glTF version is invalid.';
+      case 'glb': return b.length >= 12 && ascii(0, 4) === 'glTF' && new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(4, true) === 2 ? '' : 'GLB header or glTF version is invalid.';
       case 'svg': case 'gltf': return '';
       default: return 'Unsupported file extension.';
     }
@@ -109,6 +109,11 @@
     }
     if (doc.querySelector('script,foreignObject,iframe,object,embed')) {
       throw new Error('SVG contains active content and was rejected.');
+    }
+    for (const styleElement of Array.from(doc.querySelectorAll('style'))) {
+      if (/@import|url\\s*\\(\\s*['"]?(?:https?:|javascript:|data:)/i.test(styleElement.textContent || '')) {
+        throw new Error('SVG external style imports/resources are not allowed.');
+      }
     }
     for (const element of Array.from(doc.querySelectorAll('*'))) {
       for (const attr of Array.from(element.attributes)) {
@@ -304,33 +309,83 @@
 
   function validateProject(project) {
     const errors = [];
-    if (!project || project.format !== FORMAT || project.schema_version !== SCHEMA_VERSION) {
+    const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+    if (!isObject(project) || project.format !== FORMAT || project.schema_version !== SCHEMA_VERSION) {
       return ['Unsupported FrameForge project format or schema version.'];
     }
-    if (!project.project || !project.settings || !Array.isArray(project.assets) || !Array.isArray(project.sequences) || !project.sequences.length) {
+    if (!isObject(project.project) || !isObject(project.settings) ||
+        !Array.isArray(project.assets) || !Array.isArray(project.sequences) || !project.sequences.length) {
       return ['Project is missing required metadata, settings, assets or sequences.'];
     }
-    const sequence = project.sequences[0];
-    if (!Array.isArray(sequence.tracks)) return ['Sequence tracks must be an array.'];
+    const settings = project.settings;
+    if (!Number.isInteger(settings.width) || settings.width < 1 ||
+        !Number.isInteger(settings.height) || settings.height < 1 ||
+        !Number.isFinite(settings.fps) || settings.fps <= 0) {
+      errors.push('Project output settings contain invalid dimensions or frame rate.');
+    }
+
     const assetIds = new Set();
     for (const asset of project.assets) {
+      if (!isObject(asset) || typeof asset.id !== 'string' || !asset.id) {
+        errors.push('Every project asset must be an object with a stable id.');
+        continue;
+      }
       if (assetIds.has(asset.id)) errors.push('Duplicate asset id: ' + asset.id);
       assetIds.add(asset.id);
     }
+
+    const sequenceIds = new Set();
     const trackIds = new Set();
     const clipIds = new Set();
-    for (const track of sequence.tracks) {
-      if (trackIds.has(track.id)) errors.push('Duplicate track id: ' + track.id);
-      trackIds.add(track.id);
-      for (const clip of track.clips || []) {
-        if (clipIds.has(clip.id)) errors.push('Duplicate clip id: ' + clip.id);
-        clipIds.add(clip.id);
-        if (clip.kind === 'asset' && !assetIds.has(clip.asset_id)) errors.push('Clip references missing asset: ' + clip.asset_id);
-        if (!Number.isInteger(clip.start_frame) || clip.start_frame < 0) errors.push('Clip has an invalid start frame: ' + clip.id);
-        if (!Number.isInteger(clip.duration_frames) || clip.duration_frames < 1) errors.push('Clip has an invalid duration: ' + clip.id);
-        if (Number.isInteger(clip.start_frame) && Number.isInteger(clip.duration_frames) &&
-            clip.start_frame + clip.duration_frames > sequence.duration_frames) {
-          errors.push('Clip exceeds sequence duration: ' + clip.id);
+    for (const sequence of project.sequences) {
+      if (!isObject(sequence)) {
+        errors.push('Every sequence must be an object.');
+        continue;
+      }
+      if (typeof sequence.id !== 'string' || !sequence.id) errors.push('Sequence is missing a stable id.');
+      else if (sequenceIds.has(sequence.id)) errors.push('Duplicate sequence id: ' + sequence.id);
+      sequenceIds.add(sequence.id);
+      if (!Number.isInteger(sequence.duration_frames) || sequence.duration_frames < 1) {
+        errors.push('Sequence ' + sequence.id + ' has an invalid duration.');
+      }
+      if (!Array.isArray(sequence.tracks)) {
+        errors.push('Sequence ' + sequence.id + ' tracks must be an array.');
+        continue;
+      }
+      for (const track of sequence.tracks) {
+        if (!isObject(track)) {
+          errors.push('Every track must be an object.');
+          continue;
+        }
+        if (typeof track.id !== 'string' || !track.id) errors.push('Track is missing a stable id.');
+        else if (trackIds.has(track.id)) errors.push('Duplicate track id: ' + track.id);
+        trackIds.add(track.id);
+        if (!Array.isArray(track.clips)) {
+          errors.push('Track ' + track.id + ' clips must be an array.');
+          continue;
+        }
+        for (const clip of track.clips) {
+          if (!isObject(clip)) {
+            errors.push('Every clip must be an object.');
+            continue;
+          }
+          if (typeof clip.id !== 'string' || !clip.id) errors.push('Clip is missing a stable id.');
+          else if (clipIds.has(clip.id)) errors.push('Duplicate clip id: ' + clip.id);
+          clipIds.add(clip.id);
+          if (clip.kind === 'asset' && !assetIds.has(clip.asset_id)) {
+            errors.push('Clip references missing asset: ' + clip.asset_id);
+          }
+          if (!Number.isInteger(clip.start_frame) || clip.start_frame < 0) {
+            errors.push('Clip has an invalid start frame: ' + clip.id);
+          }
+          if (!Number.isInteger(clip.duration_frames) || clip.duration_frames < 1) {
+            errors.push('Clip has an invalid duration: ' + clip.id);
+          }
+          if (Number.isInteger(clip.start_frame) && Number.isInteger(clip.duration_frames) &&
+              Number.isInteger(sequence.duration_frames) &&
+              clip.start_frame + clip.duration_frames > sequence.duration_frames) {
+            errors.push('Clip exceeds sequence duration: ' + clip.id);
+          }
         }
       }
     }
