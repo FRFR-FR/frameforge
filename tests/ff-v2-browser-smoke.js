@@ -75,6 +75,10 @@ async function main() {
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('dialog', async dialog => {
+      if (dialog.type() === 'prompt') await dialog.accept('Secondary Video');
+      else await dialog.accept();
+    });
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => {
       const status = document.getElementById('ffv2SaveStatus');
@@ -97,7 +101,6 @@ async function main() {
 
     // Add a second independently editable video track and place another clip on it.
     await page.locator('#ffv2NewTrackType').selectOption('video');
-    page.once('dialog', dialog => dialog.accept('Secondary Video'));
     await page.locator('#ffv2AddTrack').click();
     await page.locator('#ffv2TargetTrack').selectOption({ label: 'Secondary Video (video)' });
     await page.locator('.ffv2-asset-card button.primary').click();
@@ -126,14 +129,11 @@ async function main() {
     await videoTrack.locator('button[title="Mute track"]').click();
     assert.equal(await videoTrack.locator('button[title="Unmute track"]').count(), 1);
     await page.locator('#ffv2ProjectName').fill('FrameForge V2 Browser Test');
-    page.once('dialog', dialog => dialog.accept());
     await page.locator('#ffv2SaveProject').click();
     await page.waitForFunction(() => document.getElementById('ffv2SaveStatus').textContent.includes('Saved locally'));
     await page.locator('#ffv2ProjectName').fill('FrameForge V2 Recovery Test');
-    page.once('dialog', dialog => dialog.accept());
     await page.locator('#ffv2SaveProject').click();
     await page.waitForFunction(() => document.getElementById('ffv2RecoveryButton').disabled === false);
-    page.once('dialog', dialog => dialog.accept());
     await page.locator('#ffv2RecoveryButton').click();
     await page.waitForFunction(() => document.getElementById('ffv2ProjectName').value === 'FrameForge V2 Browser Test');
 
