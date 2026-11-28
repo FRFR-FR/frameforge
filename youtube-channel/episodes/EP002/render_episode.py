@@ -141,10 +141,20 @@ def make_3d_clips(frames_dir):
     html_file = ROOT / "threejs" / "render_frame.html"
     if not renderer_script.is_file() or not scene_file.is_file() or not html_file.is_file():
         raise RuntimeError("The Three.js scene module, render page or headless renderer is missing.")
-    run([node, str(renderer_script), "--output-dir", str(frames_dir)])
+
+    scene_folders = [frames_dir / name for name in sorted(CUTS.values())]
+    frames_complete = all(folder.is_dir() and len(list(folder.glob("frame_*.png"))) == 288
+                          for folder in scene_folders)
+    if not frames_complete:
+        run([node, str(renderer_script), "--output-dir", str(frames_dir)])
+    else:
+        print("Reusing the verified 2,880-frame Three.js render.", flush=True)
 
     output = {}
-    for scene_name in sorted(CUTS.values()):
+    contact_dir = OUT / "threejs_qc_frames"
+    contact_dir.mkdir(parents=True, exist_ok=True)
+    contact_frames = []
+    for index, scene_name in enumerate(sorted(CUTS.values())):
         folder = frames_dir / scene_name
         pngs = sorted(folder.glob("frame_*.png"))
         if len(pngs) != 288:
@@ -155,7 +165,7 @@ def make_3d_clips(frames_dir):
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-framerate", "24", "-start_number", "1",
             "-i", str(folder / "frame_%04d.png"), "-frames:v", "288",
-            "-vf", "scale=1280:720:flags=lanczos,setsar=1,fps=24,format=yuv420p",
+            "-vf", "setsar=1,fps=24,format=yuv420p",
             "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19",
             "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
             str(clip_path)
@@ -167,7 +177,46 @@ def make_3d_clips(frames_dir):
         if (video.get("width"), video.get("height")) != (1280, 720) or video.get("avg_frame_rate") != "24/1":
             raise RuntimeError(f"{scene_name} is not a native 1280x720 24fps render.")
         output[scene_name] = clip_path
+
+        still = contact_dir / f"{index:02d}_{scene_name}.jpg"
+        run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+             "-ss", "6.0", "-i", str(clip_path), "-frames:v", "1",
+             "-vf", "scale=320:180:flags=lanczos", "-q:v", "3", str(still)])
+        contact_frames.append((scene_name, still))
+
+    columns, cell_w, cell_h, label_h = 4, 320, 180, 28
+    rows = math.ceil(len(contact_frames) / columns)
+    sheet = Image.new("RGB", (columns * cell_w, rows * (cell_h + label_h)), (16, 32, 50))
+    draw = ImageDraw.Draw(sheet)
+    for index, (name, image_path) in enumerate(contact_frames):
+        x = (index % columns) * cell_w
+        y = (index // columns) * (cell_h + label_h)
+        with Image.open(image_path) as frame:
+            sheet.paste(frame.convert("RGB"), (x, y + label_h))
+        draw.rectangle((x, y, x + cell_w, y + label_h), fill=(23, 70, 162))
+        draw.text((x + 8, y + 7), name, fill=(255, 255, 255))
+    contact_sheet = OUT / "threejs_contact_sheet.jpg"
+    sheet.save(contact_sheet, quality=92, optimize=True)
+
+    collision_path = frames_dir / "collision_report.json"
+    if not collision_path.is_file():
+        raise RuntimeError("Three.js collision report is missing.")
+    collision_report = json.loads(collision_path.read_text(encoding="utf-8"))
+    if len(collision_report.get("collision", [])) != 10:
+        raise RuntimeError("Three.js collision report does not contain all ten scene sections.")
+    render_report = {
+        "renderer": "Three.js r175 / Playwright Chromium / SwiftShader",
+        "resolution": "1280x720",
+        "fps": 24,
+        "scenes": [{"name": name, "duration_seconds": duration(path)} for name, path in output.items()],
+        "frame_count": 2880,
+        "collision_report": "3d_frames/collision_report.json",
+        "contact_sheet": contact_sheet.name,
+        "status": "FRAME_RENDER_AND_TECHNICAL_CHECKS_PASSED; visual approval remains separate"
+    }
+    (OUT / "threejs_render_report.json").write_text(json.dumps(render_report, indent=2), encoding="utf-8")
     return output
+
 
 def make_subtitle_filter(srt_path):
     escaped_path = str(srt_path).replace("\\", "/").replace(":", "\\:")
@@ -314,7 +363,24 @@ Automated technical QC has passed. This is not public-release approval. Watch th
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Render EP002 or only its original Three.js cutaways.")
+    parser.add_argument("--cutaways-only", action="store_true",
+                        help="Render the ten native 720p Three.js engineering scenes without starting the full documentary assembly.")
+    args = parser.parse_args()
+
     OUT.mkdir(parents=True, exist_ok=True)
+    if args.cutaways_only:
+        clips = make_3d_clips(OUT / "3d_frames")
+        print(json.dumps({
+            "status": "THREEJS_CUTAWAYS_RENDERED",
+            "scene_count": len(clips),
+            "clip_files": [path.name for path in clips.values()],
+            "contact_sheet": "threejs_contact_sheet.jpg",
+            "collision_report": "3d_frames/collision_report.json"
+        }, indent=2), flush=True)
+        return
+
     narration_report_path = OUT / "kokoro_narration_report.json"
     if not narration_report_path.is_file():
         raise RuntimeError("Kokoro narration report missing; no silent voice substitution is permitted.")
