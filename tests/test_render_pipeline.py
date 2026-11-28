@@ -195,7 +195,7 @@ class ExportProfileTests(unittest.TestCase):
         self.assertEqual(PROFILES["720p-horizontal"], (1280, 720))
         self.assertEqual(PROFILES["720p-vertical"], (720, 1280))
         command = build_command("frames", "out.mp4", 90, profile="720p-vertical", fps=30)
-        self.assertIn("scale=720:1280:force_original_aspect_ratio=decrease:flags=lanczos,pad=720:1280", command)
+        self.assertTrue(any("scale=720:1280:force_original_aspect_ratio=decrease:flags=lanczos" in item and "pad=720:1280:" in item for item in command))
         self.assertIn("-frames:v", command)
         with self.assertRaises(ValueError):
             build_command("frames", "out.mp4", 90, profile="4k")
