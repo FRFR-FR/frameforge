@@ -1,27 +1,27 @@
-# Scene-by-scene shot list — EP002
+# EP002 — revised visual storyboard and shot list
 
-This is a plan, not proof that footage has been acquired. Search and download only the minimum number of clips needed for each timed section. Each accepted asset must pass metadata and full-decode checks, then be visually checked using the three-frame contact sheet. If a precise search fails, try the relevant fallback; never fill the gap with unrelated footage.
+This storyboard supersedes earlier fallback suggestions that admitted generic industrial footage. No generic footage is permitted. The same stock source file or source URL may appear once maximum across the entire episode.
 
-| Beat | Real moving B-roll search query | Relevant fallback | Explanatory 3D cutaway |
+| Beat | Exact moving-footage search query | Relevance test | Three.js fallback when no approved footage exists |
 |---|---|---|---|
-| 01 — Cold open / wafer | semiconductor wafer cleanroom lithography scanner | semiconductor fab wafer robot handling | wafer macro and repeating die field |
-| 02 — Chip layers | silicon wafer inspection robotic handling semiconductor | semiconductor wafer fabrication cleanroom | animated stacked circuit layers |
-| 03 — Wavelength | photolithography semiconductor optics precision equipment | precision optical mirror manufacturing | moving DUV/EUV wavelength comparison |
-| 04 — Tin source | industrial laser processing precision manufacturing | laser material processing factory machine | two-pulse tin-droplet plasma |
-| 05 — Mirrors / vacuum | precision optical mirror polishing coating vacuum chamber | industrial vacuum coating equipment | reflective optical path inside vacuum |
-| 06 — Reticle / resist | semiconductor photoresist spin coating wafer photomask | semiconductor wafer processing cleanroom | reflective reticle projecting a pattern |
-| 07 — Wafer stage | precision wafer stage robotics metrology alignment | industrial precision motion stage robot | sensor-guided wafer stage motion |
-| 08 — Repeated alignment | semiconductor wafer inspection metrology etch deposition | semiconductor fabrication process equipment | wafer moving through process stages |
-| 09 — High-NA milestone | advanced semiconductor fab cleanroom wafer production | semiconductor lithography manufacturing facility | 0.33 versus 0.55 numerical-aperture cones |
-| 10 — Ecosystem payoff | semiconductor wafer production line chip manufacturing factory | microchip fabrication cleanroom robotic handling | animated process-tool ecosystem around a wafer |
+| 01 — Cold open / tin plasma | laser-produced plasma EUV tin droplet source two laser pulses high speed | Must visibly show a laser interacting with a metal/tin droplet or documented EUV source footage. A generic laser cutter is not a match. | section_01: cinematic tin droplet, first shaping pulse, second high-energy pulse, expanding plasma and emitted EUV burst |
+| 02 — Chip layers | silicon wafer semiconductor multilayer fabrication wafer handling cleanroom | Wafer / semiconductor process must be identifiable in the actual frame. | section_02: rotating wafer with separated interconnect layers and alignment references |
+| 03 — DUV and EUV | EUV lithography optical source extreme ultraviolet semiconductor optics laboratory | Must be relevant to lithography optics or a documented EUV source. | section_03: wavelength comparison, 193 nm DUV and 13.5 nm EUV, with scale caveat |
+| 04 — Tin source engineering | ASML EUV light source tin droplet plasma source official video | Use manufacturer-identified source only when the actual subject and license are clear. | section_04: 25 µm conceptual tin target, two pulses, plasma expansion and repeat-cycle context |
+| 05 — Mirrors and vacuum | EUV multilayer molybdenum silicon mirror vacuum chamber optics | Must show relevant EUV mirror coating, vacuum optics or verified supplier footage. | section_05: multilayer mirror stack and reflected photon path inside a vacuum chamber |
+| 06 — Reticle to wafer | EUV reflective reticle photomask wafer photoresist lithography | Must show a reticle, photoresist wafer or clearly documented EUV exposure process. | section_06: reflective reticle, reduction optics and patterned exposure on wafer |
+| 07 — Wafer stage | ASML wafer stage metrology interferometer lithography scanner | Must show an identifiable precision wafer stage or metrology system. | section_07: moving wafer stage, actuator ring and measurement feedback beams |
+| 08 — Repeated process cycle | semiconductor deposition etch lithography wafer inspection production line | Every selected shot must visibly match the named process; do not reuse a generic cleanroom shot. | section_08: wafer moving once through deposition, lithography, etch and inspection tools |
+| 09 — High-NA EUV | ASML EXE 5000 High NA EUV scanner Intel cleanroom official footage | Do not imply a generic scanner is the EXE:5000 or that an exact Intel production line is shown. | section_09: 0.33 versus 0.55 numerical-aperture ray cones, explicitly conceptual |
+| 10 — Ecosystem payoff | semiconductor fab wafer transport robotics lithography metrology process equipment | Show only the process or equipment actually visible; each source can be used once. | section_10: laser, optics, sensors, motion systems, reticle, resist and process tools interconnected around a wafer |
 
-## Timeline and visual rules
+## Edit decisions
 
-- Ten 12-second dynamic 3D scenes total 120 seconds; the remaining timeline is real B-roll.
-- For an 8–12 minute narration, this budgets 15–25% to explanatory motion graphics and 75–85% to real B-roll.
-- Every B-roll beat must be moving footage. Still photos, Ken Burns zooms, static title cards and repeated infographic panels are not substitutes.
-- Preserve natural footage colour. Use the channel palette only for the thin red top rule, small bug, brief chapter labels and subtitle backplates.
-- Generic laser, cleanroom or wafer footage is contextual only. Do not label it as ASML, ZEISS, Intel or a specific factory operation unless the source proves that exact identity and the reuse rights are documented.
-- Keep source reuse at no more than two appearances per clip and avoid consecutive repeats.
-- Final export is exactly 1280×720, 16:9, H.264/AAC. No 1080p, 4K or 360p derivative.
-- Report measured timeline durations and measured frame rate. Do not stretch shots or pad runtime.
+- Opening frame must be the Three.js tin-plasma sequence unless a visually verified, rights-cleared recording of that exact process is approved. A tractor or generic laser cutter is never acceptable.
+- Remove every clip currently classed as irrelevant, generic, context-only or visually unreviewed. Do not simply trim it, recolour it or use another timestamp from the same source.
+- Use source URL plus SHA-256 to enforce the one-appearance rule globally.
+- A source that fails review is not eligible for another scene.
+- Stock assets must be moving, relevant and rights-cleared. Still images do not count as B-roll.
+- Use Three.js motion diagrams for missing mechanisms, not slides. Keep the red/white/blue brand treatment restrained and keep labels attached to moving imagery.
+- Captions must be legible and actually burned into the final picture; keep a separate SRT sidecar.
+- Report actual timeline duration by visual type. Until verified, report B-roll as unapproved / not counted.
