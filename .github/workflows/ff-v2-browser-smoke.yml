@@ -11,6 +11,7 @@ on:
       - "ff-v2-core.js"
       - "ff-v2-studio.js"
       - "ff-v2-renderer.js"
+      - "ff-v2-shaders.js"
       - "tests/ff-v2-browser-smoke.js"
       - "tests/ff-v2-renderer.test.js"
       - ".github/workflows/ff-v2-browser-smoke.yml"
