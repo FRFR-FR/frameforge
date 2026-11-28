@@ -522,7 +522,7 @@
       const intensity=Math.max(0,Math.min(2,Number(transition.parameters?.intensity)||1));
       switch(transition.type){
         case 'fade': case 'crossfade':
-          result.opacity*=progress;
+          result.opacity*=edge==='in'?progress:raw;
           break;
         case 'wipe': case 'radial': case 'hypnosis_wheel':
           result.masks.push({transition,progress,edge});
@@ -538,7 +538,7 @@
           if(transition.direction==='up') result.transform.position[1]+=edge==='in'?-amount:amount;
           else if(transition.direction==='down') result.transform.position[1]+=edge==='in'?amount:-amount;
           else result.transform.position[0]+=edge==='in'?(transition.direction==='left'?-amount:amount):(transition.direction==='left'?amount:-amount);
-          result.opacity*=Math.min(1,0.55+progress*0.45);
+          result.opacity*=edge==='in'?Math.min(1,0.35+progress*0.65):Math.max(0,1-progress);
           break;
         }
         case 'swirl_warp':
