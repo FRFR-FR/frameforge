@@ -309,6 +309,7 @@
         asset_requirements:['Identify exact subjects, locations, objects or data before acquiring media','Use only assets with reviewed provenance and rights'],
         transition_in:index===0?'Opening shot':'Cut or motivated match transition',
         transition_out:'Cut on the next narration beat unless a motivated transition is needed',
+        effect_notes:'Use restrained, topic-specific motion graphics or practical VFX only when they clarify the beat.',
         audio_cues:[],
         evidence_claim_ids:[],
         notes:'Rule-assisted draft. Review timing, visual accuracy, evidence role and rights before rendering.'
@@ -425,7 +426,7 @@
     project.rights_review.reviewed_at = new Date().toISOString();
     project.rights_review.reviewer = project.rights_review.reviewer || 'Project owner';
     project.rights_review.notes = report.blockers.concat(report.warnings).join('\n').slice(0,6000);
-    if (project.shot_plan) project.shot_plan.status = report.blockers.length ? 'review_required' : 'approved';
+    if (project.shot_plan) project.shot_plan.status = report.blockers.length || report.warnings.length ? 'review_required' : 'approved';
     return report;
   }
 
@@ -502,6 +503,7 @@
       const grid=root.document.createElement('div');grid.className='ffv2-director-grid';
       const fields=[
         ['Visual purpose','visual_purpose','textarea'],
+        ['VFX / motion treatment','effect_notes','textarea'],
         ['Media mix (comma separated)','media_mix','input'],
         ['Camera movement','camera_movement','input'],
         ['Visual actions (one per line)','visual_actions','textarea'],
@@ -601,7 +603,6 @@
     el('ffv2StyleCamera').value=profile.camera_language;
     el('ffv2StyleSound').value=profile.sound_language;
     el('ffv2StyleAvoid').value=(profile.avoid||[]).join('\n');
-    el('ffv2ResearchQuestionInput').value='';
     renderSources(project);renderReferenceVideos(project);renderClaims(project);renderShotPlan(project);renderRightsAssets(project);renderReadiness(project);
     el('ffv2DirectorSummary').textContent=
       project.research.sources.length+' sources · '+project.research.reference_videos.length+' video references · '+
@@ -644,7 +645,7 @@
         access_status:el('ffv2ResearchAccess').value,confidence:el('ffv2ResearchConfidence').value,
         notes:el('ffv2ResearchNotes').value
       });
-      ['ffv2ResearchUrl','ffv2ResearchTitle','ffv2ResearchPublisher','ffv2ResearchNotes'].forEach(id=>el(id).value='');
+      ['ffv2ResearchUrl','ffv2ResearchTitle','ffv2ResearchPublisher','ffv2ResearchNotes','ffv2ResearchPublished'].forEach(id=>el(id).value='');
       markDirty();refresh();status('Research source recorded. No page scraping or access bypass was performed.','success');
     }catch(error){status(error.message,'warning');}
   }
@@ -656,9 +657,10 @@
         url:el('ffv2ReferenceUrl').value,title:el('ffv2ReferenceTitle').value,
         creator:el('ffv2ReferenceCreator').value,platform:el('ffv2ReferencePlatform').value,
         access_status:el('ffv2ReferenceAccess').value,notes:el('ffv2ReferenceNotes').value,
+        published_at:el('ffv2ReferencePublished').value ? new Date(el('ffv2ReferencePublished').value+'T00:00:00Z').toISOString() : undefined,
         observed_format:el('ffv2ReferenceObservations').value.split(/\n/).filter(Boolean)
       });
-      ['ffv2ReferenceUrl','ffv2ReferenceTitle','ffv2ReferenceCreator','ffv2ReferenceNotes','ffv2ReferenceObservations'].forEach(id=>el(id).value='');
+      ['ffv2ReferenceUrl','ffv2ReferenceTitle','ffv2ReferenceCreator','ffv2ReferencePublished','ffv2ReferenceNotes','ffv2ReferenceObservations'].forEach(id=>el(id).value='');
       markDirty();refresh();status('Reference recorded for style analysis only; reuse rights are not implied.','success');
     }catch(error){status(error.message,'warning');}
   }
