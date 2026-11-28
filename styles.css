@@ -710,3 +710,39 @@ button { color: inherit; cursor: pointer; }
   .ffv2-provider-result, .ffv2-audio-row { flex-direction:column; }
   .ffv2-production-actions .button { flex:1 1 44%; text-align:center; }
 }
+
+
+/* FrameForge V2 resumable frame queue */
+.ffv2-render-queue-panel {
+  margin:10px 0 18px;
+  border:1px solid #263a50;
+  border-radius:9px;
+  background:#0e1926;
+  overflow:hidden;
+}
+.ffv2-render-queue-panel > details > summary {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  list-style:none;
+  padding:12px;
+  background:#122134;
+}
+.ffv2-render-queue-panel > details > summary::-webkit-details-marker { display:none; }
+.ffv2-render-queue-panel summary span:first-child { display:grid; gap:4px; }
+.ffv2-render-queue-panel summary strong { color:#e4eef8; font-size:11px; }
+.ffv2-render-queue-panel summary small { color:#8fa8c0; font-size:9px; }
+.ffv2-render-queue-body { display:grid; gap:9px; padding:11px; }
+.ffv2-render-queue-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.ffv2-render-queue-grid label { display:grid; gap:5px; color:#9eb2c6; font-size:9px; }
+.ffv2-render-queue-progress { width:100%; height:12px; accent-color:#55a7ff; }
+#ffv2RenderQueueStatus[data-kind="error"] { color:#ffada8; }
+#ffv2RenderQueueStatus[data-kind="success"] { color:#9bd5b3; }
+@media (max-width:760px) {
+  .ffv2-render-queue-body { padding:8px; }
+  .ffv2-render-queue-grid { grid-template-columns:1fr; }
+  .ffv2-render-queue-panel > details > summary { align-items:flex-start; flex-direction:column; }
+  .ffv2-render-queue-panel .ffv2-production-actions > button { flex:1 1 40%; }
+}
