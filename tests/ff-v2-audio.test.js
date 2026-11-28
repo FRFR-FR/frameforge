@@ -148,16 +148,16 @@ test('WAV render can duck music under detected voiceover', async () => {
     enabled: true, amount_db: -18, threshold: 0.1, attack_ms: 10, release_ms: 40
   };
   const result = await Audio.renderWav(project, new Map([
-    ['voice', makeBuffer(0.5)],
-    ['music', makeBuffer(0.1)]
+    ['voice', makeBuffer(0.12)],
+    ['music', makeBuffer(0.5)]
   ]), { sampleRate: 48000, normalize: false });
   assert.equal(result.metrics.ducking_enabled, true);
   const bytes = new Uint8Array(await result.blob.arrayBuffer());
   const view = new DataView(bytes.buffer);
   const laterSample = Math.round(0.5 * 48000);
-  const musicAndVoiceExpectedUnducked = 0.6 * 32767;
+  const musicAndVoiceExpectedUnducked = 0.62 * 32767;
   const actual = view.getInt16(44 + laterSample * 4, true);
-  assert.ok(actual < musicAndVoiceExpectedUnducked * 0.8);
+  assert.ok(actual < musicAndVoiceExpectedUnducked * 0.5);
 });
 
 test('audio cues reject non-audio assets and non-visual event targets', () => {
