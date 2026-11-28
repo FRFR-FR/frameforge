@@ -10,6 +10,8 @@ on:
       - "ff-v2-core.js"
       - "ff-v2-audio.js"
       - "ff-v2-director.js"
+      - "ff-v2-production.js"
+      - "ff-v2-production-ui.js"
       - "ff-v2-studio.js"
       - "tools/mux_ffmpeg.py"
       - "tests/test_mux_ffmpeg.py"
@@ -73,11 +75,13 @@ jobs:
           node --check ff-v2-core.js
           node --check ff-v2-audio.js
           node --check ff-v2-director.js
+          node --check ff-v2-production.js
+          node --check ff-v2-production-ui.js
           node --check ff-v2-studio.js
           node --check ff-v2-renderer.js
           node --check ff-v2-3d-studio.js
           node --check ff-v2-shaders.js
-          node --test tests/ff-v2-core.test.js tests/ff-v2-renderer.test.js tests/ff-v2-audio.test.js tests/ff-v2-director.test.js
+          node --test tests/ff-v2-core.test.js tests/ff-v2-renderer.test.js tests/ff-v2-audio.test.js tests/ff-v2-director.test.js tests/ff-v2-production.test.js
           python -m compileall -q blender_pipeline brown_film minecraft_pipeline projects tools tests
 
       - name: Ensure FFmpeg is available for mux integration test
