@@ -210,6 +210,7 @@ A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU 
 
 The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). The current foundation documents are:
 
+- [Batch progress and test status](docs/FF_V2_PROGRESS.md)
 - [Baseline audit](docs/FF_V2_BASELINE_AUDIT.md)
 - [Architecture blueprint](docs/FF_V2_ARCHITECTURE.md)
 - [Zero-cost and media-rights policy](docs/FF_V2_COST_AND_RIGHTS_POLICY.md)
