@@ -142,6 +142,9 @@
         project.creative_brief[key] = String(updates[key] == null ? '' : updates[key]).slice(0, key === 'narration_script' ? 100000 : 4000);
       }
     }
+    if (Array.isArray(project.creative_brief.research_questions)) {
+      project.research.research_questions = clone(project.creative_brief.research_questions);
+    }
     return project.creative_brief;
   }
 
