@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP002 Three.js Cutaway Renderer</title>
+<style>
+html,body,#stage{margin:0;width:1280px;height:720px;overflow:hidden;background:#0A1420}
+body{position:relative}
+canvas{display:block;width:1280px;height:720px}
+</style>
+<script type="importmap">
+{"imports":{"three":"/node_modules/three/build/three.module.js"}}
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<script type="module">
+import * as THREE from "three";
+import { mountScene } from "./ep002_threejs_master.mjs";
+const player = await mountScene(document.getElementById("stage"), {
+  THREE, width: 1280, height: 720, duration: 120
+});
+window.__PLAYER = player;
+window.__READY = true;
+</script>
+</body>
+</html>
