@@ -274,6 +274,8 @@ Current editor workspace:
 - [Release notes](docs/FF_V2_RELEASE_NOTES.md)
 - [Setup, operation, backup and rollback handover](docs/FF_V2_HANDOVER.md)
 - [Manual V2 release/tag publisher](.github/workflows/ff-v2-publish-release.yml)
+- [Anger-rise portrait VFX demo workflow](.github/workflows/ff-v2-vfx-demo.yml)
+- [V2 portrait VFX demo renderer](tests/ff-v2-vfx-demo-render.js)
 
 Open FrameForge and select **V2 Assets** to use the V2 asset library and project controls. The separate **V2 Multi-track Timeline** sits below the legacy frame strip. The legacy version-1 drawing workflow remains available.
 

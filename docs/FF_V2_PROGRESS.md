@@ -465,6 +465,8 @@ Latest verification commit: `2e183a028b2227543e8bb17cbbe7a3f65c4a9336`.
 - [Browser Smoke run 46150580603](https://github.com/FRFR-FR/frameforge/actions/runs/46150580603) — editor, audio, director, production, render queue and mobile smoke markers all passed. The Chromium test exercises the actual cut-out VFX and checks the bottom-up tint, preserved alpha, lower-edge flames and peak burst frame.
 - [GitHub Pages deployment run 46150580658](https://github.com/FRFR-FR/frameforge/actions/runs/46150580658) — successful.
 
+A separate [10-second portrait VFX demo workflow](../.github/workflows/ff-v2-vfx-demo.yml) also rendered through the real V2 compositor. [Run 46151187683](https://github.com/FRFR-FR/frameforge/actions/runs/46151187683) succeeded and uploaded [artifact 15265118535](https://github.com/FRFR-FR/frameforge/actions/runs/46151187683/artifacts/15265118535), a 1280×720, 24 FPS, 10-second H.264 demo plus technical report and CC BY 4.0 credits. The portrait used in this demonstration has its own photo background, so opaque background pixels tint along with the subject; a transparent PNG cut-out is the correct input when only the person should change colour. The MP4 is silent and is labelled as a simulated VFX demonstration.
+
 ## Release state
 
 Steps 46–49 are implemented and verified. Step 50's stabilization, release notes, handover and manual tag publisher are prepared and checked into `main`. The actual GitHub `v2.0.0` tag/Release has **not** been created because the publisher requires an explicit manual workflow dispatch from the repository's Actions page. No automatic or background publishing is configured.

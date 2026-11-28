@@ -26,6 +26,8 @@
 
 A new keyframable `anger-rise` clip effect supports transparent PNG cut-outs. Animate intensity from 0 to 1 for a warm red tint that rises bottom-to-top; the final threshold triggers a short explosion/flash/shock-ring burst, with procedural flames and embers along the bottom edge. Tint strength, flame height and trigger threshold are configurable. The tint pass preserves the cut-out alpha. Use media with documented reuse permission.
 
+A separate 10-second portrait demonstration rendered through the actual V2 compositor: [VFX Demo run 46151187683](https://github.com/FRFR-FR/frameforge/actions/runs/46151187683), [artifact 15265118535](https://github.com/FRFR-FR/frameforge/actions/runs/46151187683/artifacts/15265118535). The H.264 output is 1280×720 at 24 FPS. The source photograph is CC BY 4.0, with attribution in the artifact's `CREDITS.txt` and an on-video credit. It is a silent technical demo. Its source photograph includes an opaque background, so that background is tinted too; use a transparent cut-out PNG when only the person should turn red.
+
 ### Two completed pilot builds
 - **Entertainment / power scaling:** Solar Sentinel vs Rift Warden. Original procedural character art, animated comparison graphics, illustrative (not canon) profile values, and scenario-dependent conclusion.
 - **Cybersecurity:** Pause, Check, Verify, Report. Original fictional inbox/UI, safe independent-verification flow, and source-linked defensive awareness advice.
