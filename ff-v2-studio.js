@@ -880,7 +880,7 @@
         settings:{
           width:sequence.width,height:sequence.height,fps:sequence.fps,
           start_frame:1,end_frame:Math.max(1,sequence.duration_frames),
-          resolution_percentage:100,render_engine:'BLENDER_EEVEE_NEXT',samples:32
+          resolution_percentage:100,render_engine:'CYCLES',samples:16
         },
         scene:Core.clone(sequence.scene3d||Core.default3DSceneSettings()),
         models,objects:[],ground:{name:'FrameForge Ground',size:40,position:[0,0,-0.05],material:{color:'#182638',roughness:0.9}}
