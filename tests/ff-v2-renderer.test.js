@@ -174,5 +174,5 @@ test('speed-ramp source time integrates each prior frame rate', () => {
     {property:'playback_rate',frame:60,value:2,interpolation:'linear'}
   ]};
   const sourceFrames=Renderer.sourceFramesAtClipFrame(clip,60);
-  assert.ok(sourceFrames>80 && sourceFrames<85,'Gradual 1× to 2× ramp should integrate the prior per-frame rates');
+  assert.ok(sourceFrames>88 && sourceFrames<91,'Gradual 1× to 2× ramp should integrate the prior per-frame rates');
 });
