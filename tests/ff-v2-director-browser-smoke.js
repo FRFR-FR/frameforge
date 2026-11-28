@@ -68,7 +68,7 @@ async function main() {
     await page.locator('#ffv2BriefQuestions').fill('What does the firewall inspect?\nWhich statements need a primary source?');
     await page.locator('#ffv2BriefAmbiguities').fill('Clarify the exact firewall type before describing packet inspection.');
     await page.locator('#ffv2BriefRestrictions').fill('No unrelated stock footage.\nNo unlicensed third-party media.');
-    await page.locator('#ffv2BriefScript').fill('An official document describes the firewall rule. The system checks the packet against those rules. Suspicious traffic is blocked before it reaches the protected network.');
+    await page.locator('#ffv2BriefScript').fill('An official document describes the firewall rule.\n\nThe system checks the packet against those rules.\n\nSuspicious traffic is blocked before it reaches the protected network.');
     await page.locator('#ffv2BriefSave').click();
     await page.waitForFunction(()=>window.FFV2Studio.getProject().creative_brief.topic==='How a network firewall filters traffic');
     assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().creative_brief.ambiguities_to_resolve.length),1);
