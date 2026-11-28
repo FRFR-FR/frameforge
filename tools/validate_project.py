@@ -95,6 +95,10 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
     claim_ids = _unique_ids(research.get("claims", []), "research claim", errors)
     raw_claims = research.get("claims", [])
     claims = raw_claims if isinstance(raw_claims, list) else []
+    source_lookup = {
+        item.get("id"): item for item in research.get("sources", [])
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
     for claim in claims:
         if not isinstance(claim, dict):
             continue
@@ -171,6 +175,31 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
                             "Shot beat " + str(beat.get("id")) +
                             " cannot present an unverified or unsourced claim as evidence: " + str(claim_id)
                         )
+                    if proof_role and claim:
+                        for source_id in claim.get("source_ids", []):
+                            source = source_lookup.get(source_id, {})
+                            if source.get("access_status") != "public":
+                                errors.append(
+                                    "Evidence claim " + str(claim_id) +
+                                    " relies on a source not marked publicly accessible: " + str(source_id)
+                                )
+
+                requirement = beat.get("evidence_requirement", "none")
+                media_mix = beat.get("media_mix", [])
+                linked_assets = [
+                    next((asset for asset in assets if isinstance(asset, dict) and asset.get("id") == asset_id), None)
+                    for asset_id in beat.get("asset_ids", [])
+                ]
+                if requirement == "actual_footage":
+                    if "source_footage" not in media_mix:
+                        errors.append("Shot beat " + str(beat.get("id")) + " requires source_footage media.")
+                    if not any(asset and asset.get("media_type") == "video" for asset in linked_assets):
+                        errors.append("Shot beat " + str(beat.get("id")) + " requires a linked video asset for actual footage.")
+                if requirement == "official_screenshot":
+                    if "screenshots" not in media_mix:
+                        errors.append("Shot beat " + str(beat.get("id")) + " requires screenshots media.")
+                    if not any(asset and asset.get("media_type") == "image" for asset in linked_assets):
+                        errors.append("Shot beat " + str(beat.get("id")) + " requires a linked image asset for an official screenshot.")
 
     raw_rights_review = data.get("rights_review")
     if isinstance(raw_rights_review, dict):
