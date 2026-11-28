@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 from PIL import Image, ImageDraw
+from io import BytesIO
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "output"
@@ -132,6 +133,24 @@ def make_shot(source, destination, seconds, seek):
     ])
 
 
+def visibly_nonblack(video_path):
+    """Reject empty/black Three.js clips before they can enter the documentary."""
+    try:
+        result = subprocess.run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-ss", "6.0",
+            "-i", str(video_path), "-frames:v", "1", "-f", "image2pipe",
+            "-vcodec", "png", "-"
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        with Image.open(BytesIO(result.stdout)) as frame:
+            histogram = frame.convert("L").histogram()
+        total = max(1, sum(histogram))
+        visible = sum(histogram[29:])
+        bright = sum(histogram[56:])
+        return visible / total > 0.025 and bright / total > 0.004
+    except Exception:
+        return False
+
+
 def make_3d_clips(frames_dir):
     node = shutil.which("node")
     if not node:
@@ -156,6 +175,7 @@ def make_3d_clips(frames_dir):
                 and (video.get("width"), video.get("height")) == (1280, 720)
                 and video.get("avg_frame_rate") == "24/1"
                 and video.get("codec_name") == "h264"
+                and visibly_nonblack(candidate)
             )
         except Exception:
             return False
@@ -204,6 +224,8 @@ def make_3d_clips(frames_dir):
             raise RuntimeError(f"{scene_name} is not a native 1280x720 24fps render.")
         run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(clip_path), "-f", "null", "-"])
 
+        if not visibly_nonblack(clip_path):
+            raise RuntimeError(f"{scene_name} rendered black/empty frames; refusing documentary assembly.")
         still = contact_dir / f"{index:02d}_{scene_name}.jpg"
         run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
              "-ss", "6.0", "-i", str(clip_path), "-frames:v", "1",
