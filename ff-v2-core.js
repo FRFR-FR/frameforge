@@ -159,7 +159,7 @@
         fps: 30, duration_frames: 900, tracks
       }],
       creative_brief: {
-        topic: '', niche: 'unclassified', audience: '', platform: 'youtube_longform',
+        topic: 'Untitled video project', niche: 'unclassified', audience: '', platform: 'youtube_longform',
         target_duration_seconds: 30, tone: '', visual_direction: '', constraints: []
       },
       research: { sources: [], claims: [], visual_style_observations: [], researched_at: stamp },
