@@ -56,7 +56,18 @@ async function waitForRenderState(page, jobId, predicate, timeoutMs = 30000) {
         const job = await storage.getJob(id);
         const count = await storage.countFrames(id);
         const frameZero = await storage.getFrame(id, 0);
-        return { job, count, frameZero };
+        const frameRecords = await storage.getAllFrames(id);
+        return {
+          job,
+          count,
+          frameZero: frameZero ? {
+            id: frameZero.id, job_id: frameZero.job_id, frame: frameZero.frame,
+            blobSize: frameZero.blob?.size || 0
+          } : null,
+          frameRecords: frameRecords.map(item => ({
+            id: item.id, job_id: item.job_id, frame: item.frame, blobSize: item.blob?.size || 0
+          }))
+        };
       }, jobId);
       if (lastState && predicate(lastState)) return lastState;
     } catch (error) {
@@ -142,14 +153,14 @@ async function main() {
       completedFrames: pausedState.job?.completed_frames,
       renderedFrames: pausedState.job?.rendered_frames,
       skippedFrames: pausedState.job?.skipped_frames,
-      hasFrameZero: Boolean(pausedState.frameZero?.blob?.size),
-      frameRecordKeys: (pausedState.rawFrameRecords || []).map(item => ({ id: item.id, job_id: item.job_id, frame: item.frame, hasBlob: Boolean(item.blob?.size) })),
+      hasFrameZero: Boolean(pausedState.frameZero?.blobSize),
+      frameRecordKeys: pausedState.frameRecords || [],
       statusText: pausedState.statusText
     }));
     assert.equal(pausedState.job?.status, 'paused', 'Render job failed or did not pause: ' + JSON.stringify(pausedState.job));
     assert.ok(pausedState.count >= 1 && pausedState.count <= 2, 'Pause should occur after one or two durable frames.');
     assert.equal(pausedState.job?.completed_frames, pausedState.count);
-    assert.ok(pausedState.frameZero?.blob?.size, 'The first completed PNG must be durable before pausing.');
+    assert.ok(pausedState.frameZero?.blobSize > 0, 'The first completed PNG must be durable before pausing.');
     await page.locator('#ffv2RenderQueueStart').click();
     const completedState = await waitForRenderState(page, jobId, state =>
       state.job?.status === 'complete' || state.job?.status === 'failed', 30000
