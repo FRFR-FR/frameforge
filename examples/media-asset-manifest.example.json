@@ -1,0 +1,50 @@
+{
+  "manifest_format": "frameforge-media-manifest",
+  "schema_version": 1,
+  "project_id": "ffv2-example-project",
+  "generated_at": "2026-11-28T00:00:00Z",
+  "assets": [
+    {
+      "id": "asset-opening-grid",
+      "uri": "assets/opening-grid.svg",
+      "media_type": "graphic",
+      "role": "procedural background",
+      "metadata": {
+        "file_name": "opening-grid.svg"
+      },
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 example",
+        "notes": "Original vector artwork stored with the example project."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Created from original SVG markup for this repository example; no third-party elements are used.",
+        "reviewed_by": "FrameForge example maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": ["procedural", "background", "vector"],
+      "intended_use": "Example project background."
+    },
+    {
+      "id": "asset-unreviewed-reference",
+      "uri": "references/needs-rights-review.png",
+      "media_type": "image",
+      "role": "unreviewed reference placeholder",
+      "provenance": {
+        "source_type": "unknown",
+        "notes": "Placeholder only; no actual external image is included."
+      },
+      "rights": {
+        "status": "pending",
+        "attribution_required": false,
+        "restrictions": ["Do not publish until source and rights are reviewed."]
+      },
+      "tags": ["placeholder", "review-required"],
+      "intended_use": "Demonstrates the pending state; not approved for publication."
+    }
+  ],
+  "notes": "The second record is an intentionally unreviewed placeholder. A URL or public visibility alone is not evidence of reuse permission."
+}
