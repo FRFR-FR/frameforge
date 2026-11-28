@@ -469,14 +469,16 @@
 
   function timelineScale() { return Math.max(0.35, Math.min(4, state.zoom)); }
 
-  function setPlayhead(frame) {
+  function setPlayhead(frame, options) {
+    options = options || {};
     const seq = currentSequence();
     state.playhead = Math.max(0, Math.min(seq.duration_frames, Math.round(Number(frame) || 0)));
     $('ffv2Playhead').value = String(state.playhead);
     $('ffv2PlayheadLabel').textContent = 'Frame ' + state.playhead + ' · ' + (state.playhead / seq.fps).toFixed(2) + ' s';
     if (state.selectedClipId) renderClipInspector();
     renderPlayheadLine();
-    renderPreview();
+    if (!options.noPreview) renderPreview();
+    document.dispatchEvent(new CustomEvent('ffv2:playhead', { detail: { frame: state.playhead } }));
   }
 
   function timelinePixelWidth() {
@@ -798,6 +800,7 @@
     $('ffv2TransitionInfo').textContent =
       'In: ' + (incoming ? incoming.type + ' (' + incoming.duration_frames + 'f)' : 'none') +
       ' · Out: ' + (outgoing ? outgoing.type + ' (' + outgoing.duration_frames + 'f)' : 'none');
+    if (window.FFV2Audio?.refresh) window.FFV2Audio.refresh();
   }
 
 
@@ -1805,11 +1808,30 @@
         setStatus('New V2 project created. Assets and edits save locally.', 'info');
         await saveProject(false);
       }
+      document.dispatchEvent(new CustomEvent('ffv2:ready'));
     } catch (error) {
       console.error('FrameForge V2 startup failed:', error);
       setStatus(error.message, 'error');
     }
   }
+
+  window.FFV2Studio = {
+    getProject: () => state.project,
+    getSelectedClip: () => selectedClipInfo(),
+    getPlayheadFrame: () => state.playhead,
+    getAssetRecords: () => state.assetRecords,
+    getAssetBlob: async id => {
+      const local = state.assetRecords.find(item => item.id === id);
+      if (local?.blob) return local.blob;
+      if (!state.db) return null;
+      const transaction = state.db.transaction('assets', 'readonly');
+      const record = await requestResult(transaction.objectStore('assets').get(id));
+      return record?.blob || null;
+    },
+    setPlayhead,
+    renderTracks,
+    markDirty: () => scheduleSave()
+  };
 
   document.addEventListener('DOMContentLoaded', init);
 })();
