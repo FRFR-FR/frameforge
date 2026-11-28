@@ -94,7 +94,7 @@
     const briefDefaults = {
       topic:'Untitled video project', niche:'unclassified', audience:'', platform:'youtube_longform',
       target_duration_seconds:30, tone:'', visual_direction:'', desired_style:'',
-      narration_script:'', research_questions:[], restrictions:[], constraints:[]
+      narration_script:'', research_questions:[], ambiguities_to_resolve:[], restrictions:[], constraints:[]
     };
     for (const [key,value] of Object.entries(briefDefaults)) {
       if (project.creative_brief[key] === undefined) { project.creative_brief[key] = clone(value); changed = true; }
@@ -126,7 +126,7 @@
     ensureDirectorData(project);
     const allowed = [
       'topic','niche','audience','platform','target_duration_seconds','tone',
-      'visual_direction','desired_style','narration_script','research_questions','restrictions','constraints'
+      'visual_direction','desired_style','narration_script','research_questions','ambiguities_to_resolve','restrictions','constraints'
     ];
     for (const key of allowed) {
       if (!Object.prototype.hasOwnProperty.call(updates || {}, key)) continue;
@@ -134,7 +134,7 @@
         const duration = Number(updates[key]);
         if (!Number.isFinite(duration) || duration <= 0 || duration > 7200) throw new Error('Target duration must be between 0 and 7,200 seconds.');
         project.creative_brief[key] = duration;
-      } else if (['research_questions','restrictions','constraints'].includes(key)) {
+      } else if (['research_questions','ambiguities_to_resolve','restrictions','constraints'].includes(key)) {
         project.creative_brief[key] = Array.isArray(updates[key])
           ? updates[key].map(value => String(value).trim()).filter(Boolean).slice(0,30)
           : String(updates[key] || '').split(/\n|;/).map(value => value.trim()).filter(Boolean).slice(0,30);
@@ -205,6 +205,7 @@
     };
     if (input?.published_at) reference.published_at = input.published_at;
     project.research.reference_videos.push(reference);
+    project.research.visual_style_observations.push(...reference.observed_format.map(value => 'Reference "'+(reference.title||reference.url)+'": '+value));
     return reference;
   }
 
@@ -265,6 +266,23 @@
     return [preferred[index % preferred.length]];
   }
 
+  function inferEvidenceRequirement(text, media) {
+    const lower = text.toLowerCase();
+    if (/\b(footage|recording|video shows|photo shows|camera captured|actual image|caught on camera|documented the event)\b/.test(lower)) return 'actual_footage';
+    if (/\b(percent|percentage|rate|data|survey|study|statistic|number|revenue|price|chart)\b/.test(lower) || media.includes('diagram')) return 'sourced_data';
+    if (/\b(document|report|letter|court|filing|official|according to|record|archive|source)\b/.test(lower)) return 'source_document';
+    return 'none';
+  }
+
+  function inferAudioCues(text, media) {
+    const lower = text.toLowerCase();
+    const cues = [];
+    if (/\b(reveal|introduce|uncover|discover|turns out|surprise)\b/.test(lower)) cues.push('Short restrained reveal accent on the visual reveal, only if it does not compete with narration.');
+    if (/\b(impact|collision|crash|strike|explosion|hit|slam)\b/.test(lower)) cues.push('Sync a brief impact sound to the visible event; do not add a sound if the event is only metaphorical.');
+    if (media.includes('maps')) cues.push('Optional subtle map transition or location ambience; keep factual labels readable.');
+    return cues;
+  }
+
   function inferPurpose(text, media) {
     const words = text.trim().split(/\s+/).filter(Boolean);
     const excerpt = words.slice(0, Math.min(8, words.length)).join(' ');
@@ -290,6 +308,7 @@
     if (!sentences.length) throw new Error('Add a narration script before generating a timed shot plan.');
     const profile = project.visual_style_profile || defaultStyleProfile(brief.niche);
     const totalFrames = Math.max(1, Math.round(targetSeconds * fps));
+    if (totalFrames < sentences.length) throw new Error('The target duration is too short for the number of narration beats. Increase duration or combine sentences into fewer paragraphs.');
     const weights = sentences.map(sentence => Math.max(1, sentence.split(/\s+/).filter(Boolean).length));
     const totalWeight = weights.reduce((sum, value) => sum + value, 0);
     let cursor = 0;
@@ -307,13 +326,15 @@
         visual_purpose:inferPurpose(narration,media),
         media_mix:media,
         visual_role:'illustration',
+        evidence_requirement:inferEvidenceRequirement(narration,media),
+        asset_ids:[],
         camera_movement:profile.camera_language,
         visual_actions:['Start with a clear subject-specific composition','Animate only the elements that explain this beat','Hold the key visual until the narration point is understood'],
         asset_requirements:['Identify exact subjects, locations, objects or data before acquiring media','Use only assets with reviewed provenance and rights'],
         transition_in:index===0?'Opening shot':'Cut or motivated match transition',
         transition_out:'Cut on the next narration beat unless a motivated transition is needed',
         effect_notes:'Use restrained, topic-specific motion graphics or practical VFX only when they clarify the beat.',
-        audio_cues:[],
+        audio_cues:inferAudioCues(narration,media),
         evidence_claim_ids:[],
         notes:'Rule-assisted draft. Review timing, visual accuracy, evidence role and rights before rendering.'
       };
@@ -359,6 +380,11 @@
         }
       }
       for (const id of beat.evidence_claim_ids || []) if (!claims.has(id)) blockers.push('Shot '+beat.id+' references missing claim '+id+'.');
+      for (const id of beat.asset_ids || []) if (!project.assets.some(asset => asset.id === id)) blockers.push('Shot '+beat.id+' references missing asset '+id+'.');
+      const evidenceRequirement = beat.evidence_requirement || 'none';
+      if (evidenceRequirement === 'actual_footage' && !beat.media_mix.includes('source_footage')) blockers.push('Shot '+beat.id+' needs actual source footage but its media mix does not include source_footage.');
+      if (evidenceRequirement === 'official_screenshot' && !beat.media_mix.includes('screenshots')) blockers.push('Shot '+beat.id+' needs an official screenshot but its media mix does not include screenshots.');
+      if (evidenceRequirement === 'sourced_data' && !['factual_evidence','comparative_evidence'].includes(beat.visual_role)) warnings.push('Shot '+beat.id+' uses data but is not marked as evidence; label the data as illustrative or link verified claims.');
     }
     for (const asset of project.assets) {
       const decision = reviews.get(asset.id);
@@ -501,7 +527,14 @@
       for(const value of VISUAL_ROLES){const option=root.document.createElement('option');option.value=value;option.textContent=value.replaceAll('_',' ');role.append(option);}
       role.value=beat.visual_role;
       role.addEventListener('change',()=>{beat.visual_role=role.value;markDirty();renderReadiness(project);});
-      head.append(timing,role);
+      const evidence=root.document.createElement('select');
+      evidence.setAttribute('aria-label','Evidence requirement for shot '+(plan.beats.indexOf(beat)+1));
+      for(const value of ['none','source_document','actual_footage','official_screenshot','sourced_data','user_review']){
+        const option=root.document.createElement('option');option.value=value;option.textContent='Need: '+value.replaceAll('_',' ');evidence.append(option);
+      }
+      evidence.value=beat.evidence_requirement||'none';
+      evidence.addEventListener('change',()=>{beat.evidence_requirement=evidence.value;markDirty();renderReadiness(project);});
+      head.append(timing,role,evidence);
       const narration=root.document.createElement('p');narration.className='ffv2-shot-narration';narration.textContent=beat.narration;
       const grid=root.document.createElement('div');grid.className='ffv2-director-grid';
       const fields=[
@@ -512,6 +545,7 @@
         ['Visual actions (one per line)','visual_actions','textarea'],
         ['Required assets / footage','asset_requirements','textarea'],
         ['Linked claim IDs (comma separated)','evidence_claim_ids','input'],
+        ['Linked asset IDs (comma separated)','asset_ids','input'],
         ['Transition in','transition_in','input'],
         ['Transition out','transition_out','input'],
         ['SFX / audio cues','audio_cues','input']
@@ -522,7 +556,7 @@
         if(tag==='textarea')control.rows=2;
         control.value=Array.isArray(beat[key])?csv(beat[key]):(beat[key]||'');
         control.addEventListener('change',()=>{
-          if(['media_mix','evidence_claim_ids'].includes(key)) beat[key]=control.value.split(',').map(value=>value.trim()).filter(Boolean);
+          if(['media_mix','evidence_claim_ids','asset_ids'].includes(key)) beat[key]=control.value.split(',').map(value=>value.trim()).filter(Boolean);
           else if(['visual_actions','asset_requirements','audio_cues'].includes(key)) beat[key]=control.value.split(/\n/).map(value=>value.trim()).filter(Boolean);
           else beat[key]=control.value;
           if(key==='evidence_claim_ids') beat[key]=Array.from(new Set(beat[key]));
@@ -595,6 +629,7 @@
       ffv2BriefTone:brief.tone,ffv2BriefVisualDirection:brief.visual_direction,
       ffv2BriefDesiredStyle:brief.desired_style,ffv2BriefScript:brief.narration_script,
       ffv2BriefQuestions:(brief.research_questions||[]).join('\n'),
+      ffv2BriefAmbiguities:(brief.ambiguities_to_resolve||[]).join('\n'),
       ffv2BriefRestrictions:(brief.restrictions||[]).join('\n')
     };
     for(const [id,value] of Object.entries(values))if(el(id))el(id).value=String(value??'');
@@ -633,6 +668,7 @@
         desired_style:el('ffv2BriefDesiredStyle').value,
         narration_script:el('ffv2BriefScript').value,
         research_questions:el('ffv2BriefQuestions').value,
+        ambiguities_to_resolve:el('ffv2BriefAmbiguities').value,
         restrictions:el('ffv2BriefRestrictions').value
       });
       markDirty();status('Production brief saved to the V2 project.','success');refresh();
