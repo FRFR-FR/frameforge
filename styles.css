@@ -431,3 +431,111 @@ button { color: inherit; cursor: pointer; }
   .ffv2-3d-scene-panel .ffv2-control-grid,
   #ffv23DClipControls .ffv2-control-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+
+/* FrameForge V2 audio production workspace */
+.ffv2-audio-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid #2a4057;
+  border-radius: 9px;
+  background: #101b29;
+}
+.ffv2-audio-heading, .ffv2-audio-subheading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+.ffv2-audio-heading > div, .ffv2-audio-subheading { min-width: 0; }
+.ffv2-audio-heading strong, .ffv2-audio-subheading strong, .ffv2-audio-event-row > strong {
+  display: block;
+  color: #dceafa;
+  font-size: 10px;
+}
+.ffv2-audio-heading small, .ffv2-audio-subheading small {
+  display: block;
+  margin-top: 3px;
+  color: #8299b0;
+  font-size: 8px;
+}
+.ffv2-audio-format { color: #93abc3; font: 8px ui-monospace, monospace; }
+.ffv2-audio-track-controls, .ffv2-audio-clip-controls-grid, .ffv2-audio-event-row, .ffv2-audio-master-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.ffv2-audio-track-controls label, .ffv2-audio-clip-controls-grid label, .ffv2-audio-event-row label, .ffv2-audio-master-row label {
+  display: grid;
+  flex: 1 1 125px;
+  min-width: 0;
+  gap: 4px;
+  color: #91a8be;
+  font-size: 8px;
+}
+.ffv2-audio-track-controls select, .ffv2-audio-event-row select, .ffv2-audio-event-row input,
+.ffv2-audio-master-row input[type=number] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #344a61;
+  border-radius: 5px;
+  background: #09131e;
+  color: #e0ebf6;
+  font-size: 9px;
+}
+.ffv2-audio-track-controls input[type=range], .ffv2-audio-clip-controls-grid input[type=range] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.ffv2-audio-track-controls .button, .ffv2-audio-clip-controls-grid .button,
+.ffv2-audio-event-row .button, .ffv2-audio-master-row .button { white-space: nowrap; }
+.ffv2-audio-clip-controls { display: grid; gap: 8px; padding: 9px; border: 1px solid #2b4158; border-radius: 7px; background: #0c1723; }
+.ffv2-audio-waveform {
+  display: block;
+  width: 100%;
+  height: 94px;
+  border: 1px solid #2a4057;
+  border-radius: 5px;
+  background: #091521;
+  cursor: crosshair;
+}
+.ffv2-audio-automation-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px; }
+.ffv2-audio-automation-row span, .ffv2-audio-metrics {
+  color: #8da3b9;
+  font: 8px ui-monospace, monospace;
+  overflow-wrap: anywhere;
+}
+.ffv2-audio-event-row { align-items: end; padding-top: 8px; border-top: 1px solid #24374c; }
+.ffv2-audio-event-row > strong { flex: 1 1 100%; }
+.ffv2-audio-cue-list { display: grid; gap: 5px; }
+.ffv2-audio-cue-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #263b51;
+  border-radius: 5px;
+  background: #0c1723;
+}
+.ffv2-audio-cue-row span { color: #aec2d7; font-size: 8px; overflow-wrap: anywhere; }
+.ffv2-audio-cue-row .button { flex: 0 0 auto; }
+.ffv2-audio-master-row { align-items: center; padding-top: 8px; border-top: 1px solid #24374c; }
+.ffv2-audio-master-row label { flex: 1 1 145px; }
+.ffv2-audio-master-row label.ffv2-inline-check { display: flex; align-items: center; }
+.ffv2-audio-player { display: block; width: 100%; height: 36px; }
+.ffv2-audio-metrics { min-height: 16px; }
+#ffv2AudioStatus { margin-top: 0; }
+@media (max-width: 760px) {
+  .ffv2-audio-panel { padding: 8px; }
+  .ffv2-audio-track-controls, .ffv2-audio-clip-controls-grid, .ffv2-audio-event-row, .ffv2-audio-master-row { gap: 6px; }
+  .ffv2-audio-track-controls label, .ffv2-audio-clip-controls-grid label, .ffv2-audio-event-row label { flex-basis: calc(50% - 6px); }
+  .ffv2-audio-track-controls .button, .ffv2-audio-clip-controls-grid .button, .ffv2-audio-event-row .button { flex: 1 1 auto; }
+  .ffv2-audio-master-row .button { flex: 1 1 calc(50% - 6px); }
+}
