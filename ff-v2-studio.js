@@ -413,28 +413,34 @@
     if (!select) return;
     const current = select.value;
     select.replaceChildren();
+    const automatic = document.createElement('option');
+    automatic.value = '';
+    automatic.textContent = 'Auto-match track';
+    select.append(automatic);
     for (const track of currentSequence().tracks) {
       const option = document.createElement('option');
       option.value = track.id;
       option.textContent = track.name + ' (' + track.type + ')';
       select.append(option);
     }
-    if (current && currentSequence().tracks.some(track => track.id === current)) select.value = current;
+    select.value = currentSequence().tracks.some(track => track.id === current) ? current : '';
   }
 
   function addAssetToTimeline(asset) {
     try {
       const seq = currentSequence();
-      let trackId = $('ffv2TargetTrack').value;
-      if (!trackId) {
-        const track = Core.addTrack(state.project, Core.trackForAssetType(asset.media_type), asset.media_type + ' assets');
-        trackId = track.id;
+      const requestedTrackId = $('ffv2TargetTrack').value;
+      let track = requestedTrackId
+        ? seq.tracks.find(item => item.id === requestedTrackId)
+        : seq.tracks.find(item => item.type === Core.trackForAssetType(asset.media_type));
+      if (!track) {
+        track = Core.addTrack(state.project, Core.trackForAssetType(asset.media_type), asset.media_type + ' assets');
       }
       const durationSeconds = asset.metadata?.duration_seconds;
       const durationFrames = durationSeconds
         ? Math.max(1, Math.round(durationSeconds * seq.fps))
         : Math.round(seq.fps * 5);
-      const clip = Core.addAssetClip(state.project, asset.id, trackId, state.playhead, durationFrames);
+      const clip = Core.addAssetClip(state.project, asset.id, track.id, state.playhead, durationFrames);
       state.selectedClipId = clip.id;
       scheduleSave();
       renderTracks();
