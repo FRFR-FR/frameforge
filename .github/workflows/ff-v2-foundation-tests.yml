@@ -8,7 +8,10 @@ on:
       - "examples/**"
       - "tests/**"
       - "ff-v2-core.js"
+      - "ff-v2-audio.js"
       - "ff-v2-studio.js"
+      - "tools/mux_ffmpeg.py"
+      - "tests/test_mux_ffmpeg.py"
       - "ff-v2-renderer.js"
       - "ff-v2-3d-studio.js"
       - "vendor/three/0.164.1/**"
@@ -70,8 +73,16 @@ jobs:
           node --check ff-v2-renderer.js
           node --check ff-v2-3d-studio.js
           node --check ff-v2-shaders.js
-          node --test tests/ff-v2-core.test.js tests/ff-v2-renderer.test.js
+          node --test tests/ff-v2-core.test.js tests/ff-v2-renderer.test.js tests/ff-v2-audio.test.js
           python -m compileall -q blender_pipeline brown_film minecraft_pipeline projects tools tests
+
+      - name: Ensure FFmpeg is available for mux integration test
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -n 1
 
       - name: Validate schemas, examples and semantic rules
         run: |
