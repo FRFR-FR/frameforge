@@ -776,6 +776,32 @@
     $('ffv2GraphicFill').value = /^#[0-9a-f]{6}$/i.test(params.fill || '') ? params.fill : '#287fbd';
     $('ffv2GraphicStroke').value = /^#[0-9a-f]{6}$/i.test(params.stroke || '') ? params.stroke : '#ffffff';
     $('ffv2GraphicSvg').value = params.svg || '';
+
+    const effectSelect = $('ffv2EffectKeyframeTarget');
+    const oldEffect = effectSelect.value;
+    effectSelect.replaceChildren();
+    for (const effect of clip.effects || []) {
+      const option = document.createElement('option');
+      option.value = effect.id;
+      option.textContent = effect.type;
+      effectSelect.append(option);
+    }
+    if (!effectSelect.options.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Add a clip effect first';
+      effectSelect.append(option);
+    } else {
+      effectSelect.value = (clip.effects || []).some(effect => effect.id === oldEffect) ? oldEffect : effectSelect.options[0].value;
+    }
+    $('ffv2ClipEffectInfo').textContent = (clip.effects || []).length + ' clip effect(s) · ' +
+      (clip.effects || []).reduce((sum,effect)=>sum+(effect.keyframes||[]).length,0) + ' effect keyframe(s)';
+
+    const incoming = clip.transition_in;
+    const outgoing = clip.transition_out;
+    $('ffv2TransitionInfo').textContent =
+      'In: ' + (incoming ? incoming.type + ' (' + incoming.duration_frames + 'f)' : 'none') +
+      ' · Out: ' + (outgoing ? outgoing.type + ' (' + outgoing.duration_frames + 'f)' : 'none');
   }
 
   function applyClipTransform() {
@@ -952,7 +978,7 @@
           notice.textContent = result.drawn + ' layer(s) rendered · ' + result.warnings[0].message;
           notice.dataset.kind = 'warning';
         } else {
-          notice.textContent = 'Frame ' + frame + ' · ' + result.drawn + ' visual layer(s) · transparent alpha preserved';
+          notice.textContent = 'Frame ' + frame + ' · ' + result.drawn + ' visual layer(s) · ' + result.backend + ' · alpha preserved';
           notice.dataset.kind = 'success';
         }
       } catch (error) {
@@ -999,7 +1025,9 @@
           ? { text: 'Your title', font_family: 'Arial, sans-serif', font_size: 72, font_weight: 700, color: '#ffffff', align: 'center', box_width: 900, box_height: 180, background: '' }
           : kind === 'shape'
             ? { shape: 'rect', width: 420, height: 220, fill: '#287fbd', stroke: '#ffffff', stroke_width: 0, radius: 18 }
-            : { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#287fbd"/></svg>' };
+            : kind === 'particles'
+              ? { preset:$('ffv2ParticlePreset').value, count:96, seed:1337, speed:1, size:3.5, color:'#ffc46b', spread:1, gravity:58, life_seconds:1.8 }
+              : { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#287fbd"/></svg>' };
       const clip = Core.addGraphicClip(state.project, track.id, kind === 'lower-third' ? 'text' : kind, params, state.playhead, Math.round(sequence.fps * 3));
       if (kind === 'lower-third') Core.setClipTransform(state.project, clip.id, { position: [-sequence.width * 0.08, sequence.height * 0.32] });
       state.selectedClipId = clip.id;
@@ -1007,9 +1035,173 @@
       renderTracks();
       renderClipInspector();
       renderPreview();
-      setStatus('Generated ' + (kind === 'lower-third' ? 'lower third' : kind) + ' added to the timeline.', 'success');
+      setStatus('Generated ' + (kind === 'lower-third' ? 'lower third' : kind === 'particles' ? 'particle system' : kind) + ' added to the timeline.', 'success');
     } catch (error) { setStatus(error.message, 'warning'); }
   }
+
+
+  function applyClipEffect() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      const type = $('ffv2ClipEffectType').value;
+      const intensity = Number($('ffv2ClipEffectIntensity').value);
+      const params = { intensity };
+      if (type === 'blur') params.radius = 3;
+      if (type === 'glow') { params.radius = 10; params.strength = 0.45; }
+      if (type === 'vignette') { params.radius = 0.7; params.strength = 0.35; }
+      if (type === 'glitch') { params.amount = 0.35; params.seed = 71; }
+      if (type === 'ripple') { params.amount = 0.3; params.frequency = 8; }
+      if (type === 'shake') { params.amount = 5; params.seed = 17; }
+      if (type === 'chromatic-aberration') params.amount = 2;
+      if (type === 'motion-blur') params.amount = 4;
+      const effect = Core.setClipEffect(state.project, found.clip.id, type, params);
+      $('ffv2EffectKeyframeTarget').value = effect.id;
+      scheduleSave();
+      renderClipInspector();
+      renderPreview();
+      setStatus(type + ' effect added to selected clip.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  function keyframeClipEffect() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      const effectId = $('ffv2EffectKeyframeTarget').value;
+      const effect = (found.clip.effects || []).find(item => item.id === effectId);
+      if (!effect) throw new Error('Select or add a clip effect first.');
+      const value = Number($('ffv2ClipEffectIntensity').value);
+      Core.setEffectParameterKeyframe(state.project, found.clip.id, effect.id, 'intensity', state.playhead, value);
+      scheduleSave();
+      renderClipInspector();
+      renderPreview();
+      setStatus('Effect intensity keyframed at frame ' + state.playhead + '.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  function applyClipTransition(edge) {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      Core.setClipTransition(state.project, found.clip.id, edge, {
+        type: $('ffv2TransitionType').value,
+        duration_frames: Number($('ffv2TransitionDuration').value),
+        direction: $('ffv2TransitionDirection').value,
+        parameters: { intensity: Number($('ffv2TransitionIntensity').value) }
+      });
+      scheduleSave();
+      renderClipInspector();
+      renderPreview();
+      setStatus('Transition ' + edge + ' applied to selected clip.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  function clearClipTransitions() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    delete found.clip.transition_in;
+    delete found.clip.transition_out;
+    scheduleSave();
+    renderClipInspector();
+    renderPreview();
+    setStatus('Clip transitions cleared.', 'success');
+  }
+
+  function postSettings() {
+    state.project.settings.post_processing = state.project.settings.post_processing ||
+      { renderer:'auto', fallback:'canvas2d', passes:[] };
+    return state.project.settings.post_processing;
+  }
+
+  function renderPostPasses() {
+    const settings = postSettings();
+    const host = $('ffv2PostPassList');
+    if (!host) return;
+    $('ffv2PostRenderer').value = settings.renderer || 'auto';
+    const capabilities = window.FFV2Shaders?.capabilities?.();
+    $('ffv2ShaderCapability').textContent = capabilities?.webgl
+      ? 'WebGL available · ' + capabilities.version
+      : 'WebGL unavailable · Canvas 2D fallback active';
+    host.replaceChildren();
+    const passes = settings.passes || [];
+    if (!passes.length) {
+      const empty = document.createElement('small');
+      empty.className = 'ffv2-info-text';
+      empty.textContent = 'No global post-processing passes. Add passes to apply them after layer compositing.';
+      host.append(empty);
+    }
+    passes.forEach((pass,index) => {
+      const row = document.createElement('div');
+      row.className = 'ffv2-postfx-row';
+      const title = document.createElement('strong');
+      title.textContent = (index+1) + '. ' + pass.type + (pass.type === 'custom' ? ' · GLSL' : '');
+      const enabled = document.createElement('input');
+      enabled.type = 'checkbox'; enabled.checked = pass.enabled !== false;
+      enabled.setAttribute('aria-label','Enable '+pass.type+' pass');
+      enabled.addEventListener('change',()=>{
+        pass.enabled=enabled.checked; scheduleSave(); renderPreview();
+      });
+      const enabledLabel = document.createElement('label');
+      enabledLabel.className='ffv2-inline-check';
+      enabledLabel.append(enabled,document.createTextNode('On'));
+      const range = document.createElement('input');
+      range.type='range'; range.min='0'; range.max='2'; range.step='0.05';
+      range.value=String(pass.parameters?.intensity ?? 1);
+      range.setAttribute('aria-label',pass.type+' intensity');
+      range.addEventListener('input',()=>{
+        pass.parameters=pass.parameters||{};
+        pass.parameters.intensity=Number(range.value);
+        intensity.value=Number(range.value).toFixed(2);
+      });
+      range.addEventListener('change',()=>{scheduleSave();renderPreview();});
+      const intensity = document.createElement('output');
+      intensity.textContent=Number(range.value).toFixed(2);
+      const actions = document.createElement('div');
+      actions.className='ffv2-postfx-actions';
+      const up=document.createElement('button');up.type='button';up.className='button small';up.textContent='↑';up.disabled=index===0;
+      up.setAttribute('aria-label','Move '+pass.type+' pass up');
+      up.addEventListener('click',()=>movePostPass(index,-1));
+      const down=document.createElement('button');down.type='button';down.className='button small';down.textContent='↓';down.disabled=index===passes.length-1;
+      down.setAttribute('aria-label','Move '+pass.type+' pass down');
+      down.addEventListener('click',()=>movePostPass(index,1));
+      const remove=document.createElement('button');remove.type='button';remove.className='button small danger-text';remove.textContent='Remove';
+      remove.addEventListener('click',()=>{Core.removePostProcessPass(state.project,pass.id);scheduleSave();renderPostPasses();renderPreview();});
+      actions.append(up,down,remove);
+      row.append(title,enabledLabel,range,intensity,actions);
+      host.append(row);
+    });
+  }
+
+  function setPostRenderer() {
+    try {
+      Core.setPostProcessRenderer(state.project,$('ffv2PostRenderer').value);
+      scheduleSave(); renderPreview();
+    } catch(error) { setStatus(error.message,'warning'); }
+  }
+
+  function addPostPass(type, parameters) {
+    try {
+      Core.addPostProcessPass(state.project,type,parameters);
+      scheduleSave(); renderPostPasses(); renderPreview();
+      setStatus('Post-processing pass added: '+type+'.','success');
+    } catch(error) { setStatus(error.message,'warning'); }
+  }
+
+  function movePostPass(index, delta) {
+    const passes=postSettings().passes||[];
+    const target=index+delta;
+    if(target<0||target>=passes.length) return;
+    [passes[index],passes[target]]=[passes[target],passes[index]];
+    scheduleSave(); renderPostPasses(); renderPreview();
+  }
+
+  function addCustomShaderPass() {
+    const fragment=$('ffv2CustomShader').value;
+    if(fragment.length>16000) { setStatus('Custom shader source exceeds the 16 KB safety limit.','warning'); return; }
+    addPostPass('custom',{fragment,intensity:1});
+  }
+
 
   function applyClipTiming() {
     const found = selectedClipInfo();
@@ -1243,6 +1435,7 @@
     renderAssets();
     renderTracks();
     renderClipInspector();
+    renderPostPasses();
     setPlayhead(state.playhead);
   }
 
@@ -1333,6 +1526,15 @@
     $('ffv2AddLowerThird').addEventListener('click', () => addGeneratedGraphic('lower-third'));
     $('ffv2AddShape').addEventListener('click', () => addGeneratedGraphic('shape'));
     $('ffv2AddSvg').addEventListener('click', () => addGeneratedGraphic('svg'));
+    $('ffv2AddParticles').addEventListener('click', () => addGeneratedGraphic('particles'));
+    $('ffv2AddClipEffect').addEventListener('click', applyClipEffect);
+    $('ffv2KeyframeEffect').addEventListener('click', keyframeClipEffect);
+    $('ffv2ApplyTransitionIn').addEventListener('click', () => applyClipTransition('in'));
+    $('ffv2ApplyTransitionOut').addEventListener('click', () => applyClipTransition('out'));
+    $('ffv2ClearTransitions').addEventListener('click', clearClipTransitions);
+    $('ffv2PostRenderer').addEventListener('change', setPostRenderer);
+    $('ffv2AddPostPass').addEventListener('click', () => addPostPass($('ffv2PostType').value));
+    $('ffv2AddCustomShader').addEventListener('click', addCustomShaderPass);
     $('ffv2RenderFrame').addEventListener('click', renderPreview);
     $('ffv2DownloadFrame').addEventListener('click', downloadCompositorFrame);
     $('ffv2SplitClip').addEventListener('click', splitSelectedClip);
