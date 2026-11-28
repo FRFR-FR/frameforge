@@ -596,6 +596,16 @@
     return result;
   }
 
+
+  function sourceFramesAtClipFrame(clip, globalFrame) {
+    const localFrame = Math.max(0,Math.min(clip.duration_frames,Math.round(Number(globalFrame)||0)-clip.start_frame));
+    let sourceFrames = Math.max(0,Number(clip.source_in_frame)||0);
+    for(let frame=0;frame<localFrame;frame++){
+      sourceFrames += Core.evaluateClipPlaybackRate(clip,clip.start_frame+frame);
+    }
+    return sourceFrames;
+  }
+
   function evaluatePass(pass, frame) {
     const params=Object.assign({},pass.parameters||{});
     for(const property of ['intensity','amount','radius','strength','saturation','brightness','contrast','frequency']){
@@ -670,7 +680,7 @@
         const transition = transitionValues(clip, frame, sequence, baseTransform);
         const transform = transition.transform;
         const localFrame = Math.max(0, frame - clip.start_frame);
-        const mediaTime = ((Number(clip.source_in_frame) || 0) + localFrame * Core.evaluateClipPlaybackRate(clip,frame)) / sequence.fps;
+        const mediaTime = sourceFramesAtClipFrame(clip,frame) / sequence.fps;
         const asset = clip.asset_id ? projectAssets.find(ref => ref.id === clip.asset_id) : null;
         const source = asset ? await resolveAsset(asset, clip, mediaTime) : null;
         const layer = makeCanvas(sequence.width, sequence.height, canvas);
@@ -699,7 +709,7 @@
     return { frame, drawn, warnings, width: sequence.width, height: sequence.height, backend:post.backend };
   }
 
-  const api = { composeFrame, resolveGlobalTransform, drawText, drawShape, fitAsset, drawParticles, seededRandom, applyCanvasPass, transitionValues, applyTransitionMask, applyPostProcessing };
+  const api = { composeFrame, resolveGlobalTransform, drawText, drawShape, fitAsset, drawParticles, seededRandom, applyCanvasPass, transitionValues, applyTransitionMask, applyPostProcessing, sourceFramesAtClipFrame };
   root.FFV2Renderer = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
