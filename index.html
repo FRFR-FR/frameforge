@@ -651,6 +651,7 @@ void main() {
               <label>Licence URL <input id="ffv2ProductionLicenseUrl" class="ffv2-production-input" type="url" placeholder="https://…"></label>
             </div>
             <label class="ffv2-production-full">Attribution text <textarea id="ffv2ProductionAttribution" class="ffv2-production-input" rows="2" maxlength="1800" placeholder="Creator, title, source and licence credit"></textarea></label>
+            <label class="ffv2-production-full">Usage limits / restrictions (one per line) <textarea id="ffv2ProductionRestrictions" class="ffv2-production-input" rows="2" maxlength="1500" placeholder="e.g. non-commercial only; attribution placement"></textarea></label>
             <input id="ffv2ProductionImportFile" type="file" hidden>
             <button id="ffv2ChooseProductionFile" class="button small primary">Import selected / local file</button>
             <p class="ffv2-production-note">Provider API limits and terms still apply. Poly Haven's assets are CC0, but use of its live API has separate integration conditions. Archive records and individual catalogue entries must be checked; a search result is not a licence.</p>
@@ -692,6 +693,7 @@ void main() {
             </div>
             <label class="ffv2-production-full">Attribution required <input id="ffv2AudioAttributionRequired" type="checkbox" checked></label>
             <label class="ffv2-production-full">Attribution / credit text <textarea id="ffv2AudioAttribution" class="ffv2-production-input" rows="2" maxlength="1800" placeholder="Creator, work title, source and licence credit"></textarea></label>
+            <label class="ffv2-production-full">Usage limits / restrictions (one per line) <textarea id="ffv2AudioRestrictions" class="ffv2-production-input" rows="2" maxlength="1500" placeholder="Usage limits, attribution placement, territory or expiry"></textarea></label>
             <button id="ffv2SaveAudioMetadata" class="button small">Save audio usage metadata</button>
             <div id="ffv2AudioCatalogue" class="ffv2-audio-catalogue" aria-live="polite">No audio assets in this project yet.</div>
             <button id="ffv2BuildAudioCredits" class="button small">Build rights / credit report</button>
