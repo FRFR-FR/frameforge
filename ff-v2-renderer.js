@@ -626,7 +626,7 @@
         const transition = transitionValues(clip, frame, sequence, baseTransform);
         const transform = transition.transform;
         const localFrame = Math.max(0, frame - clip.start_frame);
-        const mediaTime = ((Number(clip.source_in_frame) || 0) + localFrame * (Number(clip.playback_rate) || 1)) / sequence.fps;
+        const mediaTime = ((Number(clip.source_in_frame) || 0) + localFrame * Core.evaluateClipPlaybackRate(clip,frame)) / sequence.fps;
         const asset = clip.asset_id ? projectAssets.find(ref => ref.id === clip.asset_id) : null;
         const source = asset ? await resolveAsset(asset, clip, mediaTime) : null;
         const layer = makeCanvas(sequence.width, sequence.height, canvas);
