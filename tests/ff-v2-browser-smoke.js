@@ -32,10 +32,14 @@ function makeTestPng() {
   ihdr.writeUInt32BE(4, 4);
   ihdr[8] = 8; // bit depth
   ihdr[9] = 6; // RGBA
-  const scanlines = Buffer.from([
-    0, 255, 70, 60, 255, 0, 255, 70, 60, 255, 0, 255, 70, 60, 255, 0, 255, 70, 60, 255,
-    0, 255, 70, 60, 255, 0, 255, 70, 60, 255, 0, 255, 70, 60, 255, 0, 255, 70, 60, 255
+  const row = Buffer.from([
+    0,
+    255, 70, 60, 255,
+    255, 70, 60, 255,
+    255, 70, 60, 255,
+    255, 70, 60, 255
   ]);
+  const scanlines = Buffer.concat([row, row, row, row]);
   const zlib = require('node:zlib');
   const compressed = zlib.deflateSync(scanlines);
   return Buffer.concat([
