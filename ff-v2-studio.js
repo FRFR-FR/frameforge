@@ -705,11 +705,14 @@
 
     const property = $('ffv2KeyframeProperty').value || 'position.x';
     const currentTransform = Core.evaluateClipTransform(clip, state.playhead);
+    const modelTransform = Core.evaluate3DClipState(clip,state.playhead);
     const keyValue = property === 'playback_rate'
       ? Core.evaluateClipPlaybackRate(clip,state.playhead)
-      : property === 'rotation_degrees' || property === 'opacity'
-        ? currentTransform[property]
-        : currentTransform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
+      : property.includes('3d.')
+        ? modelTransform[property.replace(/3d\./,'').split('.')[0]][property.endsWith('.x')?0:property.endsWith('.y')?1:2]
+        : property === 'rotation_degrees' || property === 'opacity'
+          ? currentTransform[property]
+          : currentTransform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
     $('ffv2KeyframeValue').value = String(keyValue);
     const localFrame = state.playhead - clip.start_frame;
     const sameFrameKeys = (clip.keyframes || []).filter(key => key.frame === localFrame);
