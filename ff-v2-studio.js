@@ -1052,6 +1052,7 @@
       const intensity = Number($('ffv2ClipEffectIntensity').value);
       const params = { intensity };
       if (type === 'blur') params.radius = 3;
+      if (type === 'depth-of-field') { params.blur_radius = 8; params.focus_radius = 0.22; }
       if (type === 'glow') { params.radius = 10; params.strength = 0.45; }
       if (type === 'vignette') { params.radius = 0.7; params.strength = 0.35; }
       if (type === 'glitch') { params.amount = 0.35; params.seed = 71; }
