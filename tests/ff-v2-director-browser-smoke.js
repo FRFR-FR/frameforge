@@ -139,7 +139,7 @@ async function main() {
     const assetLinkInput=firstShot.locator('label').filter({hasText:'Linked asset IDs'}).locator('input');
     await assetLinkInput.fill(assetId);
     await assetLinkInput.press('Tab');
-    await page.waitForFunction(()=>window.FFV2Studio.getProject().shot_plan.beats[0].asset_ids[0]===assetId);
+    await page.waitForFunction(id=>window.FFV2Studio.getProject().shot_plan.beats[0].asset_ids[0]===id,assetId);
     const rightsCard=page.locator('.ffv2-rights-card').first();
     await rightsCard.locator('select').selectOption('approved');
     await rightsCard.locator('textarea').fill('Original vector asset created by the project owner for this video; no third-party media.');
