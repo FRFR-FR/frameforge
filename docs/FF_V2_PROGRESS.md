@@ -191,3 +191,22 @@ Transitions are attached to clip-in or clip-out edges with duration in frames, d
 
 The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions and transparent PNG-frame export. It still does **not** render a full timeline to MP4. Final video rendering, resumable chunks, FFmpeg export and technical QA remain later roadmap steps. Audio tracks are timeline data only, and the 2D compositor does not render 3D model/scene tracks. The legacy V1 editor and its existing production workflows remain available.
 
+
+## Remaining limits / not yet done
+
+- The V2 compositor still renders the selected playhead frame and exports PNG; it does not yet render a full sequence or create the V2 timeline MP4. Full-sequence rendering, resumable chunks, FFmpeg export profiles and technical QA remain future steps (41–43).
+- The optional shader backend is native WebGL 1, not Three.js EffectComposer or WebGPU. Custom GLSL requires WebGL and is explicitly skipped under Canvas 2D fallback; built-in effects use Canvas 2D fallbacks where supported.
+- Browser GPU drivers, shader precision, texture limits, Canvas filters, codecs, storage and memory vary by device. Pixel-heavy depth-of-field and distortion work can be slow on phones, especially at higher resolutions.
+- The compositor is 2D and does not yet render 3D model/scene tracks; Three.js/Blender scene integration remains steps 21–25.
+- Audio tracks are timeline data only. There is no V2 audio mixer, audio effects or final audio mux yet; those are steps 26–30. Playback-rate ramps currently affect visual source-time selection and do not provide pitch-preserving audio retiming.
+- Alpha/luma matte modes are implemented but do not yet have dedicated pixel-level Chromium fixtures. Shape masks and their inversion are pixel-tested.
+- Imported media metadata validation relies partly on browser codecs; it is not a full decode of every video frame or audio sample.
+- Project JSON does not package imported binary files. Blobs remain in the originating browser's IndexedDB; keep source media separately backed up.
+- Local browser storage is quota-limited and can be evicted. Persistent-storage requests are best-effort, not guaranteed.
+- The rights validator checks metadata completeness; it does not determine legal rights or provide legal advice.
+- The 250 MB per-file import ceiling may exceed the available browser storage quota on some devices.
+- The legacy V1 drawing editor and existing Blender/FF3D production workflows remain available and were not replaced by this batch.
+
+## Next batch
+
+The next five-step batch is **21–25**. Do not start it until the user requests it.
