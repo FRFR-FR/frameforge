@@ -540,7 +540,7 @@
     return {
       provenance: provenance,
       rights: rights,
-      tags: audioRole ? ['audio-role:' + audioRole] : []
+      tags: [...new Set([...(Array.isArray(item.tags) ? item.tags.map(value => text(value, 100)).filter(Boolean) : []), ...(audioRole ? ['audio-role:' + audioRole] : [])])].slice(0, 40)
     };
   }
 
