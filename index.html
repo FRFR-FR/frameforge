@@ -681,7 +681,12 @@ void main() {
             <div class="ffv2-production-grid">
               <label>Audio role <select id="ffv2AudioRole" class="ffv2-production-input"><option value="sfx">Sound effect</option><option value="music">Music</option><option value="voiceover">Voiceover / narration</option></select></label>
               <label>Audio asset <select id="ffv2AudioAsset" class="ffv2-production-input"><option value="">Select imported audio</option></select></label>
+              <label>Licence <input id="ffv2AudioLicense" class="ffv2-production-input" maxlength="300" placeholder="CC0, CC BY, owned original…"></label>
+              <label>Licence URL <input id="ffv2AudioLicenseUrl" class="ffv2-production-input" type="url" placeholder="https://…"></label>
             </div>
+            <label class="ffv2-production-full">Attribution required <input id="ffv2AudioAttributionRequired" type="checkbox" checked></label>
+            <label class="ffv2-production-full">Attribution / credit text <textarea id="ffv2AudioAttribution" class="ffv2-production-input" rows="2" maxlength="1800" placeholder="Creator, work title, source and licence credit"></textarea></label>
+            <button id="ffv2SaveAudioMetadata" class="button small">Save audio usage metadata</button>
             <div id="ffv2AudioCatalogue" class="ffv2-audio-catalogue" aria-live="polite">No audio assets in this project yet.</div>
             <button id="ffv2BuildAudioCredits" class="button small">Build rights / credit report</button>
             <div id="ffv2AudioReport" class="ffv2-production-note">Unreviewed audio will be excluded from publication packaging.</div>
@@ -725,6 +730,7 @@ void main() {
   <script src="ff-v2-audio.js"></script>
   <script src="ff-v2-director.js"></script>
   <script src="ff-v2-production.js"></script>
+  <script src="ff-v2-production-ui.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
