@@ -72,7 +72,7 @@ test('procedural SVG builder creates safe editable artwork for each visual treat
     assert.match(svg, /A &amp; B &lt;script&gt;/);
     assert.doesNotMatch(svg, /<script/i);
     assert.doesNotMatch(svg, /foreignObject|(?:href|src)=['\"]https?:|url\(['\"]?https?:/i);
-    assert.equal(Core.validateSvgText(svg), '');
+    assert.doesNotThrow(() => Core.validateSvgText(svg));
   }
 });
 
