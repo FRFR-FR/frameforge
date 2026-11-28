@@ -586,6 +586,7 @@ void main() {
               <label>Verification state <select id="ffv2ClaimStatus"><option value="unverified">Unverified</option><option value="verified">Verified</option><option value="disputed">Disputed</option><option value="opinion">Opinion</option><option value="illustrative">Illustrative</option></select></label>
               <label>Confidence <select id="ffv2ClaimConfidence"><option value="unassessed">Unassessed</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
               <label>Supporting source IDs (comma-separated) <input id="ffv2ClaimSources" placeholder="source-…"></label>
+              <label>Pinpoint locations (one per line: source ID | page, section or timecode) <textarea id="ffv2ClaimEvidenceLocations" rows="3" placeholder="source-… | PDF p. 12, paragraph 2&#10;source-… | 00:01:23–00:01:41"></textarea></label>
               <label class="ffv2-inline-check"><input id="ffv2ClaimEvidenceRequired" type="checkbox" checked> Requires supporting evidence</label>
               <label>Uncertainty / missing checks <textarea id="ffv2ClaimUncertainty" rows="2"></textarea></label>
             </div>
