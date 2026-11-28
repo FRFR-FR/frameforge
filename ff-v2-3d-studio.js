@@ -230,7 +230,8 @@
     const instances=[];
     for(const item of options.models||[]){
       const loaded=await loadModel(item.asset,options.allAssets,options.resolveDependency);
-      let instance=instanceCache.get(item.clip.id);
+      const instanceKey=item.clip.id+':'+item.asset.id;
+      let instance=instanceCache.get(instanceKey);
       if(!instance){
         const model=THREE.SkeletonUtils?.clone ? THREE.SkeletonUtils.clone(loaded.gltf.scene) : loaded.gltf.scene.clone(true);
         const group=new THREE.Group();
@@ -238,7 +239,7 @@
         group.add(model);
         const mixer=loaded.animations.length?new THREE.AnimationMixer(model):null;
         instance={group,model,loaded,mixer,action:null,clip:item.clip};
-        instanceCache.set(item.clip.id,instance);
+        instanceCache.set(instanceKey,instance);
       } else {
         instance.clip=item.clip;
       }
@@ -267,6 +268,6 @@
   }
 
   function purge(assetId) { cache.delete(assetId); }
-  function purgeClip(clipId) { instanceCache.delete(clipId); }
+  function purgeClip(clipId) { for(const key of instanceCache.keys()) if(key.startsWith(clipId+':')) instanceCache.delete(key); }
   root.FFV2ThreeStudio={VERSION,loadModel,inspectModelFile,renderTrack,capabilities,purge,purgeClip};
 })(typeof window!=='undefined'?window:globalThis);
