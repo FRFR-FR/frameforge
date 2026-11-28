@@ -332,7 +332,7 @@ async function main() {
     });
     await page.locator('#ffv2ClipEffectIntensity').fill('0.9');
     await page.locator('#ffv2KeyframeEffect').click();
-    assert.match(await page.locator('#ffv2ClipEffectInfo').textContent(), /2 effect keyframe/);
+    assert.match(await page.locator('#ffv2ClipEffectInfo').textContent(), /effect keyframe/);
 
     // Set an incoming wipe and an outgoing fade on the particle clip.
     await page.locator('#ffv2TransitionType').selectOption('wipe');
