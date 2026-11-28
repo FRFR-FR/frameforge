@@ -874,7 +874,7 @@
           if(!included.has(dependencyPath)){files.push({name:dependencyPath,data:dependency.blob});included.add(dependencyPath);}
         }
         models.push({
-          asset_id:asset.id,name:asset.label||asset.file_name,asset_path:assetPath,
+          asset_id:asset.id,clip_id:item.clip.id,name:asset.label||asset.file_name,asset_path:assetPath,
           start_frame:item.clip.start_frame,duration_frames:item.clip.duration_frames,
           transform:Core.clone(item.clip.transform3d||{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}),
           animation:Core.clone(item.clip.animation||{enabled:true,clip_name:'',time_scale:1,loop:true,start_frame:item.clip.start_frame}),
