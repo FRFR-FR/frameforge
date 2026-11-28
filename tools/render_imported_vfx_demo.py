@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """FrameForge imported-VFX portrait test: real alpha cut-out plus downloaded fire footage."""
 from __future__ import annotations
-import json, os, subprocess, urllib.parse, urllib.request
+import json, os, subprocess, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
 import numpy as np
 from PIL import Image
 from rembg import new_session, remove
 
 OUT = Path(os.environ.get("OUTPUT_DIR", "artifacts/vfx-test")).resolve()
-IMPORTS = OUT / "imported-vfx"
+IMPORTS = Path(os.environ.get("VFX_CACHE_DIR", OUT / "imported-vfx")).resolve()
 PORTRAIT_URL = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Vladimir_Putin_portrait_%282024-02-23%29.png"
 PIXABAY_ID = 237888
 PIXABAY_PAGE = "https://pixabay.com/videos/flame-fire-flaming-heat-burn-237888/"
@@ -38,11 +38,24 @@ def import_pixabay_vfx(destination):
     request = urllib.request.Request(
         "https://pixabay.com/api/videos/?" + query,
         headers={"User-Agent": "FrameForge-VFX-Import/1.0"})
-    with urllib.request.urlopen(request, timeout=45) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(request, timeout=45) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        details = error.read().decode("utf-8", errors="replace").strip()
+        if api_key:
+            details = details.replace(api_key, "[REDACTED]")
+        raise RuntimeError(
+            f"Pixabay API rejected the asset lookup (HTTP {error.code}): {details[:1200]}. "
+            "Check that PIXABAY_API_KEY is a valid Pixabay API key."
+        ) from error
     matches = [item for item in payload.get("hits", []) if int(item.get("id", -1)) == PIXABAY_ID]
-    if len(matches) != 1 or matches[0].get("pageURL", "").rstrip("/") != PIXABAY_PAGE.rstrip("/"):
-        raise RuntimeError("Pixabay did not return the exact fire asset listed in the repository licence manifest.")
+    if len(matches) != 1:
+        raise RuntimeError("Pixabay did not return the requested fire asset ID.")
+    import urllib.parse as urlparse
+    returned_page = urlparse.urlparse(matches[0].get("pageURL", ""))
+    if returned_page.scheme != "https" or returned_page.hostname not in {"pixabay.com", "www.pixabay.com"} or str(PIXABAY_ID) not in returned_page.path:
+        raise RuntimeError("Pixabay returned a source page that does not match the requested asset ID.")
     hit = matches[0]
     videos = hit.get("videos") or {}
     stream_name = "medium" if videos.get("medium", {}).get("url") else "large"
