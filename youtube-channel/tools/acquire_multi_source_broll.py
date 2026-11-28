@@ -19,7 +19,8 @@ LICENCES = {
  "NASA": ("NASA media guidance; check third-party rights on the individual asset", "https://www.nasa.gov/nasa-brand-center/images-and-media/"),
  "Wikimedia Commons": ("Individual Creative Commons/Public Domain licence", "https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia"),
  "Internet Archive": ("Individual item licence as recorded in item metadata", "https://archive.org/about/terms.php"),
- "Pexels": ("Pexels License", "https://www.pexels.com/license/")
+ "Pexels": ("Pexels License", "https://www.pexels.com/license/"),
+ "DVIDS": ("U.S. DoD/Federal Agency public domain unless an item indicates otherwise; verify each item", "https://api.dvidshub.net/docs/copyright")
 }
 
 def clean(value):
@@ -225,6 +226,52 @@ def search_pexels(query, key):
             result.append(item)
     return result
 
+def search_dvids(query, key):
+    """Search DVIDS public-media footage; require an API key and preserve producer credit."""
+    if not key:
+        return []
+    data = get_json("dvids_search", query, "https://api.dvidshub.net/search", {
+        "q": query, "type": "video", "hd": 1, "max_results": 30, "api_key": key
+    }, ttl=36)
+    result = []
+    for hit in data.get("results", []):
+        asset_id = hit.get("id", "")
+        if not str(asset_id).startswith("video:"):
+            continue
+        try:
+            detail_data = get_json("dvids_asset", asset_id,
+                "https://api.dvidshub.net/asset", {"id": asset_id, "api_key": key}, ttl=36)
+            detail = detail_data.get("results") or {}
+            desc = detail.get("description") or hit.get("short_description") or ""
+            title = detail.get("title") or hit.get("title") or ""
+            rights_text = " ".join((title, desc, str(detail.get("copyright", "")), str(detail.get("rights", ""))))
+            if re.search(r"all rights reserved|not for commercial use|permission required|third.party copyright", rights_text, re.I):
+                continue
+            files = [f for f in detail.get("files", [])
+                     if f.get("type") == "video/mp4"
+                     and int(f.get("width", 0) or 0) >= MIN_W
+                     and int(f.get("height", 0) or 0) >= MIN_H
+                     and int(f.get("size", 0) or 0) <= MAX_BYTES
+                     and f.get("src")]
+            if not files:
+                continue
+            chosen = min(files, key=lambda f: (int(f.get("size", 0) or 0), -int(f.get("width", 0) or 0)))
+            credit_data = detail.get("credit") or []
+            if isinstance(credit_data, list):
+                creator = ", ".join(x.get("name", "") for x in credit_data if isinstance(x, dict) and x.get("name"))
+            elif isinstance(credit_data, dict):
+                creator = credit_data.get("name", "")
+            else:
+                creator = str(credit_data or "")
+            item = make("DVIDS", asset_id, title, desc, detail.get("keywords", hit.get("keywords", "")),
+                        detail.get("duration", hit.get("duration", 0)), chosen.get("width"), chosen.get("height"),
+                        chosen.get("src"), detail.get("url") or hit.get("url"), creator or "DVIDS producer")
+            if item:
+                result.append(item)
+        except Exception as exc:
+            print(f"DVIDS item skipped {asset_id}: {exc}", flush=True)
+    return result
+
 def relevance(item, section, query):
     tokens = pix.token_set(" ".join((item["title"], item["description"], item["tags"])))
     subject = bool(tokens.intersection(set(section["match_groups"][0])))
@@ -284,6 +331,8 @@ def credit(item):
         return f"- Video by {creator} on Coverr: {title}. Source: {source}{profile} | https://coverr.co"
     if provider == "NASA":
         return f"- {title} — NASA. Source: {source} | NASA Media Usage Guidelines: {LICENCES['NASA'][1]}"
+    if provider == "DVIDS":
+        return f"- {title} — Producer: {creator}. DVIDS public media; no DoD endorsement implied. Source: {source} | Copyright guidance: {LICENCES['DVIDS'][1]}"
     if provider == "Wikimedia Commons":
         return f"- {title} — {creator}. Licence: {item['license']} ({item['license_url']}). Source: {source}"
     if provider == "Internet Archive":
@@ -307,10 +356,11 @@ def main():
             raise SystemExit(f"Invalid topic-specific B-roll section: {section.get('id')}")
         section["queries"] = list(dict.fromkeys([section["query"], *section.get("queries", [])]))
     keys = {name: os.environ.get(name, "").strip()
-            for name in ("PIXABAY_API_KEY", "COVERR_API_KEY", "PEXELS_API_KEY")}
+            for name in ("PIXABAY_API_KEY", "COVERR_API_KEY", "PEXELS_API_KEY", "DVIDS_API_KEY")}
     searchers = [
       ("Pixabay", lambda q: search_pixabay(q, keys["PIXABAY_API_KEY"])),
       ("Coverr", lambda q: search_coverr(q, keys["COVERR_API_KEY"])),
+      ("DVIDS", lambda q: search_dvids(q, keys["DVIDS_API_KEY"])),
       ("NASA", search_nasa), ("Wikimedia Commons", search_wikimedia),
       ("Internet Archive", search_archive),
       ("Pexels", lambda q: search_pexels(q, keys["PEXELS_API_KEY"]))
@@ -319,7 +369,8 @@ def main():
                if name in ("NASA", "Wikimedia Commons", "Internet Archive")
                or (name == "Pixabay" and keys["PIXABAY_API_KEY"])
                or (name == "Coverr" and keys["COVERR_API_KEY"])
-               or (name == "Pexels" and keys["PEXELS_API_KEY"])]
+               or (name == "Pexels" and keys["PEXELS_API_KEY"])
+               or (name == "DVIDS" and keys["DVIDS_API_KEY"])]
     print("Enabled footage sources: " + ", ".join(enabled), flush=True)
     timing_path = root / "output" / "kokoro_narration_report.json"
     if not timing_path.is_file():
@@ -330,7 +381,13 @@ def main():
     manifest, selected, rejected, section_counts, targets = [], set(), {}, {}, {}
     errors, queries_used, coverr_count = [], [], 0
     provider_order = [name for name, _ in searchers]
-    for section in plan:
+    # Reserve globally scarce semiconductor footage for constrained sections first.
+    priority = {sid: rank for rank, sid in enumerate((
+        "section_06", "section_07", "section_08", "section_03", "section_02",
+        "section_09", "section_10", "section_01", "section_04", "section_05"
+    ))}
+    acquisition_plan = sorted(plan, key=lambda item: priority.get(item["id"], 999))
+    for section in acquisition_plan:
         sid = section["id"]
         section_dir = assets / sid
         section_dir.mkdir(parents=True, exist_ok=True)
