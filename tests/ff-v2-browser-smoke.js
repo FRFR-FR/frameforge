@@ -184,6 +184,87 @@ async function main() {
     assert.notDeepEqual(invertedMaskCenter.slice(0, 3), normalMaskCenter.slice(0, 3), 'Inverted ellipse mask should reveal the lower layer at the frame centre');
     assert.match(await page.locator('#ffv2KeyframeInfo').textContent(), /1 keyframe/);
 
+    // Seeded particle system should produce repeatable frames from the same project/frame.
+    await page.locator('#ffv2ParticlePreset').selectOption('embers');
+    await page.locator('#ffv2AddParticles').click();
+    assert.equal(await page.locator('.ffv2-clip').count(), 5);
+    await page.locator('#ffv2Playhead').evaluate(el => {
+      el.value = '24';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('visual layer'));
+    const particleFrameA = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
+      const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+      let hash=2166136261, visible=0;
+      for(let i=0;i<d.length;i+=4){
+        hash=Math.imul(hash^d[i],16777619);
+        hash=Math.imul(hash^d[i+1],16777619);
+        hash=Math.imul(hash^d[i+2],16777619);
+        if(d[i+3]>0) visible++;
+      }
+      return {hash:hash>>>0,visible};
+    });
+    const renderRevision = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id')||0);
+    await page.locator('#ffv2RenderFrame').click();
+    await page.waitForFunction(previous => Number(document.getElementById('ffv2CompositorStatus').dataset.renderId||0)>previous, renderRevision);
+    const particleFrameB = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
+      const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+      let hash=2166136261, visible=0;
+      for(let i=0;i<d.length;i+=4){
+        hash=Math.imul(hash^d[i],16777619);
+        hash=Math.imul(hash^d[i+1],16777619);
+        hash=Math.imul(hash^d[i+2],16777619);
+        if(d[i+3]>0) visible++;
+      }
+      return {hash:hash>>>0,visible};
+    });
+    assert.equal(particleFrameA.hash,particleFrameB.hash,'Seeded particles must render deterministically at a fixed frame');
+    assert.ok(particleFrameA.visible>0,'Particle and lower layers should contribute visible pixels');
+
+    // Apply a clip effect and animate its intensity.
+    await page.locator('#ffv2ClipEffectType').selectOption('glitch');
+    await page.locator('#ffv2ClipEffectIntensity').fill('0.25');
+    await page.locator('#ffv2AddClipEffect').click();
+    await page.locator('#ffv2KeyframeEffect').click();
+    await page.locator('#ffv2Playhead').evaluate(el => {
+      el.value = '42';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.locator('#ffv2ClipEffectIntensity').fill('0.9');
+    await page.locator('#ffv2KeyframeEffect').click();
+    assert.match(await page.locator('#ffv2ClipEffectInfo').textContent(), /2 effect keyframe/);
+
+    // Set an incoming wipe and an outgoing fade on the particle clip.
+    await page.locator('#ffv2TransitionType').selectOption('wipe');
+    await page.locator('#ffv2TransitionDuration').fill('18');
+    await page.locator('#ffv2TransitionDirection').selectOption('left');
+    await page.locator('#ffv2ApplyTransitionIn').click();
+    await page.locator('#ffv2TransitionType').selectOption('fade');
+    await page.locator('#ffv2ApplyTransitionOut').click();
+    assert.match(await page.locator('#ffv2TransitionInfo').textContent(), /In: wipe/);
+    assert.match(await page.locator('#ffv2TransitionInfo').textContent(), /Out: fade/);
+
+    // Playback-rate keyframes provide a speed-ramp primitive.
+    await page.locator('#ffv2KeyframeProperty').selectOption('playback_rate');
+    await page.locator('#ffv2KeyframeValue').fill('1.75');
+    await page.locator('#ffv2SetKeyframe').click();
+
+    // Named atmosphere preset and ordered Canvas2D fallback passes.
+    await page.locator('#ffv2PostRenderer').selectOption('canvas2d');
+    await page.locator('#ffv2PostPreset').selectOption('soft_glow');
+    await page.locator('#ffv2ApplyPostPreset').click();
+    assert.ok(await page.locator('.ffv2-postfx-row').count()>=2);
+    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('canvas2d'));
+
+    // Add a custom GLSL pass and confirm the browser either runs WebGL or reports fallback.
+    await page.locator('#ffv2PostRenderer').selectOption('webgl');
+    await page.locator('#ffv2AddCustomShader').click();
+    await page.waitForFunction(() => {
+      const text=document.getElementById('ffv2CompositorStatus').textContent;
+      return text.includes('webgl') || text.includes('canvas2d') || text.includes('fell back');
+    });
+    assert.ok(await page.locator('.ffv2-postfx-row').count()>=3);
+
     assert.deepEqual(pageErrors, [], 'Browser page errors should be empty');
 
     console.log('FRAMEFORGE_V2_BROWSER_SMOKE_PASS');
