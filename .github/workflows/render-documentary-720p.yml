@@ -144,6 +144,20 @@ jobs:
             echo "No downloaded B-roll manifest is available for visual review."
           fi
 
+      - name: Apply explicit visual-review decisions to the B-roll manifest
+        if: always()
+        env:
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -s "$EPISODE_DIR/asset-manifest-broll.csv" ] && [ -s "$EPISODE_DIR/output/broll_review/review_index.json" ]; then
+            python youtube-channel/tools/apply_broll_visual_decisions.py --episode-dir "$EPISODE_DIR"
+          else
+            echo "Visual approval not applied: review sheets or manifest missing."
+            exit 1
+          fi
+
       - name: Render footage-first 720p documentary
         id: render
         if: steps.broll.outputs.available == 'true'
