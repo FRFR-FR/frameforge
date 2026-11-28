@@ -79,6 +79,29 @@ class FrameForgeFoundationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
+    def test_unfilled_required_media_is_saveable_only_with_draft_record(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        beat = payload["shot_plan"]["beats"][0]
+        beat["visual_role"] = "illustration"
+        beat["evidence_requirement"] = "actual_footage"
+        beat["media_mix"] = ["source_footage"]
+        beat["asset_ids"] = []
+        missing_record = self.run_validator("validate_project.py", payload)
+        self.assertNotEqual(missing_record.returncode, 0, missing_record.stdout)
+
+        payload.setdefault("extensions", {})["production_orchestration"] = {
+            "version": 1,
+            "status": "draft_needs_assets",
+            "unfilled_beats": [{
+                "beat_id": beat["id"],
+                "narration": beat["narration"],
+                "reason": "Awaiting the specific source footage."
+            }]
+        }
+        self.assertEqual(list(self.project_validator.iter_errors(payload)), [])
+        flagged_draft = self.run_validator("validate_project.py", payload)
+        self.assertEqual(flagged_draft.returncode, 0, flagged_draft.stdout + flagged_draft.stderr)
+
     def test_editable_shot_recipe_is_schema_compatible(self) -> None:
         payload = read_json(DIRECTOR_EXAMPLE_PATH)
         beat = payload["shot_plan"]["beats"][0]
