@@ -673,8 +673,45 @@
     const projectAssets = project.assets || [];
     let drawn = 0;
     const warnings = [];
-    for (const item of Core.getActiveVisualClips(project, frame)) {
+    const activeVisual = Core.getActiveVisualClips(project, frame);
+    const processed3DTracks = new Set();
+    for (const item of activeVisual) {
       const clip = item.clip;
+      const referencedAsset = clip.asset_id ? projectAssets.find(ref => ref.id === clip.asset_id) : null;
+      const is3DModel = item.track.type === 'scene3d' || referencedAsset?.media_type === 'model3d';
+      if (is3DModel) {
+        const trackKey = item.track.id;
+        if (processed3DTracks.has(trackKey)) continue;
+        processed3DTracks.add(trackKey);
+        const modelItems = activeVisual.filter(candidate => candidate.track.id === trackKey && candidate.clip.asset_id &&
+          projectAssets.find(asset => asset.id === candidate.clip.asset_id)?.media_type === 'model3d');
+        try {
+          if (!root.FFV2ThreeStudio || typeof options.resolveModelAsset !== 'function') {
+            throw new Error('The local Three.js runtime or 3D asset resolver is unavailable.');
+          }
+          const models = [];
+          for (const candidate of modelItems) {
+            const ref = projectAssets.find(asset => asset.id === candidate.clip.asset_id);
+            const asset = await options.resolveModelAsset(ref);
+            models.push({ asset, clip:candidate.clip });
+          }
+          const settings = Core.getMainSequence(project).scene3d || Core.default3DSceneSettings();
+          const result = await root.FFV2ThreeStudio.renderTrack({
+            models, allAssets:options.modelAssets || [], resolveDependency:options.resolveModelDependency,
+            settings, width:sequence.width, height:sequence.height, frame, fps:sequence.fps
+          });
+          output.save();
+          output.globalAlpha = 1;
+          output.globalCompositeOperation = 'source-over';
+          output.drawImage(result.canvas,0,0);
+          output.restore();
+          drawn += result.drawn;
+          if (result.collisions.length) warnings.push({clip_id:modelItems[0]?.clip.id || trackKey,message:result.collisions.length+' approximate AABB contact(s) detected in the 3D scene.'});
+        } catch (error) {
+          warnings.push({clip_id:clip.id,message:'3D layer not rendered: '+error.message});
+        }
+        continue;
+      }
       try {
         const baseTransform = resolveGlobalTransform(clip, frame, byId);
         const transition = transitionValues(clip, frame, sequence, baseTransform);
