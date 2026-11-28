@@ -209,5 +209,76 @@
       ]
     }
   ],
-  "models": []
+  "models": [
+    {
+      "asset_id": "bridge-triangle",
+      "name": "Bridge Triangle",
+      "asset_path": "assets/frameforge-bridge-triangle.gltf",
+      "start_frame": 0,
+      "duration_frames": 48,
+      "transform": {
+        "position": [
+          1.5,
+          0,
+          0
+        ],
+        "rotation": [
+          90,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "animation": {
+        "enabled": true,
+        "clip_name": "Triangle bob",
+        "time_scale": 1,
+        "loop": true,
+        "start_frame": 0
+      },
+      "keyframes": [
+        {
+          "property": "position3d.x",
+          "frame": 0,
+          "value": 1.5,
+          "interpolation": "linear"
+        },
+        {
+          "property": "position3d.x",
+          "frame": 47,
+          "value": 2.5,
+          "interpolation": "ease_in_out"
+        },
+        {
+          "property": "rotation3d.z",
+          "frame": 0,
+          "value": 0,
+          "interpolation": "linear"
+        },
+        {
+          "property": "rotation3d.z",
+          "frame": 47,
+          "value": 90,
+          "interpolation": "ease_in_out"
+        }
+      ],
+      "constraints": [
+        {
+          "type": "ground_contact",
+          "enabled": true,
+          "ground_y": 0,
+          "offset": 0
+        },
+        {
+          "type": "aabb_collision",
+          "enabled": true,
+          "mode": "push_up"
+        }
+      ]
+    }
+  ]
 }
