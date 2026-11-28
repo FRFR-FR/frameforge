@@ -5,6 +5,7 @@
   'use strict';
   const VERSION = '0.164.1';
   const cache = new Map();
+  const instanceCache = new Map();
   let renderer = null;
   let renderCanvas = null;
   let rendererSize = '';
@@ -153,7 +154,7 @@
   }
 
   function setInstanceTransform(THREE,instance,clip,frame,fps) {
-    const transform=clip.transform3d||{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]};
+    const transform=root.FFV2Core?.evaluate3DClipState ? root.FFV2Core.evaluate3DClipState(clip,frame) : (clip.transform3d||{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]});
     instance.group.position.fromArray(transform.position||[0,0,0]);
     const rotation=(transform.rotation||[0,0,0]).map(n=>Number(n)*Math.PI/180);
     instance.group.rotation.set(rotation[0],rotation[1],rotation[2],'XYZ');
@@ -229,7 +230,7 @@
     const instances=[];
     for(const item of options.models||[]){
       const loaded=await loadModel(item.asset,options.allAssets,options.resolveDependency);
-      let instance=item.clip.__threeInstance;
+      let instance=instanceCache.get(item.clip.id);
       if(!instance){
         const model=THREE.SkeletonUtils?.clone ? THREE.SkeletonUtils.clone(loaded.gltf.scene) : loaded.gltf.scene.clone(true);
         const group=new THREE.Group();
@@ -237,7 +238,7 @@
         group.add(model);
         const mixer=loaded.animations.length?new THREE.AnimationMixer(model):null;
         instance={group,model,loaded,mixer,action:null,clip:item.clip};
-        item.clip.__threeInstance=instance;
+        instanceCache.set(item.clip.id,instance);
       } else {
         instance.clip=item.clip;
       }
@@ -266,5 +267,6 @@
   }
 
   function purge(assetId) { cache.delete(assetId); }
-  root.FFV2ThreeStudio={VERSION,loadModel,inspectModelFile,renderTrack,capabilities,purge};
+  function purgeClip(clipId) { instanceCache.delete(clipId); }
+  root.FFV2ThreeStudio={VERSION,loadModel,inspectModelFile,renderTrack,capabilities,purge,purgeClip};
 })(typeof window!=='undefined'?window:globalThis);
