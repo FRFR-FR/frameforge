@@ -382,9 +382,13 @@
       for (const id of beat.evidence_claim_ids || []) if (!claims.has(id)) blockers.push('Shot '+beat.id+' references missing claim '+id+'.');
       for (const id of beat.asset_ids || []) if (!project.assets.some(asset => asset.id === id)) blockers.push('Shot '+beat.id+' references missing asset '+id+'.');
       const evidenceRequirement = beat.evidence_requirement || 'none';
+      if (['source_document','actual_footage','official_screenshot','sourced_data'].includes(evidenceRequirement) &&
+          !['factual_evidence','comparative_evidence'].includes(beat.visual_role)) {
+        blockers.push('Shot '+beat.id+' requires sourced evidence but is still marked as illustration or a non-evidence role.');
+      }
       if (evidenceRequirement === 'actual_footage' && !beat.media_mix.includes('source_footage')) blockers.push('Shot '+beat.id+' needs actual source footage but its media mix does not include source_footage.');
       if (evidenceRequirement === 'official_screenshot' && !beat.media_mix.includes('screenshots')) blockers.push('Shot '+beat.id+' needs an official screenshot but its media mix does not include screenshots.');
-      if (evidenceRequirement === 'sourced_data' && !['factual_evidence','comparative_evidence'].includes(beat.visual_role)) warnings.push('Shot '+beat.id+' uses data but is not marked as evidence; label the data as illustrative or link verified claims.');
+      if (evidenceRequirement === 'sourced_data' && !beat.media_mix.includes('diagram')) warnings.push('Shot '+beat.id+' requires sourced data but its media mix does not include a diagram or chart.');
     }
     for (const asset of project.assets) {
       const decision = reviews.get(asset.id);
@@ -482,7 +486,7 @@
     for (const source of project.research.sources) {
       const row = root.document.createElement('div'); row.className='ffv2-director-list-row';
       const title = root.document.createElement('a'); title.href=source.url; title.target='_blank'; title.rel='noopener noreferrer';
-      title.textContent=(source.title || source.url)+' · '+source.source_type+' · '+source.confidence;
+      title.textContent=(source.title || source.url)+' · '+source.source_type+' · '+source.confidence+' · ID '+source.id;
       const remove=root.document.createElement('button'); remove.type='button'; remove.className='button small quiet'; remove.textContent='Remove';
       remove.addEventListener('click',()=>{project.research.sources=project.research.sources.filter(item=>item.id!==source.id);project.research.claims.forEach(claim=>{claim.source_ids=(claim.source_ids||[]).filter(id=>id!==source.id);});markDirty();refresh();});
       row.append(title,remove);host.append(row);
@@ -505,7 +509,7 @@
     const host=el('ffv2ResearchClaimList');if(!host)return;host.replaceChildren();
     for(const claim of project.research.claims){
       const card=root.document.createElement('article');card.className='ffv2-director-claim';
-      const heading=root.document.createElement('strong');heading.textContent=claim.classification+' · '+claim.verification_status;
+      const heading=root.document.createElement('strong');heading.textContent=claim.classification+' · '+claim.verification_status+' · ID '+claim.id;
       const text=root.document.createElement('p');text.textContent=claim.text;
       const sources=root.document.createElement('small');sources.textContent='Sources: '+((claim.source_ids||[]).join(', ')||'none');
       const remove=root.document.createElement('button');remove.type='button';remove.className='button small quiet';remove.textContent='Remove claim';
@@ -574,7 +578,7 @@
     if(!project.assets.length){host.textContent='No imported assets to review.';return;}
     for(const asset of project.assets){
       const card=root.document.createElement('article');card.className='ffv2-rights-card';
-      const title=root.document.createElement('strong');title.textContent=asset.label||asset.id;
+      const title=root.document.createElement('strong');title.textContent=(asset.label||asset.id)+' · ID '+asset.id;
       const current=root.document.createElement('small');current.textContent='Current rights: '+(asset.rights?.status||'unknown');
       const select=root.document.createElement('select');select.setAttribute('aria-label','Rights decision for '+(asset.label||asset.id));
       const decisions=[['needs_review','Needs review'],['approved','Approved — permission/basis documented'],['approved_with_limits','Approved with limits'],['permission_required','Permission required / restricted'],['rejected','Rejected']];
