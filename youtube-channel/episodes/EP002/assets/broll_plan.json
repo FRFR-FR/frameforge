@@ -135,30 +135,30 @@
   {
     "id": "section_04",
     "title": "Turning a tin droplet into a flash of light",
-    "query": "industrial laser precision manufacturing machine",
+    "query": "EUV tin droplet laser-produced plasma source",
     "queries": [
-      "laser processing machine industrial close up",
-      "industrial laser source equipment",
-      "laser precision manufacturing system",
-      "plasma process industrial machine"
+      "ASML EUV tin droplet plasma source machine",
+      "tin droplet EUV light source semiconductor lithography",
+      "laser-produced plasma EUV source collector mirror"
     ],
     "count": 6,
     "cutaway_seconds": 12,
     "match_groups": [
       [
-        "laser",
-        "plasma",
         "tin",
+        "droplet",
         "euv",
-        "lithography"
+        "lithography",
+        "semiconductor",
+        "collector"
       ],
       [
-        "industrial",
-        "manufacturing",
+        "source",
+        "plasma",
         "machine",
-        "processing",
-        "factory",
-        "precision",
+        "optics",
+        "vacuum",
+        "manufacturing",
         "equipment"
       ]
     ],

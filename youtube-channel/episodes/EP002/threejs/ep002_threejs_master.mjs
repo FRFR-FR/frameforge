@@ -269,6 +269,7 @@ function makeTinScene(T,detailed){
   var steel=mat(T,0x78899A,0.92,0.22),brushed=mat(T,0xB4C0CA,0.86,0.20),titanium=mat(T,0x596B7C,0.88,0.25);
   var ceramic=mat(T,0xD9E0E5,0.2,0.28),black=mat(T,0x101923,0.48,0.42);
   var glass=mat(T,0x6C99BA,0.22,0.12,0x071B30,true,0.2);
+  var redGlow=mat(T,PALETTE.red,0.18,0.16,PALETTE.red);
   var gold=mat(T,0xC3A16A,0.9,0.19),tin=mat(T,0xD2DCE5,0.94,0.13);
   var hot=mat(T,0xFFB35C,0.08,0.16,0xFF6A28),cyan=mat(T,PALETTE.cyan,0.12,0.15,0x53CFFF);
   // Machined vacuum vessel, flanges, seals, service skid and inspection window.

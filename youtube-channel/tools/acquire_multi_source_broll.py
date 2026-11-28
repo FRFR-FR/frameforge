@@ -379,6 +379,7 @@ def main():
     assets = root / "assets" / "broll"
     assets.mkdir(parents=True, exist_ok=True)
     manifest, selected, rejected, section_counts, targets = [], set(), {}, {}, {}
+    minimums = {}
     errors, queries_used, coverr_count = [], [], 0
     provider_order = [name for name, _ in searchers]
     # Reserve globally scarce semiconductor footage for constrained sections first.
@@ -387,6 +388,34 @@ def main():
         "section_09", "section_10", "section_01", "section_04", "section_05"
     ))}
     acquisition_plan = sorted(plan, key=lambda item: priority.get(item["id"], 999))
+
+    def persist_partial():
+        if not manifest:
+            return
+        with (root / "asset-manifest-broll.csv").open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(manifest[0].keys()))
+            writer.writeheader()
+            writer.writerows(manifest)
+        credits = ["FOOTAGE CREDITS — append this block to the YouTube video description", ""]
+        credits += list(dict.fromkeys(credit(item) for item in manifest))
+        (root / "output" / "footage_attribution_description.txt").write_text("\\n".join(credits) + "\\n", encoding="utf-8")
+        used = {}
+        for row in manifest:
+            used[row["provider"]] = used.get(row["provider"], 0) + 1
+        partial_report = {
+            "status": "PARTIAL_ACQUISITION",
+            "enabled_sources": enabled,
+            "providers_used": used,
+            "unique_clips": len(manifest),
+            "sections": section_counts,
+            "section_requirements": minimums,
+            "queries_used": queries_used,
+            "source_errors": errors,
+            "generic_fallbacks": "disabled",
+            "third_party_rights_review": "PENDING human review before publication"
+        }
+        (root / "broll_acquisition_report.json").write_text(json.dumps(partial_report, indent=2), encoding="utf-8")
+
     for section in acquisition_plan:
         sid = section["id"]
         section_dir = assets / sid
@@ -401,6 +430,7 @@ def main():
         minimum = max(6, shots)
         target = max(int(section["count"]), minimum)
         targets[sid] = target
+        minimums[sid] = minimum
         candidates = {}
         for query in section["queries"]:
             queries_used.append({"section_id": sid, "query": query})
@@ -427,9 +457,9 @@ def main():
                                  "relevance_groups_total": len(section["match_groups"])})
                     if aid not in candidates or item["score"] > candidates[aid]["score"]:
                         candidates[aid] = item
-                if len(candidates) >= target + 4:
-                    print(f"[{sid}] enough candidates collected ({len(candidates)}/{target}); skipping extra fallback queries.", flush=True)
-                    break
+            if len(candidates) >= target + 4:
+                print(f"[{sid}] enough candidates collected ({len(candidates)}/{target}); skipping extra fallback queries.", flush=True)
+                break
         groups = {}
         for item in candidates.values():
             groups.setdefault(item["provider"], []).append(item)
@@ -485,6 +515,7 @@ def main():
                 coverr_count += 1
             print(f"ACCEPTED [{sid}] {dest.name} from {item['provider']} ({item['relevance_level']})", flush=True)
         section_counts[sid] = accepted
+        persist_partial()
         if accepted < minimum:
             raise SystemExit(f"{sid}: only {accepted} relevant clips found across all enabled sources; {minimum} required. No generic filler substituted.")
         print(f"[{sid}] selected {accepted}/{target} relevant clips", flush=True)

@@ -66,7 +66,7 @@ try {
   page.on("pageerror", error => { console.error("THREEJS_PAGE_ERROR", error.message); });
   page.on("console", message => { if (message.type() === "error") console.error("THREEJS_CONSOLE_ERROR", message.text()); });
   await page.goto(baseURL + "/youtube-channel/episodes/EP002/threejs/render_frame.html", {waitUntil:"load"});
-  await page.waitForFunction("window.__READY === true && window.__PLAYER", {timeout:90000});
+  await page.waitForFunction("window.__READY === true && window.__PLAYER", null, {timeout:90000});
   const canvasSize = await page.locator("#stage canvas").evaluate(canvas => [canvas.width,canvas.height]);
   if (canvasSize[0] !== WIDTH || canvasSize[1] !== HEIGHT) {
     throw new Error("Three.js scene canvas is not 1280x720: " + canvasSize.join("x"));

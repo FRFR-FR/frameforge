@@ -132,13 +132,17 @@ jobs:
           echo "available=true" >> "$GITHUB_OUTPUT"
 
       - name: Build per-clip visual-review contact sheets
-        if: steps.broll.outputs.available == 'true'
+        if: always()
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
         run: |
           set -euo pipefail
-          python youtube-channel/tools/create_broll_review_sheets.py --episode-dir "$EPISODE_DIR"
+          if [ -n "$EPISODE_DIR" ] && [ -s "$EPISODE_DIR/asset-manifest-broll.csv" ]; then
+            python youtube-channel/tools/create_broll_review_sheets.py --episode-dir "$EPISODE_DIR"
+          else
+            echo "No downloaded B-roll manifest is available for visual review."
+          fi
 
       - name: Render footage-first 720p documentary
         id: render
