@@ -299,8 +299,8 @@
     ensureDirectorData(project);
     const brief = project.creative_brief;
     const sequence = root.FFV2Core.getMainSequence(project);
-    const fps = Number(options?.fps || sequence.fps || project.settings.fps || 30);
-    const targetSeconds = Number(options?.duration_seconds || brief.target_duration_seconds || 30);
+    const fps = Number(options?.fps ?? sequence.fps ?? project.settings.fps ?? 30);
+    const targetSeconds = Number(options?.duration_seconds ?? brief.target_duration_seconds ?? 30);
     if (!Number.isFinite(fps) || fps <= 0 || fps > 240) throw new Error('Project frame rate is invalid.');
     if (!Number.isFinite(targetSeconds) || targetSeconds <= 0 || targetSeconds > 7200) throw new Error('Target duration must be between 0 and 7,200 seconds.');
     const script = String(options?.script ?? brief.narration_script ?? '').trim();
