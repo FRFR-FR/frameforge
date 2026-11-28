@@ -148,6 +148,12 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
                 proof_role = beat.get("visual_role") in {"factual_evidence", "comparative_evidence"}
                 if proof_role and not linked_claims:
                     errors.append("Evidence shot beat must reference at least one claim: " + str(beat.get("id")))
+                for asset_id in beat.get("asset_ids", []) if isinstance(beat.get("asset_ids", []), list) else []:
+                    if asset_id not in asset_ids:
+                        errors.append(
+                            "Shot beat " + str(beat.get("id")) +
+                            " references missing asset: " + str(asset_id)
+                        )
                 for claim_id in linked_claims:
                     if claim_id not in claim_ids:
                         errors.append(
@@ -169,11 +175,15 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
     raw_rights_review = data.get("rights_review")
     if isinstance(raw_rights_review, dict):
         reviews = raw_rights_review.get("asset_reviews", [])
-        review_ids = _unique_ids(reviews, "asset rights review", errors)
+        review_ids: set[str] = set()
         for review in reviews if isinstance(reviews, list) else []:
             if not isinstance(review, dict):
                 continue
             asset_id = review.get("asset_id")
+            if isinstance(asset_id, str) and asset_id in review_ids:
+                errors.append("Duplicate asset rights review: " + asset_id)
+            if isinstance(asset_id, str):
+                review_ids.add(asset_id)
             if asset_id not in asset_ids:
                 errors.append("Rights review references missing asset: " + str(asset_id))
             if review.get("decision") in {"approved", "approved_with_limits"} and (
