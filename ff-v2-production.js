@@ -328,6 +328,33 @@
     return parts.join('');
   }
 
+  function createProceduralParticleClip(project, spec, options) {
+    const input = spec || {};
+    const opts = options || {};
+    const sequence = Core.getMainSequence(project);
+    let track = sequence.tracks.find(item => item.type === 'graphic' && !item.locked);
+    if (!track) track = Core.addTrack(project, 'graphic', 'Procedural particles');
+    const preset = ['sparks','dust','embers','magic','confetti'].includes(input.preset) ? input.preset : 'sparks';
+    const parameters = {
+      preset: preset,
+      count: Math.round(asNumber(input.count, 72, 1, 500)),
+      seed: Math.round(asNumber(input.seed, 1337, 0, 2147483647)),
+      speed: asNumber(input.speed, 1, 0, 8),
+      size: asNumber(input.size, 3.5, 0.2, 30),
+      color: /^#[0-9a-f]{6}$/i.test(input.color || '') ? input.color : '#ffc46b',
+      spread: asNumber(input.spread, 1, 0.1, 4),
+      gravity: asNumber(input.gravity, 72, -500, 500),
+      life_seconds: asNumber(input.life_seconds, 1.8, 0.1, 20)
+    };
+    const clip = Core.addGraphicClip(
+      project, track.id, 'particles', parameters,
+      Math.max(0, Math.round(Number(opts.start_frame) || 0)),
+      Math.max(1, Math.round(Number(opts.duration_frames) || sequence.fps * 3))
+    );
+    clip.generated_by = 'frameforge_procedural_v1';
+    return clip;
+  }
+
   function createProceduralGraphicClip(project, spec, options) {
     const input = spec || {};
     const opts = options || {};
@@ -441,7 +468,8 @@
   function importOptionsForSelection(selected, audioRole) {
     const item = selected || {};
     const license = text(item.license_name, 300);
-    const sourceType = ['public_domain','open_license'].includes(item.source_type) ? item.source_type : 'unknown';
+    const sourceType = ['public_domain','open_license'].includes(item.source_type) ? item.source_type
+      : (/cc0|public domain|pdm/i.test(license) ? 'public_domain' : (license ? 'open_license' : 'unknown'));
     const attributionRequired = attributionIsRequired(license);
     const attribution = text(item.attribution_text, 1800) ||
       (item.creator && item.creator !== 'Creator not supplied' ? 'Creator: ' + item.creator + '. Source: ' + item.landing_url : '');
@@ -650,7 +678,7 @@
 
   const api = {
     RECIPES, PROVIDERS, listRecipes, instantiateShotRecipe, applyShotRecipe, safeHttpUrl,
-    buildGraphicSvg, createProceduralGraphicClip, providerSearchUrl, searchProvider,
+    buildGraphicSvg, createProceduralGraphicClip, createProceduralParticleClip, providerSearchUrl, searchProvider,
     importOptionsForSelection, registerAudioMetadata, audioCatalogue, buildAudioCredits,
     audioPackagingReport, assembleShotPlan
   };
