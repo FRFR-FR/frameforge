@@ -860,9 +860,11 @@
         const assetPath=folder+relativeName;
         if(!included.has(assetPath)){files.push({name:assetPath,data:asset.blob});included.add(assetPath);}
         for(const uri of asset.metadata?.external_dependencies||[]){
-          const normalized=String(uri).replace(/\\\\/g,'/');
-          if(normalized.startsWith('/')||normalized.split('/').includes('..')) throw new Error('Unsafe external glTF dependency path: '+uri);
-          const basename=decodeURIComponent(normalized.split('/').pop()||'');
+          let normalized;
+          try { normalized=decodeURIComponent(String(uri)).replace(/\\\\/g,'/'); }
+          catch (_) { throw new Error('Invalid encoded glTF dependency path: '+uri); }
+          if(normalized.startsWith('/')||/^[a-z]:/i.test(normalized)||normalized.split('/').includes('..')) throw new Error('Unsafe external glTF dependency path: '+uri);
+          const basename=normalized.split('/').pop()||'';
           const dependency=state.assetRecords.find(record=>record.blob&&(record.file_name||'').toLowerCase()===basename.toLowerCase());
           if(!dependency) throw new Error('Missing glTF dependency "'+uri+'". Import every referenced .bin/texture asset first.');
           const dependencyPath=folder+normalized;
