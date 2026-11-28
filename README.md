@@ -1,6 +1,6 @@
 # FrameForge — Draw, Code, Animate
 
-FrameForge is a lightweight, browser-based, frame-by-frame animation studio. It is built with plain HTML, CSS, and JavaScript. It has **no dependencies, server, API key, paid AI credits, image-generation service, WebGL, or WebGPU**.
+FrameForge is a lightweight, browser-based, frame-by-frame animation studio. It is built with plain HTML, CSS, and JavaScript. The legacy V1 drawing editor uses Canvas 2D; V2 adds optional browser-native WebGL 1 post-processing with a Canvas 2D fallback. No remote shader library, server API key, paid render service, paid AI credits or image-generation service is required.
 
 It is designed to run as a static website on GitHub Pages, including from a phone browser.
 
@@ -70,7 +70,7 @@ Each frame stores its rendered code layer independently. Code layers sit above t
 
 ## Performance and limits
 
-- There is no dedicated-GPU requirement and the application does not use a 3D graphics API. It uses the browser's Canvas 2D implementation, which can run on CPU-capable devices. Some browsers may internally accelerate Canvas 2D; the app cannot force every browser to use CPU-only rendering.
+- The legacy V1 drawing editor uses Canvas 2D and does not require a dedicated GPU. V2 can optionally use browser-native WebGL 1 for post-processing, and falls back to Canvas 2D when WebGL or a shader is unavailable. Some Canvas 2D operations may still be internally accelerated by the browser.
 - The default canvas is 720 × 1280. Larger canvases and many detailed frames use more memory and may run slowly on phones.
 - 30 FPS is the playback/export target. Actual drawing and playback smoothness depends on the phone/browser, number of frames, and complexity of the artwork.
 - Hand-drawn artwork is raster per frame. The code layer can draw detailed paths, gradients, textures, and effects, but the user still authors the artwork; this is not an automatic film generator.
