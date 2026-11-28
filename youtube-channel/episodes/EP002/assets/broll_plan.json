@@ -36,12 +36,19 @@
   {
     "id": "section_02",
     "title": "A chip is a city built in layers",
-    "query": "silicon wafer semiconductor manufacturing",
+    "query": "semiconductor wafer",
     "queries": [
-      "silicon wafer polishing manufacturing",
-      "semiconductor wafer handling robot",
-      "microchip wafer inspection equipment",
-      "semiconductor wafer fabrication cleanroom"
+      "semiconductor wafer",
+      "silicon wafer",
+      "microchip",
+      "microchips",
+      "computer chip",
+      "integrated circuit",
+      "semiconductor manufacturing process",
+      "How ST designs and manufactures semiconductor devices",
+      "The future of computer chips is being made in Albany NY",
+      "What’s Next in Semiconductors",
+      "Zoom Into a Microchip"
     ],
     "count": 6,
     "cutaway_seconds": 12,
@@ -49,9 +56,14 @@
       [
         "semiconductor",
         "microchip",
+        "microchips",
         "wafer",
         "silicon",
-        "chip"
+        "chip",
+        "chips",
+        "integrated",
+        "circuit",
+        "processor"
       ],
       [
         "inspection",
@@ -62,20 +74,31 @@
         "manufacturing",
         "processing",
         "machine",
-        "cleanroom"
+        "cleanroom",
+        "production",
+        "microelectronics",
+        "etching",
+        "ingot",
+        "wafer",
+        "fab"
       ]
     ],
-    "context_only_allowed": true
+    "context_only_allowed": false
   },
   {
     "id": "section_03",
     "title": "Why the industry needed a different kind of light",
-    "query": "semiconductor photolithography machine optics",
+    "query": "EUV lithography",
     "queries": [
-      "EUV lithography scanner semiconductor",
-      "photolithography semiconductor machine cleanroom",
-      "precision optical mirror manufacturing",
-      "semiconductor lithography optics equipment"
+      "EUV lithography",
+      "How EUV lithography works",
+      "photolithography",
+      "semiconductor lithography",
+      "chip lithography",
+      "semiconductor wafer exposure",
+      "JSR and IBM Quantum envision a revolution in semiconductor manufacturing",
+      "microchip lithography",
+      "semiconductor optics"
     ],
     "count": 6,
     "cutaway_seconds": 12,
@@ -86,7 +109,10 @@
         "euv",
         "photolithography",
         "wafer",
-        "microchip"
+        "microchip",
+        "chip",
+        "photomask",
+        "reticle"
       ],
       [
         "optics",
@@ -96,10 +122,15 @@
         "scanner",
         "machine",
         "cleanroom",
-        "equipment"
+        "equipment",
+        "laser",
+        "illumination",
+        "exposure",
+        "plasma",
+        "ultraviolet"
       ]
     ],
-    "context_only_allowed": true
+    "context_only_allowed": false
   },
   {
     "id": "section_04",
@@ -169,24 +200,32 @@
   {
     "id": "section_06",
     "title": "From a pattern on a mask to a pattern on silicon",
-    "query": "semiconductor wafer photoresist lithography processing",
+    "query": "photoresist",
     "queries": [
-      "wafer photoresist spin coating machine",
-      "semiconductor photomask reticle manufacturing",
-      "silicon wafer lithography processing",
-      "semiconductor wafer coating cleanroom"
+      "photoresist",
+      "wafer photoresist",
+      "photoresist coating",
+      "spin coating wafer",
+      "photolithography",
+      "semiconductor wafer",
+      "silicon wafer processing",
+      "Accelerated Materials Discovery Project Photoresist",
+      "How EUV lithography works",
+      "semiconductor microchip fabrication"
     ],
     "count": 6,
     "cutaway_seconds": 12,
     "match_groups": [
       [
-        "wafer",
-        "semiconductor",
         "photoresist",
         "photomask",
         "reticle",
         "lithography",
-        "microchip"
+        "wafer",
+        "semiconductor",
+        "microchip",
+        "chip",
+        "silicon"
       ],
       [
         "coating",
@@ -196,20 +235,32 @@
         "machine",
         "cleanroom",
         "manufacturing",
-        "factory"
+        "factory",
+        "develop",
+        "etch",
+        "exposure",
+        "resist",
+        "deposition"
       ]
     ],
-    "context_only_allowed": true
+    "context_only_allowed": false
   },
   {
     "id": "section_07",
     "title": "The wafer stage: precision while in motion",
-    "query": "semiconductor wafer robot precision alignment",
+    "query": "semiconductor wafer robot",
     "queries": [
-      "wafer handling robot cleanroom semiconductor",
-      "precision motion stage manufacturing machine",
-      "wafer alignment metrology equipment",
-      "semiconductor wafer inspection robotics"
+      "semiconductor wafer robot",
+      "wafer handling",
+      "robotic wafer handler",
+      "semiconductor wafer",
+      "integrated circuit",
+      "chip production",
+      "How ST designs and manufactures semiconductor devices",
+      "The future of computer chips is being made in Albany NY",
+      "semiconductor cleanroom manufacturing",
+      "semiconductor wafer inspection",
+      "microchip manufacturing"
     ],
     "count": 6,
     "cutaway_seconds": 12,
@@ -219,7 +270,10 @@
         "semiconductor",
         "chip",
         "microchip",
-        "silicon"
+        "silicon",
+        "integrated",
+        "circuit",
+        "processor"
       ],
       [
         "robot",
@@ -230,20 +284,30 @@
         "machine",
         "sensor",
         "handling",
-        "inspection"
+        "inspection",
+        "automation",
+        "cleanroom",
+        "robotics",
+        "fabrication"
       ]
     ],
-    "context_only_allowed": true
+    "context_only_allowed": false
   },
   {
     "id": "section_08",
     "title": "Repeating the process without losing alignment",
-    "query": "semiconductor wafer inspection metrology machine",
+    "query": "semiconductor wafer inspection",
     "queries": [
-      "semiconductor wafer inspection machine",
-      "microchip wafer metrology equipment",
-      "semiconductor etching equipment cleanroom",
-      "wafer fabrication process machine"
+      "semiconductor wafer inspection",
+      "wafer metrology",
+      "microchip close up",
+      "integrated circuit",
+      "chip inspection",
+      "5 nanometer transistor how they did it",
+      "Zoom Into a Microchip",
+      "What’s Next in Semiconductors",
+      "semiconductor manufacturing process",
+      "silicon wafer inspection"
     ],
     "count": 6,
     "cutaway_seconds": 12,
@@ -253,7 +317,11 @@
         "semiconductor",
         "chip",
         "microchip",
-        "lithography"
+        "lithography",
+        "integrated",
+        "circuit",
+        "transistor",
+        "silicon"
       ],
       [
         "inspection",
@@ -264,10 +332,15 @@
         "measurement",
         "processing",
         "cleanroom",
-        "machine"
+        "machine",
+        "microscope",
+        "imaging",
+        "alignment",
+        "exposure",
+        "defect"
       ]
     ],
-    "context_only_allowed": true
+    "context_only_allowed": false
   },
   {
     "id": "section_09",
