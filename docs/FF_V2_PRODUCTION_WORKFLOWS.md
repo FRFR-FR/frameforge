@@ -85,11 +85,10 @@ The result is an editable timeline/project draft with clip IDs, timed cue metada
 
 ## Verification
 
-The repository CI checks are configured to run:
+Verified on commit `34ac979ce91fd0fdea064d1740f9fa2b874efbb5`:
 
-- Node syntax checks and production unit tests in [Foundation Validation](../.github/workflows/ff-v2-foundation-tests.yml).
-- Schema and Python semantic tests, including recipe-schema compatibility and explicit unfilled-shot handling, in the same workflow.
-- Chromium integration in [Browser Smoke](../.github/workflows/ff-v2-browser-smoke.yml), covering recipe application, procedural SVG, local WAV import, pending-audio packaging gate, timeline assembly and IndexedDB reload.
+- [Foundation Validation run 46136634856 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46136634856): 74 JavaScript tests passed; 31 Python tests passed; syntax, schema, semantic and FFmpeg integration checks passed.
+- [Browser Smoke run 46136634866 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46136634866): V2, audio, research-director and production Chromium smoke tests passed. The production test exercised recipe application, procedural SVG, local WAV import, the pending-audio package gate, timeline assembly, explicitly unfilled required footage and IndexedDB reload.
 
 ## Boundaries
 
