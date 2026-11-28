@@ -1,7 +1,7 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–35  
+**Current completed batch:** Steps 1–40  
 **Last updated:** 2026-11-28
 
 ## Batch 1–5 status
@@ -307,9 +307,54 @@ This is a production workflow safeguard, not legal advice or a determination tha
 - [Chromium browser smoke run 46128610562 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46128610562): visual, audio and director smoke tests all passed. The director test verified brief/ambiguity intake, source and reference records, pinpoint claim locator entry, niche profile editing, timed shot generation, verified claim linking, asset rights approval and persistence after reload.
 - Detailed workflow and limitations: [FF_V2_RESEARCH_AND_DIRECTOR.md](FF_V2_RESEARCH_AND_DIRECTOR.md).
 
-## Current V2 boundary after steps 1–35
+## Batch 36–40 status
 
-The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions, and a WebGL Three.js r164.1 scene renderer for imported GLB/glTF models. It exports transparent PNG frames and packages 3D scenes for Blender. The audio engine provides editable multi-track mixing, waveforms, event-linked SFX, automation, ducking and WAV mastering; an FFmpeg utility muxes a WAV master with an already-rendered silent video. The Research & Visual Director stores a production brief, source/reference dossier, optional page/timecode locators on source-backed claims, editable niche profile, timed narration shot plan and evidence/rights review. V2 still does **not** render an entire timeline to MP4 automatically. Full-sequence rendering, resumable chunks, integrated FFmpeg export and technical QA remain later roadmap steps. The legacy V1 editor and existing Blender production workflows remain available.
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 36 | Reusable shot recipes | Implemented | Nine editable recipes; recipe metadata and timing fields added to the V2 schema |
+| 37 | Free/open media source adapters | Implemented with manual-download boundary | Openverse and Wikimedia Commons search; Poly Haven and Internet Archive manual links; local importer stores source/licence/creator/attribution/restrictions metadata as pending |
+| 38 | Procedural asset and motion-graphics builder | Implemented | Editable SVG and seeded particle clips; charts use explicit user values or are labelled illustrative sample data |
+| 39 | Free/licensed audio workflow | Implemented as rights-aware catalogue/report | Voiceover/music/SFX roles, licence/credit/usage-limit metadata; unapproved audio and missing required credits block the package report |
+| 40 | Shot assembly and production orchestrator | Implemented as editable draft assembly | Linked assets become real editable clips; recipes supply transitions/effects; unfilled actual-footage shots are recorded and remain blocked by the director readiness gate |
+
+## Step 36 — Reusable shot recipes
+
+Added nine configurable shot recipes: character reveal, comparison, explainer, diagram, map, timeline, evidence callout, gameplay/UI overlay and documentary scene. A recipe records composition, media priority, camera/action language, motion treatment, effects, transition, overlay guidance and duration scale. The chosen recipe is stored on the beat with schema-validated fields. Narration start/end frames are preserved; the scaled assembly duration is recorded separately so the editor can revise it without losing the original timing.
+
+## Step 37 — Free/open media source adapters
+
+Added user-triggered Openverse image/audio search and Wikimedia Commons file search, each capped at eight results per request. Results retain creator, source/landing URL, licence details and attribution fields. Poly Haven (CC0 assets; API use has a unique User-Agent and visible-credit requirement) and Internet Archive (rights vary by item) are linked as manual browser workflows. The Freesound API is not integrated because its free API access is limited to non-commercial use; see the dedicated production guide for source terms.
+
+This batch does not automatically download stock media. The user inspects the source page and downloads a chosen asset manually, then imports the local file through the validated V2 importer. Provider, creator, licence, source, attribution and usage restrictions are stored in provenance/rights metadata. All imported catalogue assets remain pending until a documented user rights review; search discovery is not rights approval.
+
+## Step 38 — Procedural assets and motion graphics
+
+Added code-generated SVG backgrounds, comparison layouts, flowcharts/system diagrams, schematic maps, timelines, evidence callouts, bar charts and key-idea badges. SVG text is escaped and the artwork passes the shared SVG safety validator. Added deterministic seeded particle clips with sparks, dust, embers, magic and confetti presets. The UI accepts chart labels and values; empty charts visibly identify sample data as illustrative. Schematic maps are marked not to scale and timeline/evidence treatments carry source-check reminders. All generated graphics remain editable timeline clips and do not replace source evidence.
+
+## Step 39 — Audio catalogue and usage limits
+
+Added audio role assignment for voiceover, music and SFX. The catalogue records licence name/URL, required attribution, credit text, provider/source and usage limitations. Audio status remains pending after import; it must pass the existing documented rights-review workflow. The audio packaging report blocks unapproved assets and missing required attribution, emits approved credit text, and separately lists approved usage limits. Approval with limits does not erase the restrictions. The report is a metadata gate, not independent licence verification or legal advice.
+
+## Step 40 — Shot assembly and production orchestrator
+
+Added an assembler that turns the timed shot plan into editable track clips. It places linked image/video assets and audio assets on their respective tracks, applies supported recipe transitions/effects and generates procedural SVG only when the beat requests procedural 2D and does not require actual footage or an official screenshot. Timed audio cue descriptions are retained in the project extension. Beats without a suitable asset are listed in `project.extensions.production_orchestration.unfilled_beats`, with an explicit draft status.
+
+The JavaScript and Python structural validators allow a required source-footage/screenshot beat to remain saveable only when the orchestrator has explicitly recorded it as unfilled. The Research & Visual Director readiness report still blocks production clearance until the requested source asset is linked and rights-reviewed. The assembler creates an editable project draft, not a flattened video.
+
+## Verification for batch 36–40
+
+The Foundation Validation workflow now syntax-checks both production modules and runs the production Node regression suite alongside the schema/Python tests. The Chromium Browser Smoke workflow runs the new production integration test after the existing V2, audio and director browser tests. The production browser fixture exercises a recipe, an editable SVG clip, local WAV import, the pending-audio gate, assembly of timeline clips, an unfilled source-footage beat and persistence after reload.
+
+**Run status note:** the workflow files and tests are committed and path-triggered on `main`. The GitHub connector in this session did not return push-triggered Actions run records/logs, so no unobserved CI pass is claimed here. See the workflow pages for the run outcomes.
+
+- [Production workflow implementation guide](FF_V2_PRODUCTION_WORKFLOWS.md)
+- [Production module](../ff-v2-production.js) and [production UI controls](../ff-v2-production-ui.js)
+- [Production Node regression tests](../tests/ff-v2-production.test.js)
+- [Production Chromium integration test](../tests/ff-v2-production-browser-smoke.js)
+
+## Current V2 boundary after steps 1–40
+
+The V2 timeline feeds a single-frame Canvas 2D compositor with optional WebGL 1 post-processing, procedural VFX, clip effects/transitions and a WebGL Three.js r164.1 renderer for GLB/glTF scenes. It exports transparent PNG frames and packages 3D scenes for Blender. The audio engine provides editable multi-track mixing, waveforms, event-linked SFX, automation, ducking and WAV mastering; the FFmpeg utility muxes a WAV master with an already-rendered silent video. Steps 31–35 added the production brief, public-source/reference dossier, niche profiles, timed narration director and evidence/rights review. Steps 36–40 add nine shot recipes, capped Openverse/Wikimedia discovery and manual Poly Haven/Internet Archive paths, editable procedural SVG/particle clips, a rights-aware audio catalogue/credit/usage-limit report and editable shot-plan assembly. Source downloads remain manual, imported media remains pending until documented rights review, and incomplete required source shots remain explicitly unfilled and readiness-blocked. V2 still does **not** render an entire timeline to MP4 automatically. Full-sequence rendering, resumable chunks, integrated FFmpeg export and technical QA are next roadmap steps (41–43). The legacy V1 editor and existing Blender production workflows remain available.
 
 
 ## Remaining limits / not yet done
@@ -324,10 +369,11 @@ The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optiona
 - Imported media metadata validation relies partly on browser codecs; it is not a full decode of every video frame or audio sample.
 - Project JSON does not package imported binary files. Blobs remain in the originating browser's IndexedDB; keep source media separately backed up.
 - Local browser storage is quota-limited and can be evicted. Persistent-storage requests are best-effort, not guaranteed.
-- The asset rights gate checks user-recorded metadata and project references; it does not independently verify a licence, determine legal rights or provide legal advice. Research and reference-video intake is manual/assistant-led, not autonomous browsing or private-page scraping. The editor stores user-supplied pinpoint locators; it does not fetch the source document/video to confirm that a page or timecode matches the claim. Reference-video records are style observations only and do not authorise reuse.
+- Media discovery is limited to user-triggered Openverse/Wikimedia search (eight results per request) and manual Poly Haven/Internet Archive links. The chosen media file is downloaded manually and imported locally; no bulk media scraping or automatic rights clearance is performed. Openverse is rate-limited and prohibits scraping. Freesound API is not integrated into this workflow because its free API use is non-commercial only.
+- The asset rights gate checks user-recorded metadata and project references; it does not independently verify a licence, determine legal rights or provide legal advice. Imported media stays pending until a documented review. Research and reference-video intake is manual/assistant-led, not autonomous browsing or private-page scraping. The editor stores user-supplied pinpoint locators; it does not fetch the source document/video to confirm that a page or timecode matches the claim. Reference-video records are style observations only and do not authorise reuse.
 - The 250 MB per-file import ceiling may exceed the available browser storage quota on some devices.
 - The legacy V1 drawing editor and existing Blender/FF3D production workflows remain available and were not replaced by this batch.
 
 ## Next batch
 
-The next five-step batch is **36–40** (reusable shot recipes, free/open media adapters, procedural asset generation, free/licensed audio workflow and shot assembly/orchestration). Do not start it until the user requests it.
+The next five-step batch is **41–45** (resumable render queue, FFmpeg export profiles, automated technical QA, visual/audio review tools and delivery package/attribution notes). Do not start it until the user requests it.
