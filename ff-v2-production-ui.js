@@ -200,7 +200,8 @@
       download_url: value('ffv2ProductionSourceUrl'),
       license_name: value('ffv2ProductionLicense'),
       license_url: value('ffv2ProductionLicenseUrl'),
-      attribution_text: value('ffv2ProductionAttribution')
+      attribution_text: value('ffv2ProductionAttribution'),
+      restrictions: value('ffv2ProductionRestrictions').split(/\\r?\\n/).map(item => item.trim()).filter(Boolean)
     };
     const merged = Object.assign({}, selectedResult || {}, manual);
     return root.FFV2Production.importOptionsForSelection(merged, value('ffv2AudioRole'));
@@ -270,7 +271,8 @@
         license_name: value('ffv2AudioLicense'),
         license_url: value('ffv2AudioLicenseUrl'),
         attribution_required: $('ffv2AudioAttributionRequired').checked,
-        attribution_text: value('ffv2AudioAttribution')
+        attribution_text: value('ffv2AudioAttribution'),
+        restrictions: value('ffv2AudioRestrictions').split(/\\r?\\n/).map(item => item.trim()).filter(Boolean)
       });
       const role = value('ffv2AudioRole');
       asset.tags = (asset.tags || []).filter(tag => !String(tag).startsWith('audio-role:'));
@@ -291,6 +293,7 @@
     $('ffv2AudioLicense').value = asset.rights?.license_name || '';
     $('ffv2AudioLicenseUrl').value = asset.rights?.license_url || '';
     $('ffv2AudioAttribution').value = asset.rights?.attribution_text || '';
+    $('ffv2AudioRestrictions').value = (asset.rights?.restrictions || []).filter(item => !String(item).includes('Pending individual rights review')).join('\\n');
     $('ffv2AudioAttributionRequired').checked = asset.rights?.attribution_required !== false;
     const role = (asset.tags || []).find(tag => String(tag).startsWith('audio-role:'))?.slice(11);
     if (['sfx','music','voiceover'].includes(role)) $('ffv2AudioRole').value = role;
