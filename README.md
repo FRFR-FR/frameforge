@@ -207,7 +207,7 @@ A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU 
 **Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
 
 
-## FrameForge V2 — editing, directing, rendering, QA and delivery (steps 1–45)
+## FrameForge V2 — editing, directing, rendering, QA and delivery (steps 1–50; release tag pending)
 
 The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). Batch status is recorded in [docs/FF_V2_PROGRESS.md](docs/FF_V2_PROGRESS.md).
 
@@ -260,6 +260,19 @@ Current editor workspace:
 - [Python render pipeline regression tests](tests/test_render_pipeline.py)
 - [Foundation CI](.github/workflows/ff-v2-foundation-tests.yml)
 - [Browser smoke CI](.github/workflows/ff-v2-browser-smoke.yml)
+- [Android/mobile quick navigation](ff-v2-mobile.js)
+- [Android and phone browser guide](docs/FF_V2_MOBILE.md)
+- [Manual cost-capped GitHub Actions helpers](tools/manual_ops.py)
+- [Manual Actions workflow and limits](docs/FF_V2_MANUAL_ACTIONS.md)
+- [Manual render input staging guide](render-input/README.md)
+- [Entertainment / power-scaling pilot project](projects/v2-pilots/entertainment-power-scale/)
+- [Cybersecurity awareness pilot project](projects/v2-pilots/cybersecurity-phishing-check/)
+- [Procedural 720p pilot renderer](tools/render_v2_pilots.py)
+- [Pilot build, technical QA and delivery workflow](.github/workflows/ff-v2-pilot-builds.yml)
+- [Pilot rendering regression tests](tests/test_v2_pilots.py)
+- [Release notes](docs/FF_V2_RELEASE_NOTES.md)
+- [Setup, operation, backup and rollback handover](docs/FF_V2_HANDOVER.md)
+- [Manual V2 release/tag publisher](.github/workflows/ff-v2-publish-release.yml)
 
 Open FrameForge and select **V2 Assets** to use the V2 asset library and project controls. The separate **V2 Multi-track Timeline** sits below the legacy frame strip. The legacy version-1 drawing workflow remains available.
 
@@ -277,4 +290,4 @@ python tools/validate_media_manifest.py examples/media-asset-manifest.example.js
 
 The checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) workflow. The real-browser integration check runs separately in [FrameForge V2 Browser Smoke](.github/workflows/ff-v2-browser-smoke.yml). Both use read-only repository permissions and do not start any Blender or media-render job.
 
-**Current V2 boundary:** steps 6–30 add validated local media import, the editable multi-track timeline, local recovery, the Canvas 2D layer compositor, transform/effect keyframes, masks/mattes/blend modes, procedural graphics/particles, optional WebGL post-processing, stylised effects/transitions, a locally vendored Three.js r164.1 GLB/glTF scene renderer, 3D camera/light/environment controls, model animation/constraints, a portable Blender bridge and multi-track audio mastering. Steps 31–35 add the production brief and ambiguity intake, public-source/reference dossier, niche profiles, timed narration-to-shot direction and claim/evidence/rights review. Steps 36–40 add nine shot recipes, capped Openverse/Wikimedia discovery, manual Poly Haven/Internet Archive paths, procedural SVG/particle clips, audio rights/credits/usage limits and editable shot assembly. Steps 41–45 add a resumable browser frame queue persisted in IndexedDB, per-chunk PNG ZIP export, local H.264 FFmpeg profiles, FFprobe/FFmpeg technical QA, contact sheets/waveform/scene previews and a final delivery ZIP with asset rights/attribution notes. The browser queue uses the actual V2 compositor and renders frames locally; the final MP4 encode and packaging tools run in a local/free environment with FFmpeg. This is not a cloud renderer and does not automatically upload project media to GitHub. The director remains rule-assisted and human-reviewed; source search is not automatic downloading or licence verification, and imported media stays pending until reviewed. Reference-video records are style references only and do not grant reuse permission. Required source shots that are not linked remain explicitly unfilled and readiness-blocked. 3D model pixels require WebGL. Project JSON does not embed imported binary media held in the originating browser's IndexedDB; export those assets separately when handing off the editable project. See [the V2 progress log](docs/FF_V2_PROGRESS.md) for verified step status.
+**Current V2 boundary:** steps 6–30 add validated local media import, the editable multi-track timeline, local recovery, Canvas 2D compositing, transform/effect keyframes, masks/mattes/blend modes, procedural graphics/particles, optional WebGL post-processing, stylised effects/transitions, vendored Three.js GLB/glTF rendering, 3D camera/light/environment controls, model animation/constraints, a portable Blender bridge and multi-track audio mastering. Steps 31–35 add production briefs, source/reference dossiers, niche profiles, narration-to-shot direction and claim/evidence/rights review. Steps 36–40 add reusable shot recipes, capped public-media discovery, procedural graphics, audio rights/credits and editable shot assembly. Steps 41–45 add a resumable IndexedDB frame queue, PNG chunk ZIP export, local FFmpeg profiles, technical QA, contact-sheet/audio review and delivery packaging. Steps 46–50 add the phone navigation dock and Android guide, manually triggered cost-capped Actions, two separately styled editable pilots, release notes/handover and a manual V2 tag publisher. The two demo pilots render original 1280×720, 24 FPS MP4s using procedural art and synthesized SFX; their narration scripts are separate drafts, not embedded voice tracks. The latest successful pilot artifact is a short-lived GitHub Actions artifact rather than a permanent repository binary. The browser queue still renders locally in an open tab and the final MP4 export runs in a local/free FFmpeg environment; this is not a cloud renderer. The V2 director remains rule-assisted and human-reviewed; source discovery is not automatic downloading or licence verification. Imported media stays pending until reviewed. 3D model pixels require WebGL. V2 project JSON does not embed imported binary media held in IndexedDB; export those source assets separately. The V2.0.0 publisher is manual and refuses to tag until the required CI suites pass. See [the V2 progress log](docs/FF_V2_PROGRESS.md) for the exact commit and run status.

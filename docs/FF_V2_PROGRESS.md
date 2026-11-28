@@ -1,8 +1,36 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–45  
+**Current status:** Steps 1–49 complete; Step 50 release/handover prepared, with tag publication still requiring manual dispatch  
 **Last updated:** 2026-11-28
+
+## Final batch 46–50 status
+
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 46 | Android/mobile navigation and documentation | Complete | Five-destination mobile dock, safe-area/touch styling, guide and Chromium 390px mobile smoke; run 46144474819 succeeded |
+| 47 | Manual Actions integration and cost guardrails | Complete | workflow_dispatch-only operations, standard CPU runner, 20-minute timeout, concurrency, 100 MB input/output budgets, max 480 frames, 720p cap, 3-day retention; helper unit tests |
+| 48 | Entertainment / power-scaling pilot | Complete | Original-character project, SVG sources, separate narration draft, 12-second 720p MP4, technical QA, contact sheet, waveform and delivery ZIP; run 46145423593 succeeded |
+| 49 | Second-niche cybersecurity pilot | Complete | Separate defensive-awareness UI treatment, NIST/CISA source records, original SVGs, 12-second 720p MP4, technical QA and delivery ZIP; run 46145423593 succeeded |
+| 50 | Stabilization, release notes and handover | Prepared; tag pending | Manual release publisher, setup/backup/rollback guide, release notes and acceptance checks committed; user must explicitly dispatch publisher to create the v2.0.0 tag |
+
+## Step 46 — Mobile controls and documentation
+
+Added `ff-v2-mobile.js`, a five-destination phone dock for Assets, Timeline, Director, Produce and Render; responsive safe-area styling; stable navigation targets; and [FF_V2_MOBILE.md](FF_V2_MOBILE.md). The mobile browser smoke checks reachability of all five destinations, touch target size and browser errors. [Browser Smoke run 46144474819 succeeded](https://github.com/FRFR-FR/frameforge/actions/runs/46144474819).
+
+## Step 47 — Manual GitHub Actions and cost guardrails
+
+Added [manual_ops.py](../tools/manual_ops.py), [the cost-capped workflow](../.github/workflows/ff-v2-manual-operations.yml), unit tests and [the operator guide](FF_V2_MANUAL_ACTIONS.md). Actions are started manually; there is no schedule or background watchdog. Inputs are passed through environment variables rather than interpolated into shell commands. Helpers reject paths outside the repository, render input outside `render-input/`, output outside `artifacts/manual-ops/`, mismatched project/manifest IDs, incompatible chunks, over-budget frames and oversized frame dimensions. Render inputs and outputs are capped at 100 MB; the video QA/package mode is capped at 30 seconds; jobs use standard Ubuntu CPU runners, 20-minute timeout, one active concurrency group and three-day artifact retention. This reduces accidental resource use but cannot promise unlimited free GitHub quotas.
+
+## Steps 48–49 — Two end-to-end pilots
+
+Added [the original entertainment pilot](../projects/v2-pilots/entertainment-power-scale/), [the cybersecurity pilot](../projects/v2-pilots/cybersecurity-phishing-check/), their independent V2 project/rights manifests, editable SVG source assets, narration drafts, regression tests and [pilot build workflow](../.github/workflows/ff-v2-pilot-builds.yml). The entertainment profile scores are explicitly illustrative, not canon. The cyber project is defensive awareness only, uses a fictional reserved `.example` sender, and links its guidance claim to NIST/CISA sources.
+
+The procedural renderer produces 12 seconds at 1280×720/24 FPS with original synthesized stereo SFX; it does not synthesize the narration draft. CI run [46145423593](https://github.com/FRFR-FR/frameforge/actions/runs/46145423593) succeeded: both projects/manifests validated, both MP4s rendered, full-decode/stream QA passed, review sheets/waveforms generated, both delivery ZIPs packaged, and total artifacts stayed within 100 MB. The uploaded archive is [available from the workflow run](https://github.com/FRFR-FR/frameforge/actions/runs/46145423593/artifacts/15262659884) until **2026-12-01** (three-day retention).
+
+## Step 50 — Stabilization and handover
+
+Added [FF_V2_RELEASE_NOTES.md](FF_V2_RELEASE_NOTES.md), [FF_V2_HANDOVER.md](FF_V2_HANDOVER.md) and [the manual V2 release publisher](../.github/workflows/ff-v2-publish-release.yml). The publisher checks successful Foundation Validation and Pilot Builds/QA runs for the target commit, a successful Browser Smoke run on `main`, reruns the Python/JavaScript core suites and validates both pilots before creating an annotated tag and GitHub Release. It is deliberately manual and has **not** been dispatched here, so `v2.0.0` is not yet tagged or published. The source changes are committed and the handover guide documents clean setup, local rendering, Android backups, IndexedDB limitations and rollback.
 
 ## Batch 1–5 status
 
@@ -425,6 +453,6 @@ The V2 timeline still has a single-frame Canvas 2D/Three.js compositor for inter
 - The 250 MB per-file import ceiling may exceed the available browser storage quota on some devices.
 - The legacy V1 drawing editor and existing Blender/FF3D production workflows remain available and were not replaced by this batch.
 
-## Next batch
+## Release state
 
-The next five-step batch is **46–50** (mobile-friendly controls/documentation, GitHub Actions integration/cost guardrails, entertainment pilot, second-niche pilot and stabilization/release). Do not start it until the user requests it.
+Steps 46–49 are implemented and verified. Step 50's stabilization, release notes, handover and manual tag publisher are prepared. The actual GitHub `v2.0.0` tag/Release has **not** been created because the publisher requires an explicit manual workflow dispatch from the repository's Actions page. No automatic or background publishing is configured.

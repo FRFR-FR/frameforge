@@ -26,7 +26,6 @@ on:
       - "tests/test_render_pipeline.py"
       - "tests/test_manual_ops.py"
       - "tests/test_v2_pilots.py"
-      - "tests/test_v2_pilots.py"
       - "tests/test_mux_ffmpeg.py"
       - "ff-v2-renderer.js"
       - "ff-v2-3d-studio.js"
@@ -39,6 +38,11 @@ on:
       - "tools/validate_media_manifest.py"
       - "requirements-dev.txt"
       - ".github/workflows/ff-v2-foundation-tests.yml"
+      - ".github/workflows/ff-v2-manual-operations.yml"
+      - ".github/workflows/ff-v2-pilot-builds.yml"
+      - ".github/workflows/ff-v2-publish-release.yml"
+      - "docs/FF_V2_RELEASE_NOTES.md"
+      - "docs/FF_V2_HANDOVER.md"
   pull_request:
     paths:
       - "schemas/**"

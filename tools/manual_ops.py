@@ -49,6 +49,19 @@ def validate_input_size(paths: list[Path], limit: int = MAX_CHUNK_BYTES) -> int:
     return total
 
 
+def validate_frame_dimensions(width: int, height: int) -> None:
+    if width < 1 or height < 1 or width > 1280 or height > 1280 or width * height > 1280 * 720:
+        raise ValueError("Manual Actions export is limited to a maximum of 1280x720 pixels per frame (landscape or portrait).")
+
+
+def ensure_manifest_matches_project(project_path: Path, manifest_path: Path) -> None:
+    project = json.loads(project_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    project_id = (project.get("project") or {}).get("id")
+    if not project_id or manifest.get("project_id") != project_id:
+        raise ValueError("Media manifest project_id must match the V2 project id.")
+
+
 def validate_assets(project_path: str, manifest_path: str) -> dict[str, Any]:
     project = repo_path(project_path)
     manifest = repo_path(manifest_path)
@@ -60,6 +73,7 @@ def validate_assets(project_path: str, manifest_path: str) -> dict[str, Any]:
         result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)
         if result.returncode:
             raise RuntimeError((result.stdout + "\n" + result.stderr).strip()[-5000:])
+    ensure_manifest_matches_project(project, manifest)
     return {"project": str(project.relative_to(ROOT)), "manifest": str(manifest.relative_to(ROOT)), "passed": True}
 
 
@@ -87,6 +101,7 @@ def merge_and_export(
         raise ValueError("All chunks must belong to one render job and matching project signature/settings.")
     total_frames = int(manifests[0]["total_frames"])
     validate_frame_budget(total_frames, max_frames)
+    validate_frame_dimensions(int(manifests[0]["width"]), int(manifests[0]["height"]))
     if profile not in {"720p-horizontal", "720p-vertical"} or profile not in PROFILES:
         raise ValueError("Manual Actions export is limited to 720p horizontal or vertical.")
     if fps not in {24, 30}:

@@ -77,6 +77,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
 
       - name: Install FFmpeg CPU tools
+        if: inputs.operation != 'validate'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg
@@ -85,26 +86,37 @@ jobs:
 
       - name: Validate project and rights manifest
         if: inputs.operation == 'validate'
+        env:
+          PROJECT_PATH: ${{ inputs.project_path }}
+          MANIFEST_PATH: ${{ inputs.manifest_path }}
         run: |
           python tools/manual_ops.py validate \
-            --project "${{ inputs.project_path }}" \
-            --manifest "${{ inputs.manifest_path }}"
+            --project "$PROJECT_PATH" \
+            --manifest "$MANIFEST_PATH"
 
       - name: Merge and export bounded 720p frame chunks
         if: inputs.operation == 'merge-export'
+        env:
+          CHUNKS_DIR: ${{ inputs.chunks_dir }}
+          EXPORT_PROFILE: ${{ inputs.profile }}
+          EXPORT_FPS: ${{ inputs.fps }}
+          MAX_FRAMES: ${{ inputs.max_frames }}
         run: |
           python tools/manual_ops.py merge-export \
-            --chunks-dir "${{ inputs.chunks_dir }}" \
-            --profile "${{ inputs.profile }}" \
-            --fps "${{ inputs.fps }}" \
-            --max-frames "${{ inputs.max_frames }}"
+            --chunks-dir "$CHUNKS_DIR" \
+            --profile "$EXPORT_PROFILE" \
+            --fps "$EXPORT_FPS" \
+            --max-frames "$MAX_FRAMES"
 
       - name: Run technical QA, visual review and delivery packaging
         if: inputs.operation == 'qa-review-package'
+        env:
+          VIDEO_PATH: ${{ inputs.video_path }}
+          PROJECT_PATH: ${{ inputs.project_path }}
         run: |
           python tools/manual_ops.py qa-review-package \
-            --video "${{ inputs.video_path }}" \
-            --project "${{ inputs.project_path }}"
+            --video "$VIDEO_PATH" \
+            --project "$PROJECT_PATH"
 
       - name: Enforce small artifact budget
         run: |

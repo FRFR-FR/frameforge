@@ -190,12 +190,23 @@ def cyber_frame(frame,t):
         label(d,(640,586),"Guidance: NIST and CISA • Follow your organisation's policy",14,(129,207,230,255),"mm")
     return image.convert("RGB")
 
+def camera_drift(image,t):
+    """Apply a restrained continuous dolly/pan so long graphic beats never become frozen stills."""
+    zoom=1.012+0.006*math.sin(t*0.6)
+    dx=18*math.sin(t*0.8)
+    dy=8*math.cos(t*0.55)
+    inverse=1/zoom
+    cx,cy=W/2,H/2
+    matrix=(inverse,0,cx-(cx+dx)*inverse,0,inverse,cy-(cy+dy)*inverse)
+    return image.transform((W,H),Image.Transform.AFFINE,matrix,resample=Image.Resampling.BICUBIC)
+
 def render_frame(pilot,frame,width=W,height=H,fps=FPS):
     if pilot not in PILOTS: raise ValueError("Unknown pilot.")
     if width<1 or height<1 or width>1920 or height>1920: raise ValueError("Preview size out of range.")
     if fps not in (24,25,30) or frame<0 or frame>=DURATION*fps: raise ValueError("Frame or FPS out of range.")
     t=frame/fps
     img=power_frame(frame,t) if pilot=="entertainment" else cyber_frame(frame,t)
+    img=camera_drift(img,t)
     return img if img.size==(width,height) else img.resize((width,height),Image.Resampling.LANCZOS)
 
 def create_sfx(path,pilot,duration=DURATION):
@@ -244,7 +255,7 @@ def render_pilot(pilot,output_dir,fps=FPS):
             "voiceover":"Narration script included separately; no TTS voice is bundled.",
             "visuals":"Original procedural artwork only; no external footage, image-generation service or franchise character assets.",
             "size_mb":round(video.stat().st_size/(1024*1024),2)}
-    (out/"render-report.json").write_text(json.dumps(report,indent=2)+"\\n",encoding="utf-8")
+    (out/"render-report.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     return report
 
 def main(argv=None):
@@ -254,7 +265,7 @@ def main(argv=None):
     parser.add_argument("--fps",type=int,choices=(24,25,30),default=FPS)
     args=parser.parse_args(argv)
     try: print(json.dumps(render_pilot(args.pilot,args.output_dir,args.fps),indent=2))
-    except Exception as exc: parser.exit(1,"ERROR: "+str(exc)+"\\n")
+    except Exception as exc: parser.exit(1,"ERROR: "+str(exc)+"\n")
     return 0
 
 if __name__=="__main__":
