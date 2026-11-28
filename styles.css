@@ -198,3 +198,83 @@ button { color: inherit; cursor: pointer; }
   .camera-view-control { gap: 3px; }
   .camera-view-control select { min-width: 72px; padding: 4px 3px; }
 }
+
+
+/* FrameForge V2 foundation workspace */
+.ffv2-panel-actions { display: flex; gap: 6px; margin: 7px 0; }
+.ffv2-panel-actions .button { flex: 1; min-width: 0; }
+.ffv2-drop-zone { margin-top: 9px; padding: 15px 10px; border: 1px dashed #47617e; border-radius: 8px; background: #101d2c; color: #9db4cb; text-align: center; font-size: 10px; line-height: 1.5; }
+.ffv2-drop-zone.dragging { border-color: #66b7ff; background: #173450; color: #e3f3ff; }
+.ffv2-asset-list-heading { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 7px; color: #cbd9e8; font-size: 11px; font-weight: 700; }
+.ffv2-asset-list-heading small { color: #8298ae; font-size: 9px; font-weight: 500; }
+.ffv2-asset-list { display: grid; gap: 8px; max-height: 44vh; overflow: auto; }
+.ffv2-asset-card { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 9px; padding: 8px; border: 1px solid #27394d; border-radius: 8px; background: #121e2c; min-width: 0; }
+.ffv2-asset-card.selected { border-color: #58a9f1; box-shadow: 0 0 0 1px #58a9f133; }
+.ffv2-asset-preview { width: 64px; height: 64px; display: grid; place-items: center; overflow: hidden; border-radius: 5px; background: #0a111b; color: #a6c9e8; font-size: 25px; }
+.ffv2-asset-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ffv2-asset-details { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ffv2-asset-details > strong { overflow-wrap: anywhere; color: #dce8f5; font-size: 10px; }
+.ffv2-asset-details > small { color: #879bb1; font-size: 8px; line-height: 1.4; overflow-wrap: anywhere; }
+.ffv2-asset-details .ffv2-rights-state { color: #e1ba78; }
+.ffv2-tag-input { width: 100%; min-width: 0; border: 1px solid #2c4056; border-radius: 5px; background: #0c1520; color: #c9d8e8; padding: 6px; font-size: 9px; }
+.ffv2-asset-actions { display: flex; gap: 5px; }
+.ffv2-asset-actions .button { flex: 1; padding: 5px 6px; font-size: 9px; }
+.ffv2-empty { padding: 14px 8px; color: #7f93a8; font-size: 10px; line-height: 1.5; text-align: center; }
+.ffv2-save-status { margin-top: 10px; padding: 8px; border: 1px solid #2a3e53; border-radius: 6px; color: #9db1c5; background: #0e1925; font-size: 9px; line-height: 1.45; overflow-wrap: anywhere; }
+.ffv2-save-status[data-kind="success"] { color: #9fe0b7; border-color: #315e49; }
+.ffv2-save-status[data-kind="warning"] { color: #f0ca86; border-color: #6c5430; }
+.ffv2-save-status[data-kind="error"] { color: #ffaaaa; border-color: #713b3b; }
+.ffv2-timeline-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid #26374b; }
+.ffv2-timeline-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ffv2-timeline-header > div:first-child { display: flex; align-items: baseline; gap: 9px; }
+.ffv2-timeline-header strong { color: #d9e7f5; font-size: 11px; }
+.ffv2-timeline-header small { color: #8296ad; font-size: 9px; }
+.ffv2-track-add { display: flex; align-items: center; gap: 6px; }
+.ffv2-track-add select, .ffv2-target-track { max-width: 145px; padding: 6px; border: 1px solid #34485d; border-radius: 6px; background: #162334; color: #d6e3f1; font-size: 9px; }
+.ffv2-timeline-toolbar { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+.ffv2-timeline-toolbar label { display: flex; align-items: center; gap: 5px; color: #9badc0; font-size: 9px; white-space: nowrap; }
+.ffv2-timeline-toolbar input { accent-color: var(--accent); }
+.ffv2-zoom-controls { display: flex; align-items: center; gap: 5px; margin-left: auto; }
+.ffv2-zoom-controls span { min-width: 36px; text-align: center; color: #9aadc1; font-size: 9px; }
+.ffv2-playhead-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+#ffv2Playhead { min-width: 0; flex: 1; accent-color: var(--accent); }
+#ffv2PlayheadLabel { width: 135px; text-align: right; color: #8297ae; font: 9px ui-monospace, monospace; }
+.ffv2-timeline-scroll { position: relative; max-height: 360px; overflow: auto; border: 1px solid #26384d; border-radius: 7px; background: #0b131e; scrollbar-color: #3a526e #111c29; scrollbar-width: thin; }
+.ffv2-timeline-content { position: relative; width: max-content; min-width: 100%; }
+.ffv2-ruler-row { display: grid; grid-template-columns: 170px auto; min-height: 25px; background: #121d2a; border-bottom: 1px solid #2a3c50; }
+.ffv2-ruler-label { display: flex; align-items: center; padding-left: 9px; color: #8295a9; font-size: 9px; border-right: 1px solid #26384d; }
+.ffv2-timeline-ruler { position: relative; height: 25px; }
+.ffv2-ruler-tick { position: absolute; top: 0; height: 25px; padding: 0 3px; border: 0; border-left: 1px solid #40546a; background: transparent; color: #869bb1; font: 8px ui-monospace, monospace; cursor: pointer; }
+.ffv2-track-rows { display: grid; }
+.ffv2-track-row { display: grid; grid-template-columns: 170px auto; min-height: 44px; border-bottom: 1px solid #202f40; }
+.ffv2-track-heading { position: sticky; left: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 5px 7px; border-right: 1px solid #2b3e53; background: #111c29; }
+.ffv2-track-heading strong { color: #d4e2ef; font-size: 9px; overflow-wrap: anywhere; }
+.ffv2-track-heading small { color: #738aa1; font-size: 8px; text-transform: uppercase; }
+.ffv2-track-buttons { display: flex; gap: 3px; margin-top: 2px; }
+.ffv2-track-buttons .icon-button { min-width: 22px; width: 22px; height: 19px; padding: 0; font-size: 9px; }
+.ffv2-track-lane { position: relative; min-height: 43px; background-image: linear-gradient(to right, #26364a 1px, transparent 1px); background-size: 30px 100%; background-position: left top; }
+.ffv2-track-lane.disabled { opacity: .4; }
+.ffv2-clip { position: absolute; top: 7px; bottom: 7px; min-width: 28px; overflow: hidden; padding: 3px 7px; border: 1px solid #467cab; border-radius: 5px; background: linear-gradient(110deg,#1c4e74,#245e86); color: #e6f5ff; text-align: left; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; cursor: grab; touch-action: none; }
+.ffv2-clip.selected { border-color: #a4d9ff; background: linear-gradient(110deg,#286e9f,#347fae); box-shadow: 0 0 0 1px #95d4ff55; }
+.ffv2-clip.dragging { opacity: .8; cursor: grabbing; }
+.ffv2-playhead-line { position: absolute; z-index: 4; top: 0; bottom: 0; width: 1px; background: #ffbd69; box-shadow: 0 0 5px #ffbd69aa; pointer-events: none; }
+.ffv2-clip-editor { display: flex; flex-wrap: wrap; align-items: end; gap: 7px; margin-top: 9px; padding: 9px; border: 1px solid #2b4056; border-radius: 7px; background: #111d2b; }
+.ffv2-clip-editor.hidden { display: none; }
+.ffv2-clip-editor-title { display: flex; flex: 1 1 100%; justify-content: space-between; gap: 8px; }
+.ffv2-clip-editor-title strong { color: #dceafa; font-size: 10px; overflow-wrap: anywhere; }
+.ffv2-clip-editor-title small { color: #8296ad; font-size: 9px; }
+.ffv2-clip-editor label { display: grid; gap: 4px; color: #93a7bc; font-size: 8px; }
+.ffv2-clip-editor input { width: 88px; padding: 6px; border: 1px solid #33475e; border-radius: 5px; background: #0b1520; color: #e1eaf4; font-size: 10px; }
+.ffv2-clip-editor .button { padding: 6px 8px; font-size: 8px; }
+@media (max-width: 760px) {
+  .ffv2-timeline-header { align-items: flex-start; flex-direction: column; }
+  .ffv2-track-add { width: 100%; }
+  .ffv2-track-add select { flex: 1; max-width: none; }
+  .ffv2-timeline-toolbar { flex-wrap: wrap; gap: 7px; }
+  .ffv2-target-track { flex: 1; max-width: none; }
+  .ffv2-ruler-row, .ffv2-track-row { grid-template-columns: 118px auto; }
+  .ffv2-track-heading { padding: 4px; }
+  #ffv2PlayheadLabel { width: 115px; font-size: 8px; }
+  .ffv2-asset-list { max-height: 380px; }
+  .ffv2-clip-editor { align-items: stretch; }
+}
