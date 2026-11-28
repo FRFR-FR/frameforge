@@ -34,10 +34,10 @@ function makeTestPng() {
   ihdr[9] = 6; // RGBA
   const row = Buffer.from([
     0,
-    255, 70, 60, 255,
-    255, 70, 60, 255,
-    255, 70, 60, 255,
-    255, 70, 60, 255
+    255, 70, 60, 128,
+    255, 70, 60, 128,
+    255, 70, 60, 128,
+    255, 70, 60, 128
   ]);
   const scanlines = Buffer.concat([row, row, row, row]);
   const zlib = require('node:zlib');
@@ -158,7 +158,10 @@ async function main() {
     });
     assert.deepEqual(pixels.size, [1280, 720]);
     assert.ok(pixels.center[3] > 0, 'Generated vector shape should composite onto the output frame');
-    assert.equal(pixels.corner[3], 0, 'Unoccupied compositor canvas must preserve transparent alpha');
+    assert.ok(pixels.corner[3] === 0, 'Unoccupied compositor canvas must preserve transparent alpha');
+    const translucentSourcePixel = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => Array.from(canvas.getContext('2d').getImageData(300, 100, 1, 1).data));
+    assert.ok(translucentSourcePixel[3] >= 126 && translucentSourcePixel[3] <= 130,
+      'Imported semi-transparent PNG alpha must be retained through the layer compositor');
 
     // Apply a transform, keyframe and a feathered ellipse mask through the editor controls.
     await page.locator('#ffv2TransformScaleX').fill('1.25');
