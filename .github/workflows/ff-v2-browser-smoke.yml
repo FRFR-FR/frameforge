@@ -1,0 +1,44 @@
+name: FrameForge V2 Browser Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - "frameforge-3d.js"
+      - "ff-v2-core.js"
+      - "ff-v2-studio.js"
+      - "tests/ff-v2-browser-smoke.js"
+      - ".github/workflows/ff-v2-browser-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ff-v2-browser-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pinned Playwright browser harness
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run real browser workflow
+        run: node tests/ff-v2-browser-smoke.js
