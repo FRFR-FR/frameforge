@@ -391,6 +391,31 @@
         }
       }
     }
+    const clipsById = new Map();
+    for (const sequence of project.sequences) {
+      for (const track of sequence.tracks || []) {
+        for (const clip of track.clips || []) {
+          clipsById.set(clip.id, clip);
+          if (clip.blend_mode && !BLEND_MODES.includes(clip.blend_mode)) errors.push('Clip has an unsupported blend mode: ' + clip.id);
+          if (clip.parent_clip_id && !project.sequences.some(other => (other.tracks || []).some(t => (t.clips || []).some(c => c.id === clip.parent_clip_id)))) {
+            errors.push('Clip references a missing parent layer: ' + clip.id);
+          }
+          if (clip.mask && ['alpha','luma'].includes(clip.mask.type) && !assetIds.has(clip.mask.asset_id)) {
+            errors.push('Clip mask references a missing matte asset: ' + clip.id);
+          }
+        }
+      }
+    }
+    for (const clip of clipsById.values()) {
+      const visited = new Set([clip.id]);
+      let parentId = clip.parent_clip_id;
+      while (parentId) {
+        if (visited.has(parentId)) { errors.push('Clip parenting contains a cycle: ' + clip.id); break; }
+        visited.add(parentId);
+        parentId = clipsById.get(parentId)?.parent_clip_id;
+      }
+    }
+
     return errors;
   }
 
