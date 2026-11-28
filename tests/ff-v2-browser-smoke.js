@@ -170,7 +170,13 @@ async function main() {
     await page.locator('#ffv2MaskShape').selectOption('ellipse');
     await page.locator('#ffv2MaskFeather').fill('4');
     await page.locator('#ffv2ApplyMask').click();
-    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('visual layer'));
+    const normalMaskCenter = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => Array.from(canvas.getContext('2d').getImageData(640, 360, 1, 1).data));
+    await page.locator('#ffv2MaskInvert').check();
+    await page.locator('#ffv2ApplyMask').click();
+    await page.waitForFunction(previous => {
+      const pixel = Array.from(document.getElementById('ffv2CompositorCanvas').getContext('2d').getImageData(640, 360, 1, 1).data);
+      return pixel[0] !== previous[0] || pixel[1] !== previous[1] || pixel[2] !== previous[2];
+    }, normalMaskCenter, { timeout: 10000 });
     assert.match(await page.locator('#ffv2KeyframeInfo').textContent(), /1 keyframe/);
 
     assert.deepEqual(pageErrors, [], 'Browser page errors should be empty');
