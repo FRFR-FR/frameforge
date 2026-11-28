@@ -914,7 +914,24 @@
       if(constraint.type==='ground_contact'&&!Number.isFinite(Number(constraint.ground_y??0))) throw new Error('Ground contact needs a finite ground height.');
       if(constraint.type==='look_at'&&(!Array.isArray(constraint.target)||constraint.target.length!==3||constraint.target.some(n=>!Number.isFinite(Number(n))))) throw new Error('Look-at target needs three finite coordinates.');
       if(constraint.type==='parent'&&constraint.target_clip_id===clipId) throw new Error('A model cannot parent itself.');
-      if(constraint.type==='parent') findClip(project,constraint.target_clip_id);
+      if(constraint.type==='parent') {
+        if(!constraint.target_clip_id) throw new Error('Parent constraint needs a target clip.');
+        const parent=findClip(project,constraint.target_clip_id);
+        if(parent.clip.id===clipId) throw new Error('A 3D model cannot parent itself.');
+        const parentAsset=project.assets.find(asset=>asset.id===parent.clip.asset_id);
+        if(parent.track.type!=='scene3d' && parentAsset?.media_type!=='model3d') {
+          throw new Error('A 3D parent must be another 3D model clip.');
+        }
+        let cursor=parent.clip;
+        const visited=new Set([clipId]);
+        while(cursor){
+          if(visited.has(cursor.id)) throw new Error('3D parenting would create a cycle.');
+          visited.add(cursor.id);
+          const upstream=(cursor.constraints||[]).find(item=>item.type==='parent'&&item.enabled!==false);
+          if(!upstream?.target_clip_id) break;
+          cursor=findClip(project,upstream.target_clip_id).clip;
+        }
+      }
     }
     found.clip.constraints=clone(constraints);
     return found.clip.constraints;
