@@ -486,6 +486,123 @@ void main() {
       <div id="ffv2CompositorStatus" class="ffv2-save-status" role="status">Ready to composite visual timeline layers.</div>
       <small class="ffv2-info-text">The preview renders the current playhead frame. This is a PNG-frame compositor, not yet the final MP4 export pipeline. Keep source assets backed up separately.</small>
     </div>
+    <section class="ffv2-director-panel" aria-label="Research and visual director">
+      <details open>
+        <summary class="ffv2-director-title">
+          <span><strong>Research & visual director</strong><small>Brief → sources → niche style → timed shots → evidence and rights review</small></span>
+          <span id="ffv2DirectorSummary">No research yet</span>
+        </summary>
+        <div class="ffv2-director-body">
+          <div class="ffv2-director-step">
+            <h3>31 · Production brief</h3>
+            <p>Define the subject, audience, platform, duration and narration before visual production.</p>
+            <div class="ffv2-director-grid">
+              <label>Topic <input id="ffv2BriefTopic" maxlength="1000" placeholder="What is this video about?"></label>
+              <label>Niche <select id="ffv2BriefNiche">
+                <option value="unclassified">Unclassified / custom</option>
+                <option value="cybersecurity">Cybersecurity</option><option value="history">History</option><option value="science">Science</option><option value="mysteries">Mysteries / investigations</option><option value="finance">Finance</option><option value="gaming">Gaming</option><option value="entertainment_power_scaling">Entertainment / power scaling</option>
+              </select></label>
+              <label>Audience <input id="ffv2BriefAudience" maxlength="1000" placeholder="Who is this for?"></label>
+              <label>Platform <select id="ffv2BriefPlatform"><option value="youtube_longform">YouTube long-form</option><option value="youtube_shorts">YouTube Shorts</option><option value="other">Other</option></select></label>
+              <label>Target duration (seconds) <input id="ffv2BriefDuration" type="number" min="1" max="7200" step="1" value="30"></label>
+              <label>Tone <input id="ffv2BriefTone" maxlength="300" placeholder="Investigative, energetic, explanatory…"></label>
+              <label>Desired style / references <input id="ffv2BriefDesiredStyle" maxlength="1000" placeholder="Describe the visual feel, not a request to copy."></label>
+              <label>Visual direction / restrictions <textarea id="ffv2BriefVisualDirection" rows="2" placeholder="Subject-specific visual goals"></textarea></label>
+              <label>Research questions (one per line) <textarea id="ffv2BriefQuestions" rows="3" placeholder="What must be checked before scripting or rendering?"></textarea></label>
+              <label>Production / legal / platform restrictions (one per line) <textarea id="ffv2BriefRestrictions" rows="3" placeholder="No paid services, no generic B-roll, format requirements…"></textarea></label>
+            </div>
+            <label class="ffv2-director-full">Narration / script
+              <textarea id="ffv2BriefScript" rows="6" maxlength="100000" placeholder="Paste the narration. The first-pass director will divide it into timed beats."></textarea>
+            </label>
+            <button id="ffv2BriefSave" class="button small primary">Save production brief</button>
+          </div>
+
+          <div class="ffv2-director-step">
+            <h3>32 · Research dossier and reference videos</h3>
+            <p>Record public sources and observations. A URL is a citation/reference, not proof by itself. Login-only or blocked sources must be marked; do not bypass access controls.</p>
+            <div class="ffv2-director-grid">
+              <label>Public source URL <input id="ffv2ResearchUrl" type="url" placeholder="https://…"></label>
+              <label>Source title <input id="ffv2ResearchTitle" maxlength="500" placeholder="Page / report title"></label>
+              <label>Publisher / author <input id="ffv2ResearchPublisher" maxlength="200" placeholder="Publisher or author"></label>
+              <label>Source type <select id="ffv2ResearchType"><option value="primary">Primary source</option><option value="secondary">Secondary source</option><option value="official_documentation">Official documentation</option><option value="user_provided">User-provided</option><option value="other">Other</option></select></label>
+              <label>Access <select id="ffv2ResearchAccess"><option value="public">Publicly accessible</option><option value="login_required">Login required</option><option value="blocked">Blocked / inaccessible</option><option value="removed">Removed</option><option value="unknown">Unknown</option></select></label>
+              <label>Source confidence <select id="ffv2ResearchConfidence"><option value="unassessed">Unassessed</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+              <label>Notes / what it supports <textarea id="ffv2ResearchNotes" rows="2" placeholder="Relevant page, data, methodology or caveat"></textarea></label>
+            </div>
+            <button id="ffv2ResearchAddSource" class="button small">＋ Add research source</button>
+            <div id="ffv2ResearchSourceList" class="ffv2-director-list"></div>
+            <div class="ffv2-director-subdivider"></div>
+            <strong>Reference video / creator format</strong>
+            <p>Study public-facing structure, pacing and visual conventions only. Do not copy a creator's exact edit, branding or protected expression; reference records never grant reuse permission.</p>
+            <div class="ffv2-director-grid">
+              <label>Public video URL <input id="ffv2ReferenceUrl" type="url" placeholder="https://…"></label>
+              <label>Video title <input id="ffv2ReferenceTitle" maxlength="500"></label>
+              <label>Creator / channel <input id="ffv2ReferenceCreator" maxlength="200"></label>
+              <label>Platform <input id="ffv2ReferencePlatform" maxlength="100" placeholder="YouTube, Vimeo…"></label>
+              <label>Access <select id="ffv2ReferenceAccess"><option value="public">Publicly accessible</option><option value="login_required">Login required</option><option value="blocked">Blocked / inaccessible</option><option value="removed">Removed</option><option value="unknown">Unknown</option></select></label>
+              <label>Observed format / style (one per line) <textarea id="ffv2ReferenceObservations" rows="2" placeholder="Hook pattern, shot pacing, diagram use, transitions…"></textarea></label>
+              <label>Notes <textarea id="ffv2ReferenceNotes" rows="2" placeholder="What is useful to learn from this reference?"></textarea></label>
+            </div>
+            <button id="ffv2ReferenceAdd" class="button small">＋ Add reference video</button>
+            <div id="ffv2ReferenceVideoList" class="ffv2-director-list"></div>
+          </div>
+
+          <div class="ffv2-director-step">
+            <h3>33 · Niche-specific visual style profile</h3>
+            <p>Profiles are editable guidance, not locked templates. Load a starting profile, customise its language and save it to this project.</p>
+            <div class="ffv2-director-grid">
+              <label>Profile niche <select id="ffv2StyleNiche">
+                <option value="unclassified">General / unclassified</option><option value="cybersecurity">Cybersecurity</option><option value="history">History</option><option value="science">Science</option><option value="mysteries">Mysteries</option><option value="finance">Finance</option><option value="gaming">Gaming</option><option value="entertainment_power_scaling">Entertainment / power scaling</option><option value="custom">Custom</option>
+              </select></label>
+              <label>Pacing <select id="ffv2StylePacing"><option value="slow">Slow</option><option value="measured">Measured</option><option value="moderate">Moderate</option><option value="brisk">Brisk</option><option value="fast">Fast</option><option value="variable">Variable</option></select></label>
+              <label>Visual language <textarea id="ffv2StyleLanguage" rows="3"></textarea></label>
+              <label>Preferred media (comma-separated) <input id="ffv2StyleMedia" placeholder="procedural_2d, three_d, diagram"></label>
+              <label>Camera language <textarea id="ffv2StyleCamera" rows="3"></textarea></label>
+              <label>Sound language <textarea id="ffv2StyleSound" rows="3"></textarea></label>
+              <label>Avoid / no-go rules (one per line) <textarea id="ffv2StyleAvoid" rows="3"></textarea></label>
+            </div>
+            <div class="ffv2-panel-actions">
+              <button id="ffv2StyleLoadPreset" class="button small">Load niche profile</button>
+              <button id="ffv2StyleSave" class="button small primary">Save edited profile</button>
+            </div>
+          </div>
+
+          <div class="ffv2-director-step">
+            <h3>34 · Narration-to-shot visual director</h3>
+            <p>The draft splitter allocates the target duration across narration beats and suggests media from the chosen profile. Every beat remains editable; suggestions are not autonomous research or verified facts.</p>
+            <button id="ffv2GenerateShotPlan" class="button small primary">Generate / rebuild timed shot plan</button>
+            <div id="ffv2ShotPlanList" class="ffv2-shot-list"></div>
+          </div>
+
+          <div class="ffv2-director-step">
+            <h3>35 · Evidence, visual proof and rights review</h3>
+            <p>Classify claims and cite source IDs. Only verified factual/comparative claims with sources can be attached to a shot marked as factual or comparative evidence. Illustrations and reconstructions must stay labelled as such.</p>
+            <div class="ffv2-director-grid">
+              <label>Claim / factual statement <textarea id="ffv2ClaimText" rows="2" placeholder="One checkable claim at a time"></textarea></label>
+              <label>Classification <select id="ffv2ClaimClass"><option value="factual">Factual</option><option value="comparative">Comparative</option><option value="interpretation">Interpretation</option><option value="opinion">Opinion</option><option value="illustrative">Illustrative</option></select></label>
+              <label>Verification state <select id="ffv2ClaimStatus"><option value="unverified">Unverified</option><option value="verified">Verified</option><option value="disputed">Disputed</option><option value="opinion">Opinion</option><option value="illustrative">Illustrative</option></select></label>
+              <label>Confidence <select id="ffv2ClaimConfidence"><option value="unassessed">Unassessed</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+              <label>Supporting source IDs (comma-separated) <input id="ffv2ClaimSources" placeholder="source-…"></label>
+              <label class="ffv2-inline-check"><input id="ffv2ClaimEvidenceRequired" type="checkbox" checked> Requires supporting evidence</label>
+              <label>Uncertainty / missing checks <textarea id="ffv2ClaimUncertainty" rows="2"></textarea></label>
+            </div>
+            <button id="ffv2ClaimAdd" class="button small">＋ Add claim</button>
+            <div id="ffv2ResearchClaimList" class="ffv2-director-list"></div>
+            <div class="ffv2-director-subdivider"></div>
+            <strong>Imported asset rights</strong>
+            <p>Importing an asset does not establish ownership or reuse permission. Record the actual licence, permission or defensible review basis for each asset. This checklist does not determine legal rights.</p>
+            <div id="ffv2RightsAssetList" class="ffv2-rights-asset-list"></div>
+            <div class="ffv2-readiness-panel">
+              <strong>Pre-production readiness gate</strong>
+              <div id="ffv2ReadinessReport">Review claims, shot evidence links and asset rights to see blockers.</div>
+              <button id="ffv2FinaliseRightsReview" class="button small primary">Record review result</button>
+            </div>
+          </div>
+          <div id="ffv2DirectorStatus" class="ffv2-save-status" role="status" aria-live="polite">Research and visual director ready.</div>
+          <button id="ffv2DirectorRefresh" class="button small quiet">Refresh research / review view</button>
+        </div>
+      </details>
+    </section>
     <div class="timeline-foot"><span>Tip: duplicate a frame, then make small changes for traditional frame-by-frame animation.</span><span>30 FPS default</span></div>
   </section>
 
@@ -511,6 +628,7 @@ void main() {
   <script src="ff-v2-renderer.js"></script>
   <script src="ff-v2-studio.js"></script>
   <script src="ff-v2-audio.js"></script>
+  <script src="ff-v2-director.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
