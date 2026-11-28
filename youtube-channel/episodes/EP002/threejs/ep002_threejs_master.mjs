@@ -16,7 +16,7 @@ const PALETTE = {
   dark: 0x061326, steel: 0x52677F, silver: 0xB8C8D9, cyan: 0x53CFFF,
   gold: 0xD5A74D, tin: 0xBAC8D6, orange: 0xFF7A35
 };
-const SECTION_WEIGHTS = [0.92, 0.98, 1.00, 0.98, 1.04, 1.02, 0.94, 0.96, 1.18, 0.98];
+const SECTION_WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // ten exact 12-second cutaways when rendered over 120 seconds
 const SECTION_NAMES = [
   "THE FLASH", "A CHIP IN LAYERS", "WHY EUV", "TIN PLASMA",
   "MIRRORS & VACUUM", "PATTERN TO SILICON", "THE WAFER STAGE",
@@ -43,6 +43,7 @@ function addBox(T, parent, name, pos, size, material, outlined) {
   var mesh = new T.Mesh(new T.BoxGeometry(size[0], size[1], size[2]), material);
   mesh.name = name;
   mesh.position.set(pos[0], pos[1], pos[2]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
   if (outlined) {
     var edges = new T.EdgesGeometry(mesh.geometry);
     mesh.add(new T.LineSegments(edges, new T.LineBasicMaterial({ color: 0x52749D, transparent: true, opacity: 0.72 })));
@@ -54,6 +55,7 @@ function addSphere(T, parent, name, pos, radius, material, segments) {
   var mesh = new T.Mesh(new T.SphereGeometry(radius, segments || 32, segments || 24), material);
   mesh.name = name;
   mesh.position.set(pos[0], pos[1], pos[2]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
   parent.add(mesh);
   return mesh;
 }
@@ -61,6 +63,7 @@ function addCylinder(T, parent, name, pos, radiusTop, radiusBottom, height, mate
   var mesh = new T.Mesh(new T.CylinderGeometry(radiusTop, radiusBottom, height, segments || 32), material);
   mesh.name = name;
   mesh.position.set(pos[0], pos[1], pos[2]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
   parent.add(mesh);
   return mesh;
 }
@@ -72,6 +75,7 @@ function addBeam(T, parent, name, start, end, radius, material) {
   mesh.name = name;
   mesh.position.copy(a).add(b).multiplyScalar(0.5);
   mesh.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), direction.normalize());
+  mesh.castShadow = true; mesh.receiveShadow = true;
   parent.add(mesh);
   return mesh;
 }
@@ -91,6 +95,7 @@ function addRing(T, parent, name, pos, radius, tube, material, rotation) {
   mesh.name = name;
   mesh.position.set(pos[0], pos[1], pos[2]);
   if (rotation) mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
   parent.add(mesh);
   return mesh;
 }
@@ -787,7 +792,7 @@ export function mountScene(container,options){
     camera.lookAt(0,-0.12,0);renderer.render(scene,camera);
   }
   seek(0);
-  return {duration:duration,renderer:renderer,resize:resize,seek:seek,pause:function(){},
+  return {duration:duration,renderer:renderer,resize:resize,seek:seek,collisionReport:function(){return sections.map(function(section){return {name:section.name,collision:section.collisionSystem?section.collisionSystem.report():{status:'no dynamic collision pair; articulated joints are travel-limited'}};});},pause:function(){},
     dispose:function(){
       scene.traverse(function(object){
         if(object.geometry&&object.geometry.dispose)object.geometry.dispose();
