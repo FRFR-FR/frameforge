@@ -415,20 +415,28 @@
       try { await selectJob(event.target.value); updateButtons(); } catch (error) { setStatus(error.message, 'error'); }
     });
     $('ffv2RenderQueueChunk').addEventListener('change', () => { updateButtons(); });
-    root.document.addEventListener('ffv2:ready', async () => {
-      try {
-        const jobs = await root.FFV2Studio.renderStorage.listJobs();
-        for (const job of jobs) {
-          if (job.status === 'running') {
-            job.status = 'paused';
-            job.updated_at = stamp();
-            await root.FFV2Studio.renderStorage.saveJob(job);
-          }
+  }
+
+  async function onStudioReady() {
+    if (!root.FFV2Studio?.renderStorage) {
+      setStatus('Waiting for the V2 local render storage to initialise.', 'info');
+      return;
+    }
+    try {
+      const jobs = await root.FFV2Studio.renderStorage.listJobs();
+      for (const job of jobs) {
+        if (job.status === 'running') {
+          job.status = 'paused';
+          job.updated_at = stamp();
+          await root.FFV2Studio.renderStorage.saveJob(job);
         }
-        await refreshJobs();
-        updateButtons();
-      } catch (error) { setStatus('Render queue storage unavailable: ' + error.message, 'error'); }
-    }, { once: true });
+      }
+      await refreshJobs();
+      updateButtons();
+      if (!currentJob) setStatus('Render queue ready. Create a job to render the current V2 sequence.', 'success');
+    } catch (error) {
+      setStatus('Render queue storage unavailable: ' + error.message, 'error');
+    }
   }
 
   root.FFV2RenderQueue = {
@@ -439,11 +447,18 @@
     refreshJobs,
     getCurrentJob: () => currentJob,
     createZip,
-    signature
+    signature,
+    isBound: () => uiBound
   };
   if (root.document) {
-    if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', bind);
-    else bind();
-    root.document.addEventListener('ffv2:ready', bind, { once: true });
+    if (root.document.readyState === 'loading') {
+      root.document.addEventListener('DOMContentLoaded', bind, { once: true });
+    } else {
+      bind();
+    }
+    root.document.addEventListener('ffv2:ready', () => {
+      bind();
+      onStudioReady();
+    });
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this);
