@@ -110,21 +110,25 @@
   }
 
   async function loadImageMetadata(file, url, extension) {
-    let image;
-    try {
-      if (typeof createImageBitmap === 'function') {
-        image = await createImageBitmap(file);
-        const result = { width: image.width, height: image.height, alpha_capable: ['png', 'gif', 'webp', 'avif', 'svg'].includes(extension), decode_status: 'decoded' };
-        image.close();
+    const alphaCapable = ['png', 'gif', 'webp', 'avif', 'svg'].includes(extension);
+    if (typeof createImageBitmap === 'function') {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const result = { width: bitmap.width, height: bitmap.height, alpha_capable: alphaCapable, decode_status: 'decoded' };
+        bitmap.close();
         return result;
+      } catch (_) {
+        // Fall through to the HTMLImageElement decoder for browsers with partial createImageBitmap support.
       }
-      image = new Image();
+    }
+    const image = new Image();
+    try {
       await new Promise((resolve, reject) => {
         image.onload = resolve;
         image.onerror = () => reject(new Error('The browser could not decode this image.'));
         image.src = url;
       });
-      return { width: image.naturalWidth, height: image.naturalHeight, alpha_capable: ['png', 'gif', 'webp', 'avif', 'svg'].includes(extension), decode_status: 'decoded' };
+      return { width: image.naturalWidth, height: image.naturalHeight, alpha_capable: alphaCapable, decode_status: 'decoded' };
     } catch (error) {
       throw new Error('Image decode failed: ' + error.message);
     }
@@ -241,10 +245,12 @@
           width: metadata.width || undefined,
           height: metadata.height || undefined,
           duration_seconds: metadata.duration_seconds || undefined,
-          codec: metadata.codec || classification.mime,
+          codec: metadata.codec || undefined,
+          mime_type: classification.mime,
           alpha_capable: metadata.alpha_capable,
           decode_status: metadata.decode_status,
-          external_dependencies: metadata.external_dependencies || []
+          external_dependencies: metadata.external_dependencies || [],
+          dependency_warning: metadata.dependency_warning || ''
         },
         provenance: {
           source_type: 'user_supplied',
@@ -313,7 +319,7 @@
     const parts = [bytesMB(meta.size_bytes || (asset.blob && asset.blob.size) || 0)];
     if (meta.width && meta.height) parts.push(meta.width + ' × ' + meta.height);
     if (meta.duration_seconds) parts.push(meta.duration_seconds.toFixed(2) + ' s');
-    if (meta.codec) parts.push(meta.codec);
+    if (meta.codec || meta.mime_type) parts.push(meta.codec || meta.mime_type);
     return parts.join(' · ');
   }
 
@@ -360,6 +366,11 @@
       const status = document.createElement('small');
       status.className = 'ffv2-rights-state';
       status.textContent = 'Rights: ' + (asset.rights?.status || 'pending');
+      const dependencyWarning = document.createElement('small');
+      if (asset.metadata?.dependency_warning) {
+        dependencyWarning.className = 'ffv2-dependency-warning';
+        dependencyWarning.textContent = asset.metadata.dependency_warning;
+      }
       const tagInput = document.createElement('input');
       tagInput.className = 'ffv2-tag-input';
       tagInput.value = (asset.tags || []).join(', ');
@@ -382,7 +393,9 @@
       addBtn.textContent = 'Add to timeline';
       addBtn.addEventListener('click', () => addAssetToTimeline(asset));
       buttons.append(selectBtn, addBtn);
-      details.append(title, metadata, status, tagInput, buttons);
+      details.append(title, metadata, status);
+      if (dependencyWarning.textContent) details.append(dependencyWarning);
+      details.append(tagInput, buttons);
       card.append(preview, details);
       card.addEventListener('click', () => {
         state.selectedAssetId = asset.id;
