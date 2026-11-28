@@ -176,30 +176,8 @@
   }
 
   async function inspectModel(file, extension, firstBytes) {
-    if (extension === 'glb') {
-      const header = new DataView(firstBytes.buffer, firstBytes.byteOffset, firstBytes.byteLength);
-      if (firstBytes.length < 12 || header.getUint32(8, true) !== file.size) {
-        throw new Error('GLB declared file length does not match the uploaded file.');
-      }
-      return { codec: 'glTF Binary 2.0', decode_status: 'header-validated' };
-    }
-    const text = await file.text();
-    let documentData;
-    try { documentData = JSON.parse(text); }
-    catch (_) { throw new Error('glTF JSON is malformed.'); }
-    if (!documentData.asset || !String(documentData.asset.version || '').startsWith('2.0')) {
-      throw new Error('Only glTF 2.0 JSON files are supported.');
-    }
-    const dependencies = [];
-    for (const item of [...(documentData.buffers || []), ...(documentData.images || [])]) {
-      if (item.uri && !item.uri.startsWith('data:')) dependencies.push(item.uri);
-    }
-    return {
-      codec: 'glTF JSON 2.0',
-      decode_status: 'json-validated',
-      external_dependencies: dependencies,
-      dependency_warning: dependencies.length ? 'This glTF references external files. Import each referenced buffer/texture as a separate asset or use a self-contained GLB.' : ''
-    };
+    if (!window.FFV2ThreeStudio) throw new Error('The versioned local Three.js runtime is not loaded. Check the vendor runtime build.');
+    return await window.FFV2ThreeStudio.inspectModelFile(file,extension,state.assetRecords,item=>getObjectUrl(item));
   }
 
   async function inspectFile(file, classification, url, firstBytes) {
@@ -763,6 +741,8 @@
     }
     matteSelect.value = selectedMatte;
 
+    render3DClipControls(clip,asset);
+
     const isText = clip.generator?.type === 'text';
     const isShape = clip.generator?.type === 'shape';
     const isSvg = clip.generator?.type === 'svg';
@@ -806,6 +786,112 @@
       'In: ' + (incoming ? incoming.type + ' (' + incoming.duration_frames + 'f)' : 'none') +
       ' · Out: ' + (outgoing ? outgoing.type + ' (' + outgoing.duration_frames + 'f)' : 'none');
   }
+
+
+  function render3DSceneSettings() {
+    const scene=currentSequence().scene3d || Core.default3DSceneSettings();
+    const camera=scene.camera||{};
+    const lights=scene.lights||[];
+    const ambient=lights.find(light=>light.type==='ambient')||{color:'#ffffff',intensity:0.45};
+    const key=lights.find(light=>light.type==='directional')||{color:'#ffffff',intensity:1};
+    $('ffv23DCameraProjection').value=camera.projection||'perspective';
+    $('ffv2CameraX').value=String(camera.position?.[0]??6);
+    $('ffv2CameraY').value=String(camera.position?.[1]??4);
+    $('ffv2CameraZ').value=String(camera.position?.[2]??7);
+    $('ffv2TargetX').value=String(camera.target?.[0]??0);
+    $('ffv2TargetY').value=String(camera.target?.[1]??0);
+    $('ffv2TargetZ').value=String(camera.target?.[2]??0);
+    $('ffv2CameraFov').value=String(camera.fov||45);
+    $('ffv2SceneBackground').value=/^#[0-9a-f]{6}$/i.test(scene.environment?.background||'')?scene.environment.background:'#101c2b';
+    $('ffv2SceneTransparent').checked=Boolean(scene.environment?.transparent);
+    $('ffv2AmbientIntensity').value=String(ambient.intensity??0.45);
+    $('ffv2KeyLightIntensity').value=String(key.intensity??1.1);
+    $('ffv23DToneMapping').value=scene.render?.tone_mapping||'aces';
+    const caps=window.FFV2ThreeStudio?.capabilities?.();
+    $('ffv23DCapability').textContent=caps?.available
+      ? 'Three.js r'+caps.threeRevision+' · '+caps.webgl
+      : '3D runtime unavailable · '+(caps?.reason||'waiting for local runtime');
+  }
+
+  function apply3DSceneSettings() {
+    try {
+      const sequence=currentSequence();
+      const previous=sequence.scene3d||Core.default3DSceneSettings();
+      const lights=Core.clone(previous.lights||[]);
+      const ambient=lights.find(light=>light.type==='ambient');
+      const key=lights.find(light=>light.type==='directional');
+      if(ambient) ambient.intensity=Number($('ffv2AmbientIntensity').value);
+      if(key) key.intensity=Number($('ffv2KeyLightIntensity').value);
+      Core.set3DSceneSettings(state.project,{
+        camera:{
+          projection:$('ffv23DCameraProjection').value,
+          position:[Number($('ffv2CameraX').value),Number($('ffv2CameraY').value),Number($('ffv2CameraZ').value)],
+          target:[Number($('ffv2TargetX').value),Number($('ffv2TargetY').value),Number($('ffv2TargetZ').value)],
+          fov:Number($('ffv2CameraFov').value)
+        },
+        lights,
+        environment:{background:$('ffv2SceneBackground').value,transparent:$('ffv2SceneTransparent').checked},
+        render:{tone_mapping:$('ffv23DToneMapping').value}
+      });
+      scheduleSave();renderPreview();
+      setStatus('3D scene camera, lighting and render settings saved.','success');
+    } catch(error) { setStatus(error.message,'warning'); }
+  }
+
+  function render3DClipControls(clip,asset) {
+    const panel=$('ffv23DClipControls');
+    const enabled=asset?.media_type==='model3d';
+    panel.classList.toggle('hidden',!enabled);
+    if(!enabled) return;
+    const transform=Core.evaluate3DClipState(clip,state.playhead);
+    ['X','Y','Z'].forEach((axis,index)=>{
+      $('ffv2ModelPos'+axis).value=String(transform.position[index]);
+      $('ffv2ModelRot'+axis).value=String(transform.rotation[index]);
+      $('ffv2ModelScale'+axis).value=String(transform.scale[index]);
+    });
+    const animation=clip.animation||{};
+    const animationSelect=$('ffv2ModelAnimation');
+    animationSelect.replaceChildren();
+    const noAnimation=document.createElement('option');noAnimation.value='';noAnimation.textContent='No animation / first clip';animationSelect.append(noAnimation);
+    for(const item of asset.metadata?.animation_clips||[]){
+      const option=document.createElement('option');option.value=item.name;option.textContent=item.name+' · '+Number(item.duration_seconds||0).toFixed(2)+'s';animationSelect.append(option);
+    }
+    animationSelect.value=animation.clip_name||'';
+    $('ffv2ModelAnimationEnabled').checked=animation.enabled!==false;
+    $('ffv2ModelAnimationSpeed').value=String(animation.time_scale??1);
+    $('ffv2ModelAnimationLoop').checked=animation.loop!==false;
+    const constraints=clip.constraints||[];
+    $('ffv2GroundContact').checked=constraints.some(c=>c.type==='ground_contact'&&c.enabled!==false);
+    $('ffv2AabbCollision').checked=constraints.some(c=>c.type==='aabb_collision'&&c.enabled!==false);
+    $('ffv2GroundHeight').value=String(constraints.find(c=>c.type==='ground_contact')?.ground_y??0);
+    $('ffv23DModelInfo').textContent=(asset.metadata?.mesh_count||0)+' mesh(es) · '+(asset.metadata?.animation_clips||[]).length+' animation clip(s) · '+(asset.metadata?.codec||'glTF 2.0');
+  }
+
+  function apply3DClipControls() {
+    const found=selectedClipInfo();
+    if(!found) return;
+    try {
+      const clip=found.clip;
+      Core.set3DClipTransform(state.project,clip.id,{
+        position:['X','Y','Z'].map(axis=>Number($('ffv2ModelPos'+axis).value)),
+        rotation:['X','Y','Z'].map(axis=>Number($('ffv2ModelRot'+axis).value)),
+        scale:['X','Y','Z'].map(axis=>Number($('ffv2ModelScale'+axis).value))
+      });
+      Core.set3DClipAnimation(state.project,clip.id,{
+        enabled:$('ffv2ModelAnimationEnabled').checked,
+        clip_name:$('ffv2ModelAnimation').value,
+        time_scale:Number($('ffv2ModelAnimationSpeed').value),
+        loop:$('ffv2ModelAnimationLoop').checked
+      });
+      const constraints=[];
+      if($('ffv2GroundContact').checked) constraints.push({type:'ground_contact',enabled:true,ground_y:Number($('ffv2GroundHeight').value),offset:0});
+      if($('ffv2AabbCollision').checked) constraints.push({type:'aabb_collision',enabled:true,mode:'push_up'});
+      Core.set3DClipConstraints(state.project,clip.id,constraints);
+      scheduleSave();renderClipInspector();renderPreview();
+      setStatus('3D model transform, animation and contact constraints updated.','success');
+    } catch(error) { setStatus(error.message,'warning'); }
+  }
+
 
   function applyClipTransform() {
     const found = selectedClipInfo();
@@ -959,6 +1045,19 @@
     return source;
   }
 
+
+  async function resolve3DAsset(assetRef) {
+    const asset=state.assetRecords.find(item=>item.id===assetRef.id);
+    if(!asset||!asset.blob) throw new Error('3D model is missing from local browser storage.');
+    return asset;
+  }
+
+  function resolve3DDependency(asset) {
+    const url=getObjectUrl(asset);
+    if(!url) throw new Error('3D texture or buffer dependency is missing: '+(asset.file_name||asset.label));
+    return url;
+  }
+
   async function renderPreview() {
     if (!state.project || !window.FFV2Renderer || !$('ffv2CompositorCanvas')) return;
     const renderId = ++state.previewRenderId;
@@ -973,7 +1072,10 @@
           project: state.project,
           frame,
           canvas,
-          resolveAsset: resolveRenderAsset
+          resolveAsset: resolveRenderAsset,
+          resolveModelAsset: resolve3DAsset,
+          modelAssets: state.assetRecords,
+          resolveModelDependency: resolve3DDependency
         });
         if (renderId !== state.previewRenderId) return;
         const notice = $('ffv2CompositorStatus');
@@ -1449,6 +1551,7 @@
     renderTracks();
     renderClipInspector();
     renderPostPasses();
+    render3DSceneSettings();
     setPlayhead(state.playhead);
   }
 
@@ -1549,6 +1652,8 @@
     $('ffv2ApplyPostPreset').addEventListener('click', applyPostPreset);
     $('ffv2AddPostPass').addEventListener('click', () => addPostPass($('ffv2PostType').value));
     $('ffv2AddCustomShader').addEventListener('click', addCustomShaderPass);
+    $('ffv2Apply3DScene').addEventListener('click', apply3DSceneSettings);
+    $('ffv2Apply3DClip').addEventListener('click', apply3DClipControls);
     $('ffv2RenderFrame').addEventListener('click', renderPreview);
     $('ffv2DownloadFrame').addEventListener('click', downloadCompositorFrame);
     $('ffv2SplitClip').addEventListener('click', splitSelectedClip);
