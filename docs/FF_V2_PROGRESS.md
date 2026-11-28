@@ -231,19 +231,57 @@ The bridge has `build` mode (save editable `.blend` and export `.glb`) and `rend
 - [Blender bridge run 46120638375 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46120638375): bridge Python tests passed; Blender 4.0.2 built an editable scene and GLB, rendered a PNG frame with CPU Cycles and uploaded the outputs as an Actions artifact.
 - [Foundation validation run 46120530579 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46120530579): **36 JavaScript tests passed** and **18 Python tests passed**, including the new 3D scene/model/constraint tests and Blender bridge helper tests.
 - The browser and Blender runs above include the final Y-up-to-Z-up conversion and model clip identity changes; both completed successfully. Blender uploaded the editable `.blend`, exported `.glb`, rendered PNG and related scene outputs as the `FrameForge-V2-Blender-Bridge-Test` artifact.
-## Current V2 boundary after steps 1–25
+## Batch 26–30 status
+
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 26 | Multi-track audio engine | Complete | Voiceover, music, SFX and general audio tracks have independent clip/track gain, pan, mute/solo, placement and fades; Node render tests and Chromium import/export test pass |
+| 27 | Waveforms and audio sync | Complete | Web Audio decodes imported audio, the selected clip displays a peak waveform, waveform seeking is frame-based, and audio-player preview synchronizes the shared playhead |
+| 28 | Event-triggered SFX | Complete | SFX cues can trigger at the playhead or at visual clip start/end; Node tests verify cue resolution follows the referenced clip |
+| 29 | Mixing and automation | Complete | Clip-local gain keyframes, interpolation, track/clip gain, pan, fades, mute/solo, music ducking and peak normalization are implemented and regression-tested |
+| 30 | WAV master and FFmpeg mux | Partial | 48 kHz stereo PCM16 WAV mastering and an end-to-end FFmpeg mux utility are tested; automatic V2 full-sequence picture render/mux remains blocked on the later full-sequence video renderer |
+
+## Step 26 — Multi-track audio engine
+
+Created [ff-v2-audio.js](../ff-v2-audio.js) and connected it to the V2 workspace. Voiceover, Music and SFX remain separate default tracks; additional Audio tracks can be used for dialogue or ambience. Clips keep their independent timeline position and duration with gain, pan, mute, fade-in and fade-out settings. Track gain, pan, solo, mute and enabled state affect the rendered mix. Audio data is stored in the V2 project model, not baked into the video compositor.
+
+## Step 27 — Waveforms and audio sync
+
+Audio assets are decoded through the browser Web Audio API. Selecting an audio clip displays its peak waveform; clicking/tapping the waveform seeks the shared playhead in frame units. During preview of the rendered audio master, the playhead follows the audio player's current time. Standard WAV duration is also read from its RIFF container metadata when the browser does not provide duration metadata.
+
+## Step 28 — SFX event cues
+
+SFX cues reference imported audio assets and can be placed at the current playhead or attached to a visual clip's start/end. Clip-linked cues resolve their timeline frame from the referenced clip ID, so moving or trimming that visual clip also changes the cue's resolved position. Cue data is serialized in the `extensions.ffv2_audio` project extension.
+
+## Step 29 — Mixing and automation
+
+Clip gain automation is stored as clip-local frame/gain keyframes with linear interpolation. The mix renderer evaluates track and clip gain, stereo pan, fades, mute/solo, and optional voiceover-triggered music ducking. It performs a peak scan and normalizes the exported PCM master toward -1 dBFS. Preview is an offline render followed by local audio playback, not a live low-latency mixer.
+
+## Step 30 — Audio master and FFmpeg mux
+
+The audio engine renders a 48 kHz stereo PCM16 WAV master. Added [tools/mux_ffmpeg.py](../tools/mux_ffmpeg.py) to map an already-rendered silent picture with the WAV master, pad/trim the audio to the measured picture duration, target -16 LUFS integrated loudness and -1.5 dBTP, encode AAC and verify the resulting MP4 streams/duration.
+
+**Important boundary:** the V2 compositor currently exports the selected frame as PNG, not a full sequence MP4. The mux utility therefore accepts a silent video rendered by an existing renderer; automatic V2 timeline-to-MP4 export is not yet complete.
+
+## Verification for batch 26–30
+
+- [Foundation validation run 46126529805 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46126529805): **45 JavaScript tests passed**, **22 Python tests passed**, including an end-to-end FFmpeg mux test that verifies 48 kHz stereo AAC output and duration; schema/example validation and JavaScript/Python syntax checks passed.
+- [Chromium browser smoke run 46126529789 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46126529789): existing V2 visual smoke and new audio browser smoke passed. The audio test imported/decoded WAV, drew and sought the waveform, synchronized the frame playhead, exercised track solo/gain and clip fades/automation, created an SFX marker and downloaded a valid 48 kHz stereo PCM16 WAV master.
+- Audio implementation notes and the manual mux command are in [FF_V2_AUDIO.md](FF_V2_AUDIO.md).
+
+## Current V2 boundary after steps 1–30
 
 The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions, and a WebGL Three.js r164.1 scene renderer for imported GLB/glTF models. It can export transparent PNG frames and package 3D scenes for Blender. It still does **not** render a full V2 timeline to MP4. Final video rendering, resumable chunks, FFmpeg export and technical QA remain later roadmap steps. Audio tracks are timeline data only. The legacy V1 editor and existing Blender production workflows remain available.
 
 
 ## Remaining limits / not yet done
 
-- The V2 compositor still renders the selected playhead frame and exports PNG; it does not yet render a full sequence or create the V2 timeline MP4. Full-sequence rendering, resumable chunks, FFmpeg export profiles and technical QA remain future steps (41–43).
+- The V2 compositor still renders the selected playhead frame and exports PNG; it does not yet render a full sequence or create the V2 timeline MP4. The FFmpeg mux utility only combines a silent video made by an existing renderer with the WAV master. Full-sequence rendering, resumable chunks and integrated V2 FFmpeg export remain future steps (41–43).
 - The optional shader backend is native WebGL 1, not Three.js EffectComposer or WebGPU. Custom GLSL requires WebGL and is explicitly skipped under Canvas 2D fallback; built-in effects use Canvas 2D fallbacks where supported.
 - Browser GPU drivers, shader precision, texture limits, Canvas filters, codecs, storage and memory vary by device. Pixel-heavy depth-of-field and distortion work can be slow on phones, especially at higher resolutions. The optional Three.js GLB/glTF scene renderer specifically needs WebGL.
 - Imported 3D model pixels in V2 require WebGL; a device without WebGL can still inspect/import model metadata and use 2D editing, but cannot render those 3D tracks in the V2 compositor. The existing CPU-side `frameforge-3d.js` renderer remains available for code-authored geometry.
 - The Blender bridge is a scene/frame handoff, not a full-sequence MP4 round trip. Ground and AABB contact are approximations rather than a full physics simulation; complex multi-axis Euler conversions may differ slightly.
-- Audio tracks are timeline data only. There is no V2 audio mixer, audio effects or final audio mux yet; those are steps 26–30. Playback-rate ramps currently affect visual source-time selection and do not provide pitch-preserving audio retiming.
+- Audio preview uses an offline rendered WAV master, not a live low-latency mixer. Advanced insert effects such as EQ, reverb and compression, pitch-preserving audio speed ramps and automatic mux into a V2-rendered full sequence are not included yet. Browser audio decoding depends on device codec support.
 - Alpha/luma matte modes are implemented but do not yet have dedicated pixel-level Chromium fixtures. Shape masks and their inversion are pixel-tested.
 - Imported media metadata validation relies partly on browser codecs; it is not a full decode of every video frame or audio sample.
 - Project JSON does not package imported binary files. Blobs remain in the originating browser's IndexedDB; keep source media separately backed up.
@@ -254,4 +292,4 @@ The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optiona
 
 ## Next batch
 
-The next five-step batch is **26–30** (audio production). Do not start it until the user requests it.
+The next five-step batch is **31–35**. Do not start it until the user requests it.
