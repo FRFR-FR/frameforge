@@ -1,0 +1,84 @@
+name: FrameForge VFX Demo — Russia President Portrait
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tests/ff-v2-vfx-demo-render.js"
+      - ".github/workflows/ff-v2-vfx-demo.yml"
+      - "ff-v2-core.js"
+      - "ff-v2-renderer.js"
+      - "ff-v2-studio.js"
+      - "index.html"
+      - "styles.css"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frameforge-v2-vfx-demo
+  cancel-in-progress: true
+
+jobs:
+  render-vfx-demo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install FFmpeg and browser dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Download the Kremlin-sourced CC BY 4.0 portrait
+        run: |
+          mkdir -p assets artifacts/vfx-test
+          curl --fail --location --retry 3 \
+            "https://upload.wikimedia.org/wikipedia/commons/a/a3/Vladimir_Putin_portrait_%282024-02-23%29.png" \
+            --output assets/putin-portrait.png
+          file assets/putin-portrait.png
+
+      - name: Render 10 seconds through the FrameForge V2 compositor
+        env:
+          PORTRAIT_PATH: assets/putin-portrait.png
+          OUTPUT_DIR: artifacts/vfx-test
+        run: node tests/ff-v2-vfx-demo-render.js
+
+      - name: Verify MP4 dimensions, frame rate and duration
+        run: |
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames \
+            -show_entries format=duration,size \
+            -of json artifacts/vfx-test/frameforge-vfx-russia-president-10s.mp4 \
+            > artifacts/vfx-test/technical-report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("artifacts/vfx-test/technical-report.json").read_text())
+          stream=report["streams"][0]
+          duration=float(report["format"]["duration"])
+          size=int(report["format"]["size"])
+          assert stream["width"] == 1280 and stream["height"] == 720, stream
+          assert stream["r_frame_rate"] == "24/1", stream
+          assert abs(duration - 10.0) <= 0.05, duration
+          assert stream.get("codec_name") == "h264", stream
+          print(f"PASS: {duration:.3f}s, 1280x720, 24 FPS, H.264, {size/1048576:.2f} MB")
+          PY
+
+      - name: Upload MP4 and attribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: frameforge-vfx-test-${{ github.run_number }}
+          path: artifacts/vfx-test/
+          if-no-files-found: error
+          retention-days: 7
