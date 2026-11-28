@@ -119,12 +119,14 @@
         "sample_rate": { "type": "integer", "minimum": 1 },
         "channels": { "type": "integer", "minimum": 1 },
         "codec": { "type": "string", "maxLength": 100 },
+        "mime_type": { "type": "string", "maxLength": 200 },
         "alpha_capable": { "type": "boolean" },
         "decode_status": { "type": "string", "maxLength": 100 },
         "external_dependencies": {
           "type": "array",
           "items": { "type": "string", "maxLength": 2000 }
-        }
+        },
+        "dependency_warning": { "type": "string", "maxLength": 2000 }
       }
     },
     "asset": {
