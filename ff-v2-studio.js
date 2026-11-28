@@ -503,6 +503,7 @@
     if (!state.project) return;
     const host = $('ffv2TrackRows');
     const width = timelinePixelWidth();
+    $('ffv2Playhead').max = String(currentSequence().duration_frames);
     host.replaceChildren();
     $('ffv2TrackCount').textContent = currentSequence().tracks.length + ' tracks';
     for (const track of [...currentSequence().tracks].sort((a, b) => a.order - b.order)) {
@@ -724,8 +725,14 @@
       const previousRequest = projects.get(snapshot.project.id);
       previousRequest.onsuccess = () => {
         const previous = previousRequest.result;
-        const previousJSON = previous?.project ? JSON.stringify(previous.project) : '';
-        const nextJSON = JSON.stringify(snapshot);
+        const withoutUpdatedAt = value => {
+          if (!value?.project) return '';
+          const comparable = Core.clone(value.project);
+          if (comparable.project) comparable.project.updated_at = '';
+          return JSON.stringify(comparable);
+        };
+        const previousJSON = withoutUpdatedAt(previous);
+        const nextJSON = withoutUpdatedAt({ project: snapshot });
         if (previousJSON && previousJSON !== nextJSON) {
           const savedAt = Date.now();
           recovery.put({
@@ -779,6 +786,13 @@
     const transaction = state.db.transaction('assets', 'readonly');
     const allRecords = await requestResult(transaction.objectStore('assets').getAll());
     const byId = new Map(allRecords.map(asset => [asset.id, asset]));
+    const projectAssetIds = new Set(state.project.assets.map(ref => ref.id));
+    for (const [id, url] of state.objectUrls.entries()) {
+      if (!projectAssetIds.has(id)) {
+        URL.revokeObjectURL(url);
+        state.objectUrls.delete(id);
+      }
+    }
     state.assetRecords = state.project.assets.map(ref => byId.get(ref.id) || ({
       id: ref.id, label: ref.label || 'Missing local asset', file_name: ref.label || '',
       media_type: ref.media_type, metadata: ref.metadata || {}, tags: ref.tags || [],
@@ -888,6 +902,44 @@
     zone.addEventListener('drop', event => importFiles(event.dataTransfer?.files));
   }
 
+  async function checkStorage() {
+    const info = $('ffv2StorageInfo');
+    if (!navigator.storage || typeof navigator.storage.estimate !== 'function') {
+      info.textContent = 'This browser does not expose storage quota information.';
+      return;
+    }
+    try {
+      const estimate = await navigator.storage.estimate();
+      const usage = Number(estimate.usage) || 0;
+      const quota = Number(estimate.quota) || 0;
+      let persisted = 'not reported';
+      if (typeof navigator.storage.persisted === 'function') {
+        persisted = await navigator.storage.persisted() ? 'persistent' : 'browser-managed';
+      }
+      info.textContent = 'Local browser storage: ' + bytesMB(usage) +
+        (quota ? ' used of ' + bytesMB(quota) : '') + ' · ' + persisted +
+        '. Available quota can change by device and browser.';
+    } catch (error) {
+      info.textContent = 'Could not read storage estimate: ' + error.message;
+    }
+  }
+
+  async function protectStorage() {
+    if (!navigator.storage || typeof navigator.storage.persist !== 'function') {
+      setStatus('Persistent storage requests are not supported by this browser.', 'warning');
+      return;
+    }
+    try {
+      const granted = await navigator.storage.persist();
+      setStatus(granted
+        ? 'Browser granted persistent storage for local projects and imported assets.'
+        : 'Browser did not grant persistent storage. Export project JSON and keep source assets backed up.', granted ? 'success' : 'warning');
+      await checkStorage();
+    } catch (error) {
+      setStatus('Could not request persistent storage: ' + error.message, 'warning');
+    }
+  }
+
   function bindEvents() {
     $('ffv2ImportButton').addEventListener('click', () => $('ffv2FileInput').click());
     $('ffv2FileInput').addEventListener('change', event => {
@@ -911,6 +963,8 @@
     $('ffv2DuplicateClip').addEventListener('click', duplicateSelectedClip);
     $('ffv2DeleteClip').addEventListener('click', deleteSelectedClip);
     $('ffv2SaveProject').addEventListener('click', () => saveProject(true));
+    $('ffv2CheckStorage').addEventListener('click', checkStorage);
+    $('ffv2ProtectStorage').addEventListener('click', protectStorage);
     $('ffv2ExportProject').addEventListener('click', exportProject);
     $('ffv2OpenProject').addEventListener('click', () => $('ffv2ProjectFile').click());
     $('ffv2ProjectFile').addEventListener('change', event => importProject(event.target.files[0]));
