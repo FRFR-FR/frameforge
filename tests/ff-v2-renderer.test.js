@@ -152,3 +152,17 @@ test('WebGL capability check fails gracefully when no DOM is present', () => {
   assert.equal(result.webgl,false);
   assert.match(result.reason,/document is not defined/);
 });
+
+
+test('depth-of-field and swirl-warp are supported fallback effects', () => {
+  const p = Core.createDefaultProject();
+  assert.ok(Core.POST_PROCESS_TYPES.includes('depth-of-field'));
+  assert.ok(Core.CLIP_EFFECT_TYPES.includes('depth-of-field'));
+  assert.ok(Core.POST_PROCESS_TYPES.includes('custom'));
+  const clip = { id:'swirl', kind:'generated', start_frame:0, duration_frames:40, enabled:true, effects:[] };
+  const track = p.sequences[0].tracks.find(t=>t.type==='graphic');
+  track.clips.push(clip);
+  Core.setClipTransition(p,clip.id,'in',{type:'swirl_warp',duration_frames:20});
+  const state=Renderer.transitionValues(clip,5,p.sequences[0],{position:[0,0],scale:[1,1],rotation_degrees:0,opacity:1,anchor:[0.5,0.5]});
+  assert.equal(state.distortions[0].type,'swirl-warp');
+});
