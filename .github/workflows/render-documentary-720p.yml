@@ -17,11 +17,11 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
 
 concurrency:
-  group: documentary-render-${{ github.ref }}-${{ github.sha }}
-  cancel-in-progress: false
+  group: documentary-render-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   render:
@@ -43,6 +43,21 @@ jobs:
     steps:
       - name: Check out episode source
         uses: actions/checkout@v4
+
+      - name: Cancel superseded render runs on this branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r run_id; do
+            [ -n "$run_id" ] || continue
+            echo "Cancelling superseded run $run_id"
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" || echo "::warning::Could not cancel run $run_id"
+          done < <(
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs" -f "branch=${GITHUB_REF_NAME}" -F per_page=100 \
+              --jq ".workflow_runs[] | select(.status != \"completed\") | select(.id != ${GITHUB_RUN_ID}) | .id"
+          )
 
       - name: Set up Python
         uses: actions/setup-python@v5
