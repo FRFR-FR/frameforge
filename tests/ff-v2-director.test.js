@@ -189,6 +189,53 @@ test('core validator rejects missing shot claims and missing shot assets',()=>{
   assert.ok(errors.some(error=>error.includes('must reference at least one claim')));
 });
 
+test('verified claims cannot rely on a blocked or login-only source',()=>{
+  const project=makeProject();
+  const source=Director.addResearchSource(project,{
+    url:'https://example.org/login-only',access_status:'login_required',confidence:'high'
+  });
+  Director.addResearchClaim(project,{
+    text:'A verified statement from a restricted page.',classification:'factual',
+    verification_status:'verified',confidence:'high',source_ids:[source.id]
+  });
+  const report=Director.readinessReport(project);
+  assert.ok(report.blockers.some(item=>item.includes('not marked publicly accessible')));
+});
+
+test('actual-footage requirement needs a linked, rights-reviewed video asset',()=>{
+  const project=makeProject();
+  const source=Director.addResearchSource(project,{
+    url:'https://example.org/official-event-report',access_status:'public',confidence:'high'
+  });
+  const claim=Director.addResearchClaim(project,{
+    text:'A video documents the event.',classification:'factual',
+    verification_status:'verified',confidence:'high',source_ids:[source.id]
+  });
+  project.shot_plan={
+    id:'plan-actual-footage',method:'user_authored',status:'draft',fps:30,total_frames:30,
+    beats:[{
+      id:'shot-actual-footage',start_frame:0,end_frame:30,narration:'A video documents the event.',
+      visual_purpose:'Show the actual recording',media_mix:['source_footage'],
+      visual_role:'factual_evidence',evidence_requirement:'actual_footage',
+      evidence_claim_ids:[claim.id],asset_ids:[]
+    }]
+  };
+  assert.ok(Director.readinessReport(project).blockers.some(item=>item.includes('imported, rights-reviewed video asset')));
+  const video={
+    id:'asset-event-video',label:'Event video',uri:'indexeddb://assets/asset-event-video',media_type:'video',
+    metadata:{duration_seconds:1},provenance:{source_type:'user_supplied'},
+    rights:{status:'pending',attribution_required:false,restrictions:[]},tags:[]
+  };
+  Core.addAsset(project,video);
+  Director.applyAssetRightsDecision(project,video.id,{
+    decision:'approved',basis:'The video is original footage created by the project owner.',
+    reviewer:'Project owner',intended_use:'Substantiate the described event.'
+  });
+  project.shot_plan.beats[0].asset_ids=[video.id];
+  const report=Director.readinessReport(project);
+  assert.deepEqual(report.blockers,[]);
+});
+
 test('reference records must stay reference-only and approved rights reviews need audit fields',()=>{
   const project=makeProject();
   project.research.reference_videos.push({
