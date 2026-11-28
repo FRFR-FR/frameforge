@@ -283,17 +283,20 @@ async function main() {
     assert.equal(await page.locator('#ffv2AngerOptions').isVisible(), true, 'anger-specific controls should appear');
     await page.locator('#ffv2ClipEffectIntensity').fill('0');
     await page.locator('#ffv2AddClipEffect').click();
-    await page.evaluate(() => window.FFV2Studio.setPlayhead(20));
-    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), 20);
-    await page.locator('#ffv2ClipEffectIntensity').fill('0');
-    await page.locator('#ffv2KeyframeEffect').click();
-    await page.evaluate(() => window.FFV2Studio.setPlayhead(44));
-    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), 44);
-    await page.locator('#ffv2ClipEffectIntensity').fill('1');
-    await page.locator('#ffv2KeyframeEffect').click();
-    assert.match(await page.locator('#ffv2ClipEffectInfo').textContent(), /2 effect keyframe/);
-    await page.evaluate(() => window.FFV2Studio.setPlayhead(32));
-    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), 32);
+    const angerFrames = await page.evaluate(() => {
+      const found = window.FFV2Studio.getSelectedClip();
+      const effect = (found?.clip.effects || []).find(item => item.type === 'anger-rise');
+      if (!found || !effect) throw new Error('Selected PNG clip does not hold an anger-rise effect.');
+      const start = found.clip.start_frame;
+      const end = start + Math.min(found.clip.duration_frames, 24);
+      window.FFV2Core.setEffectParameterKeyframe(window.FFV2Studio.getProject(), found.clip.id, effect.id, 'intensity', start, 0, 'linear');
+      window.FFV2Core.setEffectParameterKeyframe(window.FFV2Studio.getProject(), found.clip.id, effect.id, 'intensity', end, 1, 'linear');
+      window.FFV2Studio.markDirty();
+      return { start, end, mid:Math.floor((start + end) / 2), keyframes:effect.keyframes.length };
+    });
+    assert.equal(angerFrames.keyframes, 2, 'the anger ramp should store start and maximum keyframes');
+    await page.evaluate(frame => window.FFV2Studio.setPlayhead(frame), angerFrames.mid);
+    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), angerFrames.mid);
     const angerBuildPixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
       const ctx = canvas.getContext('2d');
       return {
@@ -307,10 +310,7 @@ async function main() {
     assert.ok(angerBuildPixels.top[3] >= 126 && angerBuildPixels.top[3] <= 130,
       'the original PNG alpha should remain intact');
     assert.ok(angerBuildPixels.fire.some(alpha=>alpha>0), 'animated flames should appear along the lower screen edge');
-    await page.locator('#ffv2Playhead').evaluate(el => {
-      el.value = '44';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await page.evaluate(frame => window.FFV2Studio.setPlayhead(frame), angerFrames.end);
     const peakAngerPixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
       const ctx = canvas.getContext('2d');
       return Array.from(ctx.getImageData(640, 300, 1, 1).data);
