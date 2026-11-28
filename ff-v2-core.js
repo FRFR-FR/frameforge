@@ -486,6 +486,13 @@
       if (reference.reference_only !== true) errors.push('Reference video must be marked reference_only: ' + reference.id);
     }
 
+    const unfilledProductionBeatIds = new Set(
+      Array.isArray(project.extensions?.production_orchestration?.unfilled_beats)
+        ? project.extensions.production_orchestration.unfilled_beats
+          .map(item => item && typeof item.beat_id === 'string' ? item.beat_id : '')
+          .filter(Boolean)
+        : []
+    );
     if (project.shot_plan) {
       const plan = project.shot_plan;
       if (!isObject(plan) || !Array.isArray(plan.beats)) errors.push('Shot plan must contain a beats array.');
@@ -525,15 +532,21 @@
           }
           const requirement = beat.evidence_requirement || 'none';
           const linkedAssets = (beat.asset_ids || []).map(id => project.assets.find(asset => asset.id === id)).filter(Boolean);
-          if (requirement === 'actual_footage' &&
-              (!Array.isArray(beat.media_mix) || !beat.media_mix.includes('source_footage') ||
-               !linkedAssets.some(asset => asset.media_type === 'video'))) {
-            errors.push('Shot beat ' + beat.id + ' requires source_footage media and a linked video asset.');
+          if (requirement === 'actual_footage') {
+            if (!Array.isArray(beat.media_mix) || !beat.media_mix.includes('source_footage')) {
+              errors.push('Shot beat ' + beat.id + ' requires source_footage media.');
+            }
+            if (!linkedAssets.some(asset => asset.media_type === 'video') && !unfilledProductionBeatIds.has(beat.id)) {
+              errors.push('Shot beat ' + beat.id + ' requires a linked video asset or an explicit unfilled-production record.');
+            }
           }
-          if (requirement === 'official_screenshot' &&
-              (!Array.isArray(beat.media_mix) || !beat.media_mix.includes('screenshots') ||
-               !linkedAssets.some(asset => asset.media_type === 'image'))) {
-            errors.push('Shot beat ' + beat.id + ' requires screenshots media and a linked image asset.');
+          if (requirement === 'official_screenshot') {
+            if (!Array.isArray(beat.media_mix) || !beat.media_mix.includes('screenshots')) {
+              errors.push('Shot beat ' + beat.id + ' requires screenshots media.');
+            }
+            if (!linkedAssets.some(asset => asset.media_type === 'image') && !unfilledProductionBeatIds.has(beat.id)) {
+              errors.push('Shot beat ' + beat.id + ' requires a linked image asset or an explicit unfilled-production record.');
+            }
           }
         }
       }
