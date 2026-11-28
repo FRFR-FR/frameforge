@@ -487,6 +487,9 @@
               beat.start_frame < 0 || beat.end_frame <= beat.start_frame) {
             errors.push('Shot beat has invalid frame timing: ' + beat.id);
           }
+          for (const assetId of Array.isArray(beat.asset_ids) ? beat.asset_ids : []) {
+            if (!assetIds.has(assetId)) errors.push('Shot beat ' + beat.id + ' references missing asset: ' + assetId);
+          }
           for (const claimId of Array.isArray(beat.evidence_claim_ids) ? beat.evidence_claim_ids : []) {
             const claim = (research.claims || []).find(item => item.id === claimId);
             if (!claim) errors.push('Shot beat ' + beat.id + ' references missing research claim: ' + claimId);
