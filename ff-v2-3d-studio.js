@@ -67,6 +67,13 @@
     const asset = { id:'inspect-' + file.name + '-' + file.size, file_name:file.name, label:file.name, blob:file };
     try {
       const loaded = await loadModel(asset, allAssets || [], resolveDependency);
+      let externalDependencies = [];
+      if (extension === 'gltf') {
+        const documentData = JSON.parse(await file.text());
+        externalDependencies = [...(documentData.buffers || []), ...(documentData.images || [])]
+          .map(item => item.uri)
+          .filter(uri => typeof uri === 'string' && uri && !/^(data:|blob:)/i.test(uri));
+      }
       return {
         codec: extension === 'glb' ? 'glTF Binary 2.0 · Three.js r164.1' : 'glTF JSON 2.0 · Three.js r164.1',
         decode_status:'model-decoded',
@@ -74,13 +81,12 @@
         mesh_count: countMeshes(loaded.gltf.scene),
         animation_clips: loaded.animations,
         bounds: loaded.bounds.isEmpty() ? null : { min:loaded.bounds.min.toArray(), max:loaded.bounds.max.toArray() },
-        dimensions: loaded.size
+        dimensions: loaded.size,
+        external_dependencies: externalDependencies,
+        dependency_warning: externalDependencies.length ? 'This glTF uses external buffers/textures. Import all dependencies to keep it portable.' : ''
       };
     } finally {
       purge(asset.id);
-      for (const [id,url] of cache.get(asset.id)?.dependencyUrls || []) {
-        if (url && String(url).startsWith('blob:')) URL.revokeObjectURL(url);
-      }
     }
   }
 
