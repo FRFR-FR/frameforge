@@ -278,3 +278,5 @@ button { color: inherit; cursor: pointer; }
   .ffv2-asset-list { max-height: 380px; }
   .ffv2-clip-editor { align-items: stretch; }
 }
+
+.ffv2-storage-info { margin: 6px 0 9px; color: #8197ad; font-size: 8px; line-height: 1.5; overflow-wrap: anywhere; }
