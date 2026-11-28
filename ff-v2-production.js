@@ -487,7 +487,10 @@
       license_name: license || 'Unverified — inspect the file page',
       attribution_required: attributionRequired,
       attribution_text: attribution,
-      restrictions: ['Pending individual rights review; verify licence scope, creator, source page and intended use before publication.']
+      restrictions: [...new Set([
+        ...(Array.isArray(item.restrictions) ? item.restrictions.map(value => text(value, 1000)).filter(Boolean) : []),
+        'Pending individual rights review; verify licence scope, creator, source page and intended use before publication.'
+      ])].slice(0, 30)
     };
     if (licenseUrl) rights.license_url = licenseUrl;
     return {
@@ -509,10 +512,13 @@
     rights.attribution_required = input?.attribution_required === undefined
       ? attributionIsRequired(rights.license_name) : Boolean(input.attribution_required);
     rights.attribution_text = text(input?.attribution_text || rights.attribution_text || '', 1800);
-    rights.restrictions = Array.isArray(rights.restrictions) ? rights.restrictions : [];
-    if (!rights.restrictions.some(item => String(item).includes('Pending individual rights review'))) {
-      rights.restrictions.push('Pending individual rights review; verify licence scope, creator, source page and intended use before publication.');
-    }
+    const suppliedRestrictions = Array.isArray(input?.restrictions)
+      ? input.restrictions.map(item => text(item, 1000)).filter(Boolean).slice(0, 25)
+      : (Array.isArray(rights.restrictions) ? rights.restrictions.filter(item => !String(item).includes('Pending individual rights review')) : []);
+    rights.restrictions = [...new Set([
+      ...suppliedRestrictions,
+      'Pending individual rights review; verify licence scope, creator, source page and intended use before publication.'
+    ])].slice(0, 30);
     asset.rights = rights;
     return asset;
   }
