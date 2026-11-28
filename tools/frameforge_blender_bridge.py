@@ -149,6 +149,7 @@ def import_model(bpy, manifest_path, model):
     root_obj = next((obj for obj in created if obj.parent is None), created[0])
     root_obj.name = model.get("name") or model.get("asset_id") or filepath.stem
     root_obj["frameforge_id"] = str(model.get("asset_id", root_obj.name))
+    root_obj["frameforge_clip_id"] = str(model.get("clip_id", model.get("asset_id", root_obj.name)))
     transform = model.get("transform") or {}
     root_obj.location = three_vector_to_blender(transform.get("position"))
     root_obj.rotation_mode = "XYZ"
@@ -287,17 +288,31 @@ def solve_contacts(bpy, objects, constraints_by_id, frame):
     """Apply explicit ground clamping and approximate horizontal AABB separation; not a physics solver."""
     scene = bpy.context.scene
     scene.frame_set(frame)
-    id_objects = {str(obj.get("frameforge_id", obj.name)): obj for obj in objects}
+    id_objects = {str(obj.get("frameforge_clip_id", obj.get("frameforge_id", obj.name))): obj for obj in objects}
     for obj in objects:
-        config = constraints_by_id.get(str(obj.get("frameforge_id", obj.name)), [])
+        object_id = str(obj.get("frameforge_clip_id", obj.get("frameforge_id", obj.name)))
+        config = constraints_by_id.get(object_id, [])
         for constraint in config:
-            if constraint.get("enabled", True) is False or constraint.get("type") != "ground_contact":
+            if constraint.get("enabled", True) is False:
                 continue
-            ground_z = float(constraint.get("ground_y", 0.0))
-            offset = float(constraint.get("offset", 0.0))
-            bpy.context.view_layer.update()
-            bounds = world_bounds(obj)
-            obj.location.z += ground_z + offset - bounds[2]
+            if constraint.get("type") == "parent":
+                target = id_objects.get(str(constraint.get("target_clip_id", "")))
+                if target and target != obj and obj.parent != target:
+                    world_matrix = obj.matrix_world.copy()
+                    obj.parent = target
+                    obj.matrix_world = world_matrix
+            elif constraint.get("type") == "look_at":
+                target_position = three_vector_to_blender(constraint.get("target", [0,0,0]))
+                from mathutils import Vector
+                direction = Vector(target_position) - obj.matrix_world.translation
+                if direction.length > 1e-6:
+                    obj.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
+            elif constraint.get("type") == "ground_contact":
+                ground_z = float(constraint.get("ground_y", 0.0))
+                offset = float(constraint.get("offset", 0.0))
+                bpy.context.view_layer.update()
+                bounds = world_bounds(obj)
+                obj.location.z += ground_z + offset - bounds[2]
     colliders = []
     for obj in objects:
         if any(item.get("type") == "aabb_collision" and item.get("enabled", True) is not False for item in constraints_by_id.get(str(obj.get("frameforge_id", obj.name)), [])):
@@ -359,7 +374,9 @@ def build_scene(bpy, manifest, manifest_path, output_dir):
         root, imported = import_model(bpy, manifest_path, model)
         roots.append(root)
         all_objects.extend(imported)
-        constraints_by_id[str(model.get("asset_id", root.name))] = model.get("constraints", [])
+        constraints_by_id[str(model.get("clip_id", model.get("asset_id", root.name)))] = model.get("constraints", [])
+    # Apply serializable model parenting/ground/look-at constraints once before saving the editable scene.
+    solve_contacts(bpy, all_objects, constraints_by_id, scene.frame_start)
     # Ground surface is optional; the ground-contact constraint can operate without one.
     floor = manifest.get("ground")
     if floor:
