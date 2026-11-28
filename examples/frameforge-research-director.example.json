@@ -176,7 +176,16 @@
         "verification_status": "verified",
         "classification": "factual",
         "evidence_required": true,
-        "uncertainty_notes": "This is a broad definition. A production script should identify the firewall type and avoid implying that all firewalls inspect traffic in the same way."
+        "uncertainty_notes": "This is a broad definition. A production script should identify the firewall type and avoid implying that all firewalls inspect traffic in the same way.",
+        "evidence_locations": [
+          {
+            "source_id": "source-nist-sp-800-41r1",
+            "locator": "NIST publication summary / firewall definition",
+            "page_reference": "Publication overview",
+            "excerpt": "The document describes firewalls as devices or programs that control network traffic between networks or hosts with differing security postures.",
+            "notes": "Pinpoint locator example; replace with the exact page or section locator used in the production script."
+          }
+        ]
       }
     ],
     "visual_style_observations": [
