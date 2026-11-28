@@ -43,8 +43,8 @@ def import_pixabay_vfx(destination):
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         details = error.read().decode("utf-8", errors="replace").strip()
-        if api_key:
-            details = details.replace(api_key, "[REDACTED]")
+        if key:
+            details = details.replace(key, "[REDACTED]")
         raise RuntimeError(
             f"Pixabay API rejected the asset lookup (HTTP {error.code}): {details[:1200]}. "
             "Check that PIXABAY_API_KEY is a valid Pixabay API key."
