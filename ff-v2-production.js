@@ -223,8 +223,8 @@
     const width = Math.round(asNumber(input.width, 1280, 320, 3840));
     const height = Math.round(asNumber(input.height, 720, 180, 2160));
     const kind = input.type || 'background';
-    const title = xml(input.title || 'FrameForge procedural graphic');
-    const subtitle = xml(input.subtitle || '');
+    const title = text(input.title || 'FrameForge procedural graphic', 500);
+    const subtitle = text(input.subtitle || '', 500);
     const labels = (Array.isArray(input.labels) ? input.labels : [])
       .slice(0, MAX_LABELS).map(item => text(item, 100));
     const values = (Array.isArray(input.values) ? input.values : [])
@@ -290,8 +290,8 @@
       });
       parts.push(svgText(80,height-80,'CHRONOLOGY — CHECK DATES AGAINST SOURCES',15,'#8ea5bc',700));
     } else if (kind === 'evidence') {
-      const quote = xml(input.evidence_text || 'Add a verified excerpt or source observation before publication.');
-      const source = xml(input.source || 'Source details not supplied');
+      const quote = text(input.evidence_text || 'Add a verified excerpt or source observation before publication.', 500);
+      const source = text(input.source || 'Source details not supplied', 500);
       parts.push('<rect x="96" y="205" width="'+(width-192)+'" height="300" rx="18" fill="#09131e" stroke="'+accent+'" stroke-width="3"/>');
       parts.push('<rect x="96" y="205" width="14" height="300" rx="7" fill="'+accent+'"/>');
       parts.push(svgText(145,280,'SOURCE EXCERPT / OBSERVATION',16,accent,800));
