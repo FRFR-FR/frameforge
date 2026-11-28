@@ -169,14 +169,16 @@ async function main() {
     await page.locator('#ffv2MaskType').selectOption('shape');
     await page.locator('#ffv2MaskShape').selectOption('ellipse');
     await page.locator('#ffv2MaskFeather').fill('4');
+    const beforeMaskRender = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id') || 0);
     await page.locator('#ffv2ApplyMask').click();
+    await page.waitForFunction(previous => Number(document.getElementById('ffv2CompositorStatus').dataset.renderId || 0) > previous, beforeMaskRender);
     const normalMaskCenter = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => Array.from(canvas.getContext('2d').getImageData(640, 360, 1, 1).data));
+    const normalMaskRender = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id'));
     await page.locator('#ffv2MaskInvert').check();
     await page.locator('#ffv2ApplyMask').click();
-    await page.waitForFunction(previous => {
-      const pixel = Array.from(document.getElementById('ffv2CompositorCanvas').getContext('2d').getImageData(640, 360, 1, 1).data);
-      return pixel[0] !== previous[0] || pixel[1] !== previous[1] || pixel[2] !== previous[2];
-    }, normalMaskCenter, { timeout: 10000 });
+    await page.waitForFunction(previous => Number(document.getElementById('ffv2CompositorStatus').dataset.renderId || 0) > previous, normalMaskRender);
+    const invertedMaskCenter = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => Array.from(canvas.getContext('2d').getImageData(640, 360, 1, 1).data));
+    assert.notDeepEqual(invertedMaskCenter.slice(0, 3), normalMaskCenter.slice(0, 3), 'Inverted ellipse mask should reveal the lower layer at the frame centre');
     assert.match(await page.locator('#ffv2KeyframeInfo').textContent(), /1 keyframe/);
 
     assert.deepEqual(pageErrors, [], 'Browser page errors should be empty');
