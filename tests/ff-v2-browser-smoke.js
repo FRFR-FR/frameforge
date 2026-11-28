@@ -283,23 +283,17 @@ async function main() {
     assert.equal(await page.locator('#ffv2AngerOptions').isVisible(), true, 'anger-specific controls should appear');
     await page.locator('#ffv2ClipEffectIntensity').fill('0');
     await page.locator('#ffv2AddClipEffect').click();
-    await page.locator('#ffv2Playhead').evaluate(el => {
-      el.value = '20';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await page.evaluate(() => window.FFV2Studio.setPlayhead(20));
+    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), 20);
     await page.locator('#ffv2ClipEffectIntensity').fill('0');
     await page.locator('#ffv2KeyframeEffect').click();
-    await page.locator('#ffv2Playhead').evaluate(el => {
-      el.value = '44';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await page.evaluate(() => window.FFV2Studio.setPlayhead(44));
+    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), 44);
     await page.locator('#ffv2ClipEffectIntensity').fill('1');
     await page.locator('#ffv2KeyframeEffect').click();
     assert.match(await page.locator('#ffv2ClipEffectInfo').textContent(), /2 effect keyframe/);
-    await page.locator('#ffv2Playhead').evaluate(el => {
-      el.value = '32';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    await page.evaluate(() => window.FFV2Studio.setPlayhead(32));
+    assert.equal(await page.evaluate(() => window.FFV2Studio.getPlayheadFrame()), 32);
     const angerBuildPixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
       const ctx = canvas.getContext('2d');
       return {
