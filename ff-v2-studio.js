@@ -317,6 +317,7 @@
       scheduleSave();
       renderAssets();
       renderTracks();
+      if (window.FFV2Director?.refresh) window.FFV2Director.refresh();
       return asset;
     } finally {
       URL.revokeObjectURL(url);
@@ -1733,6 +1734,7 @@
     renderPostPasses();
     render3DSceneSettings();
     setPlayhead(state.playhead);
+    if (window.FFV2Director?.refresh) window.FFV2Director.refresh();
   }
 
   function setZoom(delta) {
