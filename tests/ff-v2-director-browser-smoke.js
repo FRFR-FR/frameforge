@@ -113,9 +113,11 @@ async function main() {
     await page.locator('#ffv2ClaimStatus').selectOption('verified');
     await page.locator('#ffv2ClaimConfidence').selectOption('high');
     await page.locator('#ffv2ClaimSources').fill(sourceId);
+    await page.locator('#ffv2ClaimEvidenceLocations').fill(sourceId+' | NIST report overview, page reference');
     await page.locator('#ffv2ClaimEvidenceRequired').check();
     await page.locator('#ffv2ClaimAdd').click();
     await page.waitForFunction(()=>window.FFV2Studio.getProject().research.claims.length===1);
+    assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().research.claims[0].evidence_locations[0].locator),'NIST report overview, page reference');
     const claimId=await page.evaluate(()=>window.FFV2Studio.getProject().research.claims[0].id);
 
     // Step 34: the narration director splits script into timed, editable visual beats.
@@ -162,6 +164,7 @@ async function main() {
     await page.reload({waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.FFV2Studio?.getProject()?.shot_plan?.status==='approved');
     assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().research.sources.length),1);
+    assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().research.claims[0].evidence_locations.length),1);
     assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().research.reference_videos.length),1);
     assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().shot_plan.beats.length),3);
     assert.equal(await page.evaluate(()=>window.FFV2Studio.getProject().rights_review.asset_reviews.length),1);
