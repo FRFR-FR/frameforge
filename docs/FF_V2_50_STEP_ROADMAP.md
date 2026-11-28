@@ -17,13 +17,24 @@
 9. **Backwards compatibility.** Audit existing projects before changing schemas or renderers. Migrate safely, preserve original files and provide rollback paths.
 10. **A step is complete only after its acceptance checks pass.** Do not report a step as installed merely because code was written. Include the commit, changed files, tests, known limits and any manual action still required.
 
-## How numbered-step requests work
+## How numbered-step requests work — five-step batches
 
-When the user sends a number from **1 to 50**, interpret it as the corresponding step below. Work on that step only, using the repository's current state and this roadmap as the source of truth. Inspect dependencies and existing code before modifying anything. Implement the change, test it, commit it where repository access permits, and verify the result. Then report what was completed, test results, files changed, and remaining manual blockers. Do not start later steps without being asked.
+When the user sends a number from **1 to 50**, treat it as the **first step in a five-step batch**. Execute that step and the next four sequential steps, stopping at step 50. Examples:
+- `1` means steps **1–5**.
+- `6` means steps **6–10**.
+- `26` means steps **26–30**.
+- `46` means steps **46–50**.
+- Any other valid start number means that number through the next four steps, capped at 50 (for example, `48` means steps 48–50).
+
+Use the repository's current state and this roadmap as the source of truth. Inspect dependencies and existing code before modifying anything. Complete the five-step batch in order, while respecting dependencies and preserving working functionality. Test each step's acceptance conditions and the integration between steps. Commit coherent changes where repository access permits. At the end, report the exact step range attempted, what was completed, test results, files changed, commit(s), and remaining manual blockers.
+
+Do not begin the next batch unless the user asks. Do not skip a failed or blocked step silently: complete all safe preparatory work, record exactly what is blocked, and continue with later steps in the requested batch only when doing so will not break dependencies or misrepresent completion. A step is complete only after its acceptance conditions pass.
 
 If a step requires a user-only action (for example, approving a GitHub permission, uploading a private asset, or enabling a setting), complete all preparatory work possible and clearly identify the exact action required. Do not claim that the step is fully complete until the acceptance condition is met.
 
-If a future conversation contains only a number, resolve it against this document. If this file cannot be accessed, ask the user to provide the number's roadmap context rather than guessing.
+If a future conversation contains only a number, resolve it against this document and execute its five-step batch. If this file cannot be accessed, ask the user to provide the number's roadmap context rather than guessing.
+
+**Execution boundary:** work only on the requested batch during the current active conversation. Do not claim to run or complete work asynchronously or in the background between conversations.
 
 ## Architecture and cost reality
 
