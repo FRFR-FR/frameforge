@@ -11,8 +11,8 @@
     "start_frame": 1,
     "end_frame": 48,
     "resolution_percentage": 100,
-    "render_engine": "BLENDER_EEVEE_NEXT",
-    "samples": 16
+    "render_engine": "CYCLES",
+    "samples": 8
   },
   "scene": {
     "camera": {
