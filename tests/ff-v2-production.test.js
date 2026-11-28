@@ -136,6 +136,15 @@ test('audio usage limits are retained in the catalogue until rights review', () 
   assert.ok(asset.rights.restrictions.includes('Non-commercial use only'));
   assert.ok(asset.rights.restrictions.includes('Attribution required in the video description'));
   assert.equal(asset.rights.status,'pending');
+  Director.applyAssetRightsDecision(project,'music-terms',{
+    decision:'approved_with_limits',
+    basis:'Creative Commons BY-NC licence verified for this project use.',
+    reviewer:'Project owner',
+    restrictions:['Non-commercial use only','Attribution required in the video description']
+  });
+  const report=Production.audioPackagingReport(project);
+  assert.equal(report.can_package,true);
+  assert.ok(report.usage_limits[0].restrictions.includes('Non-commercial use only'));
 });
 
 test('source adapter URLs are bounded and preserve provider-specific manual fallbacks', () => {
