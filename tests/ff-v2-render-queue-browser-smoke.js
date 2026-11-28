@@ -92,6 +92,11 @@ async function main() {
 
     await page.locator('#ffv2RenderQueueChunkSize').selectOption('2');
     await page.locator('#ffv2RenderQueueCreate').click();
+    await page.waitForFunction(() =>
+      Boolean(window.FFV2RenderQueue.getCurrentJob()?.id) &&
+      document.getElementById('ffv2RenderQueueStatus')?.textContent.includes('Render job created'),
+      null, { timeout: 20000 }
+    );
     const queueState = await page.evaluate(() => ({
       job: window.FFV2RenderQueue.getCurrentJob(),
       status: document.getElementById('ffv2RenderQueueStatus')?.textContent,
