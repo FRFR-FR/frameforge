@@ -180,6 +180,44 @@
     return await window.FFV2ThreeStudio.inspectModelFile(file,extension,state.assetRecords,item=>getObjectUrl(item));
   }
 
+  async function inspectWavMetadata(file) {
+    const length = Math.min(file.size, 1024 * 1024);
+    if (length < 44) return null;
+    const bytes = await file.slice(0, length).arrayBuffer();
+    const view = new DataView(bytes);
+    const fourCC = offset => String.fromCharCode(
+      view.getUint8(offset), view.getUint8(offset + 1),
+      view.getUint8(offset + 2), view.getUint8(offset + 3)
+    );
+    if (fourCC(0) !== 'RIFF' || fourCC(8) !== 'WAVE') return null;
+    let offset = 12, byteRate = 0, dataBytes = 0, sampleRate = 0, channels = 0, bitsPerSample = 0;
+    while (offset + 8 <= bytes.byteLength) {
+      const chunk = fourCC(offset);
+      const chunkSize = view.getUint32(offset + 4, true);
+      const dataOffset = offset + 8;
+      if (chunk === 'fmt ' && chunkSize >= 16 && dataOffset + 16 <= bytes.byteLength) {
+        channels = view.getUint16(dataOffset + 2, true);
+        sampleRate = view.getUint32(dataOffset + 4, true);
+        byteRate = view.getUint32(dataOffset + 8, true);
+        bitsPerSample = view.getUint16(dataOffset + 14, true);
+      } else if (chunk === 'data') {
+        const available = Math.max(0, file.size - dataOffset);
+        dataBytes = chunkSize === 0xffffffff || chunkSize === 0
+          ? available : Math.min(chunkSize, available);
+      }
+      if (byteRate > 0 && dataBytes > 0) break;
+      const next = dataOffset + chunkSize + (chunkSize % 2);
+      if (!Number.isSafeInteger(next) || next <= offset || next > bytes.byteLength) break;
+      offset = next;
+    }
+    const duration = byteRate > 0 && dataBytes > 0 ? dataBytes / byteRate : 0;
+    if (!Number.isFinite(duration) || duration <= 0 || !sampleRate || !channels) return null;
+    return {
+      duration_seconds: duration, sample_rate: sampleRate, channels,
+      bits_per_sample: bitsPerSample, codec: 'WAV PCM', decode_status: 'container-metadata'
+    };
+  }
+
   async function inspectFile(file, classification, url, firstBytes) {
     const { category, extension } = classification;
     if (category === 'image') {
@@ -190,7 +228,21 @@
       return await loadImageMetadata(file, url, extension);
     }
     if (category === 'video') return await loadMediaMetadata('video', url);
-    if (category === 'audio') return await loadMediaMetadata('audio', url);
+    if (category === 'audio') {
+      try {
+        const metadata = await loadMediaMetadata('audio', url);
+        if (extension === 'wav' && !metadata.duration_seconds) {
+          return Object.assign(metadata, await inspectWavMetadata(file) || {});
+        }
+        return metadata;
+      } catch (error) {
+        if (extension === 'wav') {
+          const wavMetadata = await inspectWavMetadata(file);
+          if (wavMetadata) return wavMetadata;
+        }
+        throw error;
+      }
+    }
     if (category === 'model3d') return await inspectModel(file, extension, firstBytes);
     throw new Error('This media category is not supported.');
   }
@@ -227,6 +279,9 @@
           height: metadata.height || undefined,
           duration_seconds: metadata.duration_seconds || undefined,
           codec: metadata.codec || undefined,
+          sample_rate: metadata.sample_rate || undefined,
+          channels: metadata.channels || undefined,
+          bits_per_sample: metadata.bits_per_sample || undefined,
           mime_type: classification.mime,
           alpha_capable: metadata.alpha_capable,
           decode_status: metadata.decode_status,
