@@ -78,6 +78,38 @@ class FrameForgeFoundationTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_research_claim_can_record_page_and_timestamp_locators(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        claim = payload["research"]["claims"][0]
+        claim["evidence_locations"] = [
+            {
+                "source_id": claim["source_ids"][0],
+                "locator": "NIST publication summary",
+                "page_reference": "Publication overview",
+            },
+            {
+                "source_id": claim["source_ids"][0],
+                "locator": "00:01:23–00:01:41",
+                "start_time_seconds": 83,
+                "end_time_seconds": 101,
+            },
+        ]
+        result = self.run_validator("validate_project.py", payload)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_research_claim_rejects_invalid_timecode_locator(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        claim = payload["research"]["claims"][0]
+        claim["evidence_locations"] = [{
+            "source_id": claim["source_ids"][0],
+            "locator": "00:01:41–00:01:23",
+            "start_time_seconds": 101,
+            "end_time_seconds": 83,
+        }]
+        result = self.run_validator("validate_project.py", payload)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("evidence end timestamp precedes its start", result.stdout)
+
     def test_evidence_shot_rejects_unverified_or_unsourced_claim(self) -> None:
         payload = read_json(DIRECTOR_EXAMPLE_PATH)
         payload["research"]["claims"][0]["verification_status"] = "unverified"
