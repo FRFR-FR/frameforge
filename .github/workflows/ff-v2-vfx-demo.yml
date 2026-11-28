@@ -55,6 +55,7 @@ jobs:
         env:
           PIXABAY_API_KEY: \${{ secrets.PIXABAY_API_KEY }}
           OUTPUT_DIR: artifacts/vfx-test
+          VFX_CACHE_DIR: ${{ runner.temp }}/frameforge-imported-vfx
         run: python tools/render_imported_vfx_demo.py
 
       - name: Verify video and transparent cut-out
@@ -66,7 +67,7 @@ jobs:
           report = json.loads((root / "technical-report.json").read_text())
           video = root / report["render"]["file"]
           cutout = root / "putin-cutout-transparent.png"
-          fire = root / "imported-vfx" / "pixabay-fire-simulation.mp4"
+          fire = Path("${{ runner.temp }}") / "frameforge-imported-vfx" / "pixabay-fire-simulation.mp4"
           assert video.is_file() and video.stat().st_size > 100_000
           assert cutout.is_file() and cutout.stat().st_size > 100_000
           assert fire.is_file() and fire.stat().st_size > 10_000
