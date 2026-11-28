@@ -148,7 +148,7 @@ def import_model(bpy, manifest_path, model):
                 if obj.type == "ARMATURE":
                     obj.animation_data_create()
                     track = obj.animation_data.nla_tracks.new()
-                    strip = track.strips.new(action.name, int(model.get("start_frame", 1)), action)
+                    strip = track.strips.new(action.name, int(model.get("start_frame", 0)) + 1, action)
                     strip.scale = 1.0 / time_scale
     return root_obj, created
 
@@ -266,13 +266,16 @@ def build_scene(bpy, manifest, manifest_path, output_dir):
     scene.render.fps = int(round(float(settings.get("fps", 30))))
     scene.frame_start = int(settings.get("start_frame", 1))
     scene.frame_end = int(settings.get("end_frame", max(scene.frame_start, 48)))
-    engine = str(settings.get("render_engine", "BLENDER_EEVEE_NEXT"))
+    engine = str(settings.get("render_engine", "CYCLES"))
     available_engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
     if engine not in available_engines:
         engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in available_engines else (
             "BLENDER_EEVEE" if "BLENDER_EEVEE" in available_engines else "BLENDER_WORKBENCH"
         )
     scene.render.engine = engine
+    if engine == "CYCLES":
+        scene.cycles.device = "CPU"
+        scene.cycles.samples = max(1, min(256, int(settings.get("samples", 16))))
     if hasattr(scene, "eevee"):
         scene.eevee.taa_render_samples = max(1, min(64, int(settings.get("samples", 16))))
     scene.render.image_settings.file_format = "PNG"
