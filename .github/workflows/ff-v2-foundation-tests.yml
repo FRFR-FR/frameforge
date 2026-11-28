@@ -34,6 +34,8 @@ on:
       - "ff-v2-core.js"
       - "ff-v2-studio.js"
       - "ff-v2-director.js"
+      - "ff-v2-production.js"
+      - "ff-v2-production-ui.js"
       - "index.html"
       - "app.js"
       - "styles.css"
