@@ -60,98 +60,16 @@ jobs:
           restore-keys: |
             documentary-kokoro-echo-${{ runner.os }}-
 
-      - name: Install rendering and TTS dependencies
+      - name: Install rendering, browser and TTS dependencies
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y ffmpeg libsndfile1 fonts-dejavu-core xvfb libgl1 libegl1 libegl-mesa0 libglx-mesa0 libgbm1 libxkbcommon0 curl xz-utils
-          # Install the official Blender binary; this CI build uses Eevee
-          # with Mesa software OpenGL under Xvfb for headless 3D rendering.
-          BLENDER_ARCHIVE="blender-5.0.1-linux-x64.tar.xz"
-          BLENDER_BASE="https://download.blender.org/release/Blender5.0"
-          CHECKSUM_FILE="/tmp/blender-5.0.1.sha256"
-          curl --fail --location --retry 3 --retry-all-errors "$BLENDER_BASE/blender-5.0.1.sha256" --output "$CHECKSUM_FILE"
-          EXPECTED_SHA="$(awk -v archive="$BLENDER_ARCHIVE" '
-            {
-              filename=$2
-              sub(/^\*/, "", filename)
-              sub(/^.*\//, "", filename)
-              if (filename == archive) {
-                print tolower($1)
-                matches++
-              }
-            }
-            END { if (matches != 1) exit 1 }
-          ' "$CHECKSUM_FILE")" || {
-            echo "::error::Could not find exactly one checksum entry for $BLENDER_ARCHIVE."
-            cat "$CHECKSUM_FILE"
-            exit 1
-          }
-          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]; then
-            echo "::error::The checksum entry for $BLENDER_ARCHIVE is malformed."
-            exit 1
-          fi
-          BLENDER_VERIFIED=0
-          for attempt in 1 2 3; do
-            echo "Downloading Blender archive (attempt $attempt/3)."
-            curl --fail --location --retry 3 --retry-all-errors "$BLENDER_BASE/$BLENDER_ARCHIVE" --output "/tmp/$BLENDER_ARCHIVE"
-            if printf '%s  %s\n' "$EXPECTED_SHA" "/tmp/$BLENDER_ARCHIVE" | sha256sum --check -; then
-              BLENDER_VERIFIED=1
-              break
-            fi
-            echo "::warning::Blender archive checksum mismatch on attempt $attempt."
-            rm -f "/tmp/$BLENDER_ARCHIVE"
-            sleep 2
-          done
-          if [ "$BLENDER_VERIFIED" -ne 1 ]; then
-            echo "::error::Blender archive did not pass SHA-256 verification after three downloads."
-            exit 1
-          fi
-          tar -tJf "/tmp/$BLENDER_ARCHIVE" >/dev/null
-          sudo tar -xJf "/tmp/$BLENDER_ARCHIVE" -C /opt
-          sudo ln -sfn /opt/blender-5.0.1-linux-x64/blender /usr/local/bin/blender
-          hash -r
-          blender --version
-          cat > /tmp/frameforge_eevee_preflight.py <<'PY'
-          import bpy, os
-          from mathutils import Vector
-          scene = bpy.context.scene
-          engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
-          print("AVAILABLE_RENDER_ENGINES", sorted(engines), flush=True)
-          if "BLENDER_EEVEE" not in engines:
-              raise RuntimeError(f"Blender Eevee renderer is unavailable: {sorted(engines)}")
-          scene.render.engine = "BLENDER_EEVEE"
-          eevee = getattr(scene, "eevee", None)
-          if eevee is not None:
-              if hasattr(eevee, "taa_render_samples"):
-                  eevee.taa_render_samples = 4
-              if hasattr(eevee, "use_gtao"):
-                  eevee.use_gtao = False
-              if hasattr(eevee, "use_soft_shadows"):
-                  eevee.use_soft_shadows = False
-          bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
-          bpy.ops.object.camera_add(location=(4, -6, 4))
-          camera = bpy.context.object
-          camera.rotation_euler = (Vector((0, 0, 0)) - camera.location).to_track_quat("-Z", "Y").to_euler()
-          scene.camera = camera
-          bpy.ops.object.light_add(type="AREA", location=(2, -3, 5))
-          bpy.context.object.data.energy = 1000
-          if hasattr(bpy.context.object.data, "use_shadow"):
-              bpy.context.object.data.use_shadow = False
-          scene.render.resolution_x = 128
-          scene.render.resolution_y = 128
-          scene.render.resolution_percentage = 100
-          scene.render.image_settings.file_format = "PNG"
-          scene.render.filepath = "/tmp/frameforge_eevee_preflight.png"
-          bpy.ops.render.render(write_still=True)
-          size = os.path.getsize(scene.render.filepath)
-          print("EEVEE_RENDER_PREFLIGHT_PASS", size, flush=True)
-          if size < 1000:
-              raise RuntimeError("Eevee preflight image is unexpectedly small.")
-          PY
-          xvfb-run -a blender --background --factory-startup --python /tmp/frameforge_eevee_preflight.py
-          test -s /tmp/frameforge_eevee_preflight.png
+          sudo apt-get install -y ffmpeg fonts-dejavu-core ca-certificates
+          node --version
+          npm --version
+          npm install --no-save --no-package-lock three@0.175.0 playwright@1.52.0
+          npx playwright install --with-deps chromium
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install "kokoro>=0.9.4" soundfile numpy requests Pillow
@@ -172,6 +90,20 @@ jobs:
           echo "dir=$EPISODE_DIR" >> "$GITHUB_OUTPUT"
           echo "artifact_name=$(basename "$EPISODE_DIR")" >> "$GITHUB_OUTPUT"
           echo "Selected $EPISODE_DIR"
+
+      - name: Render and validate the ten Three.js engineering cutaways
+        id: threejs
+        env:
+          EPISODE_DIR: ${{ steps.episode.outputs.dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$EPISODE_DIR/render_episode.py" --cutaways-only
+          test -s "$EPISODE_DIR/output/threejs_contact_sheet.jpg"
+          test -s "$EPISODE_DIR/output/threejs_render_report.json"
+          test -s "$EPISODE_DIR/output/3d_frames/collision_report.json"
+          test "$(find "$EPISODE_DIR/output/3d_clips" -maxdepth 1 -name '*.mp4' | wc -l)" -eq 10
+          echo "TEN_THREEJS_CUTAWAYS_READY"
 
       - name: Generate approved Kokoro Echo narration
         id: narration
@@ -319,4 +251,8 @@ jobs:
             ${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
             ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
             ${{ steps.episode.outputs.dir }}/output/footage_attribution_description.txt
+            ${{ steps.episode.outputs.dir }}/output/3d_clips/*.mp4
+            ${{ steps.episode.outputs.dir }}/output/threejs_contact_sheet.jpg
+            ${{ steps.episode.outputs.dir }}/output/threejs_render_report.json
+            ${{ steps.episode.outputs.dir }}/output/3d_frames/collision_report.json
           if-no-files-found: warn
