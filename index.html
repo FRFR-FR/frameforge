@@ -243,6 +243,35 @@ ctx.stroke();</pre>
           <button id="ffv2ApplyParent" class="button small">Apply parent</button>
         </div>
 
+        <div id="ffv23DClipControls" class="ffv2-editor-subpanel hidden">
+          <strong>3D model · transform, animation and contact</strong>
+          <div class="ffv2-control-grid compact">
+            <label>Position X <input id="ffv2ModelPosX" type="number" step="0.05" /></label>
+            <label>Position Y <input id="ffv2ModelPosY" type="number" step="0.05" /></label>
+            <label>Position Z <input id="ffv2ModelPosZ" type="number" step="0.05" /></label>
+            <label>Rotation X ° <input id="ffv2ModelRotX" type="number" step="1" /></label>
+            <label>Rotation Y ° <input id="ffv2ModelRotY" type="number" step="1" /></label>
+            <label>Rotation Z ° <input id="ffv2ModelRotZ" type="number" step="1" /></label>
+            <label>Scale X <input id="ffv2ModelScaleX" type="number" min="-10000" max="10000" step="0.05" /></label>
+            <label>Scale Y <input id="ffv2ModelScaleY" type="number" min="-10000" max="10000" step="0.05" /></label>
+            <label>Scale Z <input id="ffv2ModelScaleZ" type="number" min="-10000" max="10000" step="0.05" /></label>
+          </div>
+          <label>glTF animation clip <select id="ffv2ModelAnimation"><option value="">No animation / first clip</option></select></label>
+          <div class="ffv2-control-grid compact">
+            <label>Animation speed × <input id="ffv2ModelAnimationSpeed" type="number" min="0" max="8" step="0.05" value="1" /></label>
+            <label class="ffv2-inline-check"><input id="ffv2ModelAnimationEnabled" type="checkbox" checked /> Animation on</label>
+            <label class="ffv2-inline-check"><input id="ffv2ModelAnimationLoop" type="checkbox" checked /> Loop</label>
+          </div>
+          <div class="ffv2-control-grid compact">
+            <label class="ffv2-inline-check"><input id="ffv2GroundContact" type="checkbox" /> Ground contact</label>
+            <label>Ground Y <input id="ffv2GroundHeight" type="number" step="0.05" value="0" /></label>
+            <label class="ffv2-inline-check"><input id="ffv2AabbCollision" type="checkbox" /> Approximate AABB collision</label>
+          </div>
+          <button id="ffv2Apply3DClip" class="button small">Apply 3D transform / animation / constraints</button>
+          <small id="ffv23DModelInfo" class="ffv2-info-text">GLB/glTF scene and animation metadata</small>
+        </div>
+
+
         <div class="ffv2-editor-subpanel">
           <strong>Keyframes · local clip time</strong>
           <div class="ffv2-control-grid compact">
@@ -251,6 +280,9 @@ ctx.stroke();</pre>
               <option value="scale.x">Scale X</option><option value="scale.y">Scale Y</option>
               <option value="rotation_degrees">Rotation</option><option value="opacity">Opacity</option>
               <option value="anchor.x">Anchor X</option><option value="anchor.y">Anchor Y</option><option value="playback_rate">Playback rate</option>
+              <option value="position3d.x">3D position X</option><option value="position3d.y">3D position Y</option><option value="position3d.z">3D position Z</option>
+              <option value="rotation3d.x">3D rotation X</option><option value="rotation3d.y">3D rotation Y</option><option value="rotation3d.z">3D rotation Z</option>
+              <option value="scale3d.x">3D scale X</option><option value="scale3d.y">3D scale Y</option><option value="scale3d.z">3D scale Z</option>
             </select></label>
             <label>Value at playhead <input id="ffv2KeyframeValue" type="number" step="0.01" /></label>
             <label>Interpolation <select id="ffv2KeyframeInterpolation"><option value="ease_in_out">Ease in/out</option><option value="linear">Linear</option><option value="ease_in">Ease in</option><option value="ease_out">Ease out</option><option value="step">Hold / step</option><option value="bezier">Bezier</option></select></label>
@@ -344,7 +376,36 @@ ctx.stroke();</pre>
           <button id="ffv2DownloadFrame" class="button small">Download PNG</button>
         </div>
       </div>
-      <div class="ffv2-compositor-stage"><canvas id="ffv2CompositorCanvas" width="1280" height="720" aria-label="V2 transparent layer compositor preview"></canvas></div>
+
+    <div class="ffv2-3d-scene-panel">
+      <div class="ffv2-postfx-heading">
+        <strong>V2 3D scene · Three.js r164.1</strong>
+        <small id="ffv23DCapability">Checking local runtime…</small>
+      </div>
+      <div class="ffv2-control-grid compact">
+        <label>Projection <select id="ffv23DCameraProjection"><option value="perspective">Perspective</option><option value="orthographic">Orthographic</option></select></label>
+        <label>Camera FOV ° <input id="ffv2CameraFov" type="number" min="10" max="120" step="1" value="45" /></label>
+      </div>
+      <div class="ffv2-control-grid compact">
+        <label>Camera X <input id="ffv2CameraX" type="number" step="0.1" value="6" /></label>
+        <label>Camera Y <input id="ffv2CameraY" type="number" step="0.1" value="4" /></label>
+        <label>Camera Z <input id="ffv2CameraZ" type="number" step="0.1" value="7" /></label>
+        <label>Target X <input id="ffv2TargetX" type="number" step="0.1" value="0" /></label>
+        <label>Target Y <input id="ffv2TargetY" type="number" step="0.1" value="0" /></label>
+        <label>Target Z <input id="ffv2TargetZ" type="number" step="0.1" value="0" /></label>
+      </div>
+      <div class="ffv2-control-grid compact">
+        <label>Scene background <input id="ffv2SceneBackground" type="color" value="#101c2b" /></label>
+        <label class="ffv2-inline-check"><input id="ffv2SceneTransparent" type="checkbox" /> Transparent background</label>
+        <label>Ambient light <input id="ffv2AmbientIntensity" type="number" min="0" max="10" step="0.05" value="0.45" /></label>
+        <label>Key light <input id="ffv2KeyLightIntensity" type="number" min="0" max="10" step="0.05" value="1.1" /></label>
+        <label>Tone mapping <select id="ffv23DToneMapping"><option value="aces">ACES filmic</option><option value="linear">Linear</option><option value="none">None</option></select></label>
+      </div>
+      <button id="ffv2Apply3DScene" class="button small">Apply 3D camera / lighting</button>
+      <small class="ffv2-info-text">Import GLB or glTF files through the V2 asset library, then add them to a Scene 3D track. Embedded textures and glTF animation clips are loaded locally. For rigs, constraints and scene interchange use the Blender bridge.</small>
+    </div>
+
+            <div class="ffv2-compositor-stage"><canvas id="ffv2CompositorCanvas" width="1280" height="720" aria-label="V2 transparent layer compositor preview"></canvas></div>
       <div class="ffv2-postfx-panel">
         <div class="ffv2-postfx-heading"><strong>Post-processing · optional GPU shaders</strong><small id="ffv2ShaderCapability">Checking WebGL capability…</small></div>
         <div class="ffv2-control-grid compact">
