@@ -1,0 +1,131 @@
+{
+  "format": "frameforge-project",
+  "schema_version": 2,
+  "project": {
+    "id": "ffv2-example-project",
+    "name": "FrameForge V2 Foundation Example",
+    "description": "A small schema example demonstrating a procedural graphic layer.",
+    "author": "FrameForge",
+    "created_at": "2026-11-28T00:00:00Z",
+    "updated_at": "2026-11-28T00:00:00Z"
+  },
+  "settings": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "color_space": "srgb",
+    "pixel_aspect_ratio": 1,
+    "sample_rate": 48000,
+    "audio_channels": 2
+  },
+  "assets": [
+    {
+      "id": "asset-opening-grid",
+      "uri": "assets/opening-grid.svg",
+      "media_type": "graphic",
+      "label": "Procedural opening grid",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 example",
+        "notes": "Original SVG authored as part of this example."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural vector artwork authored for this example; no third-party media is included.",
+        "reviewed_by": "FrameForge example maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": ["procedural", "graphic", "background"]
+    }
+  ],
+  "sequences": [
+    {
+      "id": "sequence-main",
+      "name": "Main",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "duration_frames": 120,
+      "tracks": [
+        {
+          "id": "track-graphics",
+          "name": "Graphics",
+          "type": "graphic",
+          "order": 0,
+          "enabled": true,
+          "muted": false,
+          "locked": false,
+          "clips": [
+            {
+              "id": "clip-opening-grid",
+              "kind": "asset",
+              "asset_id": "asset-opening-grid",
+              "start_frame": 0,
+              "duration_frames": 120,
+              "enabled": true,
+              "transform": {
+                "position": [0, 0],
+                "scale": [1, 1],
+                "rotation_degrees": 0,
+                "opacity": 1,
+                "anchor": [0.5, 0.5]
+              },
+              "keyframes": [
+                {
+                  "property": "transform.opacity",
+                  "frame": 0,
+                  "interpolation": "linear",
+                  "value": 0
+                },
+                {
+                  "property": "transform.opacity",
+                  "frame": 20,
+                  "interpolation": "ease_out",
+                  "value": 1
+                }
+              ],
+              "effects": [
+                {
+                  "id": "effect-soft-glow",
+                  "type": "glow",
+                  "enabled": true,
+                  "parameters": { "strength": 0.25 }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "track-voiceover",
+          "name": "Voiceover",
+          "type": "voiceover",
+          "order": 1,
+          "enabled": true,
+          "muted": false,
+          "locked": false,
+          "clips": []
+        }
+      ]
+    }
+  ],
+  "creative_brief": {
+    "topic": "How layered motion graphics are represented in FrameForge",
+    "niche": "software education",
+    "audience": "Creators learning a visual production workflow",
+    "platform": "youtube_longform",
+    "target_duration_seconds": 4,
+    "tone": "Clear and explanatory",
+    "visual_direction": "Use original vector graphics and restrained camera movement.",
+    "constraints": ["No paid services", "No unlicensed external media"]
+  },
+  "research": {
+    "sources": [],
+    "claims": [],
+    "visual_style_observations": [
+      "This foundation example uses original procedural graphics rather than stock footage."
+    ],
+    "researched_at": "2026-11-28T00:00:00Z"
+  }
+}
