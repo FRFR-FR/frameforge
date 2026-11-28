@@ -283,6 +283,9 @@ async function main() {
     assert.equal(await page.locator('#ffv2AngerOptions').isVisible(), true, 'anger-specific controls should appear');
     await page.locator('#ffv2ClipEffectIntensity').fill('0');
     await page.locator('#ffv2AddClipEffect').click();
+    await page.evaluate(() => window.FFV2Studio.setPlayhead(32));
+    const angerAlphaBefore = await page.locator('#ffv2CompositorCanvas').evaluate(canvas =>
+      canvas.getContext('2d').getImageData(640, 300, 1, 1).data[3]);
     const angerFrames = await page.evaluate(() => {
       const found = window.FFV2Studio.getSelectedClip();
       const effect = (found?.clip.effects || []).find(item => item.type === 'anger-rise');
@@ -307,8 +310,8 @@ async function main() {
     });
     assert.ok(angerBuildPixels.lower[1] < angerBuildPixels.top[1],
       'at half anger, the lower part of the transparent cut-out should be redder than its upper part');
-    assert.ok(angerBuildPixels.top[3] >= 126 && angerBuildPixels.top[3] <= 130,
-      'the original PNG alpha should remain intact');
+    assert.equal(angerBuildPixels.top[3], angerAlphaBefore,
+      'anger-rise should not alter the existing composited alpha channel');
     assert.ok(angerBuildPixels.fire.some(alpha=>alpha>0), 'animated flames should appear along the lower screen edge');
     await page.evaluate(frame => window.FFV2Studio.setPlayhead(frame), angerFrames.end);
     const peakAngerPixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
