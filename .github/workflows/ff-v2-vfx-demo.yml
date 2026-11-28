@@ -92,7 +92,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frameforge-vfx-imported-\${{ github.run_number }}
+          name: frameforge-vfx-imported-${{ github.run_number }}
           path: artifacts/vfx-test/
           if-no-files-found: error
           retention-days: 7
