@@ -28,6 +28,31 @@ function makeAsset(id, mediaType, rights) {
   };
 }
 
+test('imported VFX assets are explicitly prioritised over ordinary visuals', () => {
+  assert.equal(Production.VFX_SOURCE_POLICY.mode, 'imported-first');
+  const generic = makeAsset('generic-broll', 'video');
+  const externalFire = makeAsset('licensed-fire-overlay', 'video', {
+    status: 'pending', license_name: 'Pixabay Content License'
+  });
+  externalFire.tags = ['vfx', 'vfx:fire', 'external'];
+  const approvedModel = makeAsset('approved-smoke-sim', 'model3d', { status: 'approved' });
+  approvedModel.tags = ['vfx:smoke'];
+  const ordered = Production.prioritizeImportedVfx([generic, externalFire, approvedModel]);
+  assert.deepEqual(ordered.map(item => item.id), [
+    'approved-smoke-sim', 'licensed-fire-overlay', 'generic-broll'
+  ]);
+  assert.equal(Production.isImportedVfxAsset(externalFire), true);
+  assert.equal(Production.isImportedVfxAsset(generic), false);
+});
+
+test('Pixabay VFX provider opens its free-video search without exposing an API key', async () => {
+  const result = await Production.searchProvider('pixabay_vfx', 'ember fire overlay', 'video');
+  assert.equal(result.provider, 'Pixabay VFX');
+  assert.equal(result.mode, 'manual');
+  assert.match(result.url, /^https:\/\/pixabay\.com\/videos\/search\//);
+  assert.match(result.url, /ember%20fire%20overlay/i);
+});
+
 test('shot recipes are reusable and editable across all required shot types', () => {
   const recipes = Production.listRecipes();
   assert.ok(recipes.length >= 9);
