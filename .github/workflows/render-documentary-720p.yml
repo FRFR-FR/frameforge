@@ -145,7 +145,8 @@ jobs:
           fi
 
       - name: Apply explicit visual-review decisions to the B-roll manifest
-        if: always()
+        id: visual_review
+        if: steps.broll.outputs.available == 'true'
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
@@ -160,7 +161,7 @@ jobs:
 
       - name: Render footage-first 720p documentary
         id: render
-        if: steps.broll.outputs.available == 'true'
+        if: steps.broll.outputs.available == 'true' && steps.visual_review.outcome == 'success'
         env:
           EPISODE_DIR: ${{ steps.episode.outputs.dir }}
         shell: bash
@@ -264,6 +265,7 @@ jobs:
             ${{ steps.episode.outputs.dir }}/output/qc_contact_sheet.jpg
             ${{ steps.episode.outputs.dir }}/output/broll_review/*.jpg
             ${{ steps.episode.outputs.dir }}/output/broll_review/review_index.json
+            ${{ steps.episode.outputs.dir }}/output/visual_review_report.json
             ${{ steps.episode.outputs.dir }}/output/production_report.md
             ${{ steps.episode.outputs.dir }}/output/production_status.md
             ${{ steps.episode.outputs.dir }}/asset-manifest-broll.csv
