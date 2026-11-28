@@ -363,6 +363,8 @@
       chunk_index: index,
       start_frame: bounds.start,
       end_frame_exclusive: bounds.end,
+      total_frames: currentJob.total_frames,
+      chunk_count: currentJob.chunks,
       width: currentJob.width,
       height: currentJob.height,
       fps: currentJob.fps,
