@@ -176,3 +176,83 @@ test('speed-ramp source time integrates each prior frame rate', () => {
   const sourceFrames=Renderer.sourceFramesAtClipFrame(clip,60);
   assert.ok(sourceFrames>88 && sourceFrames<91,'Gradual 1× to 2× ramp should integrate the prior per-frame rates');
 });
+
+
+test('default 3D scene settings include a reproducible camera, environment and lights', () => {
+  const p=Core.createDefaultProject();
+  const scene=Core.getMainSequence(p).scene3d;
+  assert.equal(scene.camera.projection,'perspective');
+  assert.deepEqual(scene.camera.target,[0,0,0]);
+  assert.equal(scene.lights.length,2);
+  assert.equal(scene.render.tone_mapping,'aces');
+});
+
+test('3D scene camera and lighting changes are validated and persisted', () => {
+  const p=Core.createDefaultProject();
+  const updated=Core.set3DSceneSettings(p,{
+    camera:{projection:'orthographic',position:[4,3,5],target:[1,0,0],orthographic_height:12,fov:50},
+    lights:[
+      {type:'ambient',color:'#eeeeff',intensity:0.65},
+      {type:'point',color:'#ffbb77',intensity:2,position:[1,2,3]}
+    ],
+    environment:{background:'#112233',transparent:true},
+    render:{tone_mapping:'linear',exposure:1.25,shadows:false}
+  });
+  assert.equal(updated.camera.projection,'orthographic');
+  assert.equal(updated.camera.orthographic_height,12);
+  assert.equal(updated.lights[1].type,'point');
+  assert.equal(updated.environment.transparent,true);
+  assert.equal(updated.render.tone_mapping,'linear');
+  assert.throws(()=>Core.set3DSceneSettings(p,{camera:{projection:'fish-eye'}}),/projection/);
+  assert.throws(()=>Core.set3DSceneSettings(p,{lights:new Array(33).fill({type:'ambient'})}),/up to 32/);
+});
+
+test('imported model asset clips receive serializable 3D transforms and animation controls', () => {
+  const p=Core.createDefaultProject();
+  const asset={id:'model-asset',media_type:'model3d',label:'Test Model',file_name:'model.glb',metadata:{}};
+  Core.addAsset(p,asset);
+  const track=Core.addTrack(p,'scene3d','3D Scene');
+  const clip=Core.addAssetClip(p,asset.id,track.id,10,120);
+  assert.deepEqual(clip.transform3d,{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]});
+  assert.equal(clip.animation.loop,true);
+  Core.set3DClipTransform(p,clip.id,{position:[1,2,3],rotation:[0,45,0],scale:[1.5,1.5,1.5]});
+  Core.set3DClipAnimation(p,clip.id,{clip_name:'Walk',time_scale:1.5,loop:false});
+  assert.deepEqual(clip.transform3d.position,[1,2,3]);
+  assert.equal(clip.animation.clip_name,'Walk');
+  assert.throws(()=>Core.set3DClipTransform(p,clip.id,{scale:[0,1,1]}),/non-zero/);
+  assert.throws(()=>Core.set3DClipAnimation(p,clip.id,{time_scale:9}),/between 0 and 8/);
+});
+
+test('3D model transforms interpolate keyframes in local clip time', () => {
+  const p=Core.createDefaultProject();
+  const asset={id:'key-model',media_type:'model3d',label:'Keyframe Model',file_name:'key.glb',metadata:{}};
+  Core.addAsset(p,asset);
+  const track=Core.addTrack(p,'scene3d','Scene');
+  const clip=Core.addAssetClip(p,asset.id,track.id,20,100);
+  Core.setKeyframe(p,clip.id,'position3d.x',20,0,'linear');
+  Core.setKeyframe(p,clip.id,'position3d.x',120,10,'linear');
+  Core.setKeyframe(p,clip.id,'rotation3d.y',20,0,'linear');
+  Core.setKeyframe(p,clip.id,'rotation3d.y',120,90,'linear');
+  const midway=Core.evaluate3DClipState(clip,70);
+  assert.equal(midway.position[0],5);
+  assert.equal(midway.rotation[1],45);
+});
+
+test('3D ground, look-at and parent constraints validate targets and cycles', () => {
+  const p=Core.createDefaultProject();
+  const assetA={id:'model-a',media_type:'model3d',label:'A',file_name:'a.glb',metadata:{}};
+  const assetB={id:'model-b',media_type:'model3d',label:'B',file_name:'b.glb',metadata:{}};
+  Core.addAsset(p,assetA);Core.addAsset(p,assetB);
+  const track=Core.addTrack(p,'scene3d','Scene');
+  const a=Core.addAssetClip(p,assetA.id,track.id,0,60);
+  const b=Core.addAssetClip(p,assetB.id,track.id,0,60);
+  Core.set3DClipConstraints(p,a.id,[
+    {type:'ground_contact',ground_y:0,offset:0,enabled:true},
+    {type:'aabb_collision',mode:'push_up',enabled:true},
+    {type:'look_at',target:[0,0,0],enabled:true}
+  ]);
+  Core.set3DClipConstraints(p,b.id,[{type:'parent',target_clip_id:a.id,enabled:true}]);
+  assert.equal(b.constraints[0].target_clip_id,a.id);
+  assert.throws(()=>Core.set3DClipConstraints(p,a.id,[{type:'parent',target_clip_id:b.id}]),/cycle/);
+  assert.throws(()=>Core.set3DClipConstraints(p,b.id,[{type:'look_at',target:[0,1]}]),/three finite/);
+});
