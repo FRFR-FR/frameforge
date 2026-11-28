@@ -278,7 +278,8 @@
           "enabled": true,
           "mode": "push_up"
         }
-      ]
+      ],
+      "clip_id": "bridge-triangle-clip"
     }
   ]
 }
