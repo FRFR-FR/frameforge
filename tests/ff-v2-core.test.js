@@ -33,7 +33,7 @@ test('creates additional tracks with stable ordering and supported types', () =>
   const project = Core.createDefaultProject();
   const track = Core.addTrack(project, 'scene3d', '3D Scene');
   assert.equal(track.type, 'scene3d');
-  assert.equal(track.order, 6);
+  assert.equal(track.order, 7);
   assert.equal(Core.validateProject(project).length, 0);
   assert.throws(() => Core.addTrack(project, 'unsupported', 'Bad'), /Unsupported track type/);
 });
