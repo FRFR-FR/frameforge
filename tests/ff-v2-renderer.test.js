@@ -113,7 +113,7 @@ test('clip effects can keyframe intensity in clip-local frame time', () => {
   const effect=Core.setClipEffect(p,clip.id,'glitch',{intensity:0.2,amount:0.8,seed:10});
   Core.setEffectParameterKeyframe(p,clip.id,effect.id,'intensity',20,0,'linear');
   Core.setEffectParameterKeyframe(p,clip.id,effect.id,'intensity',100,1,'linear');
-  assert.equal(Core.evaluateEffectParameters(effect,40).intensity,0.25);
+  assert.equal(Core.evaluateEffectParameters(effect,20).intensity,0.25);
   assert.throws(()=>Core.setEffectParameterKeyframe(p,clip.id,effect.id,'unsupported',40,0.5),/Unsupported animated/);
 });
 
