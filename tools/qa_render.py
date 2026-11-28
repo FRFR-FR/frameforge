@@ -231,6 +231,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input", required=True, help="MP4 or other FFmpeg-readable export.")
     parser.add_argument("--expected-manifest", help="Optional render-frames.json or expected metadata JSON.")
     parser.add_argument("--expect-audio", action="store_true")
+    parser.add_argument("--expected-width", type=int)
+    parser.add_argument("--expected-height", type=int)
+    parser.add_argument("--expected-fps", type=float)
+    parser.add_argument("--expected-frames", type=int)
+    parser.add_argument("--expected-duration", type=float)
     parser.add_argument("--black-min-duration", type=float, default=0.5)
     parser.add_argument("--freeze-min-duration", type=float, default=2.0)
     parser.add_argument("--strict-freeze", action="store_true", help="Treat possible frozen holds as failures, not warnings.")
@@ -239,6 +244,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         expected = load_expected(args.expected_manifest)
+        for key, value in (
+            ("width", args.expected_width),
+            ("height", args.expected_height),
+            ("fps", args.expected_fps),
+            ("frame_count", args.expected_frames),
+            ("duration_seconds", args.expected_duration),
+        ):
+            if value is not None:
+                expected[key] = value
         report = qa_video(
             args.input, expected=expected, expect_audio=args.expect_audio,
             black_min_duration=args.black_min_duration, freeze_min_duration=args.freeze_min_duration,
