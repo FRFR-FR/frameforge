@@ -773,7 +773,7 @@ export function mountScene(container,options){
   var camera=new T.PerspectiveCamera(39,width/height,0.1,140);camera.position.set(8.6,5.4,10.5);camera.lookAt(0,0,0);
   scene.add(new T.HemisphereLight(0xD9E7F5,0x253140,1.25));
   var key=new T.DirectionalLight(0xFFF5E8,3.1);key.position.set(-4.5,8.5,6.5);key.castShadow=true;
-  key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-10;key.shadow.camera.right=10;
+  key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-10;key.shadow.camera.right=10;
   key.shadow.camera.top=10;key.shadow.camera.bottom=-10;key.shadow.bias=-0.00025;scene.add(key);
   var fill=new T.DirectionalLight(0x8EB8E1,1.25);fill.position.set(7,3,5);scene.add(fill);
   var rim=new T.DirectionalLight(0x7B9FC4,1.45);rim.position.set(1,5,-8);scene.add(rim);
