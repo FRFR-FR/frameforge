@@ -193,7 +193,7 @@
     return true;
   }
 
-  async function applyMask(layerCanvas, mask, sequence, resolveAsset, clip, frame) {
+  async function applyMask(layerCanvas, mask, sequence, resolveAsset, clip, frame, projectAssets) {
     if (!mask || mask.type === 'none') return;
     const maskCanvas = makeCanvas(sequence.width, sequence.height, layerCanvas);
     const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: mask.type === 'luma' });
@@ -212,7 +212,7 @@
       maskCtx.fill();
       maskCtx.restore();
     } else {
-      const matteAsset = (clip._projectAssets || []).find(item => item.id === mask.asset_id);
+      const matteAsset = (projectAssets || []).find(item => item.id === mask.asset_id);
       if (!matteAsset) throw new Error('Matte asset is missing from the project.');
       const matteSource = await resolveAsset(matteAsset, clip, 0);
       if (!matteSource) throw new Error('Matte asset could not be decoded.');
@@ -280,23 +280,20 @@
         const localFrame = Math.max(0, frame - clip.start_frame);
         const mediaTime = ((Number(clip.source_in_frame) || 0) + localFrame * (Number(clip.playback_rate) || 1)) / sequence.fps;
         const asset = clip.asset_id ? projectAssets.find(ref => ref.id === clip.asset_id) : null;
-        clip._projectAssets = projectAssets;
         const source = asset ? await resolveAsset(asset, clip, mediaTime) : null;
         const layer = makeCanvas(sequence.width, sequence.height, canvas);
         const layerCtx = layer.getContext('2d');
         if (!layerCtx) throw new Error('Canvas 2D layer context is unavailable.');
         await drawClipContent(layerCtx, clip, source, sequence, transform, frame);
-        await applyMask(layer, clip.mask, sequence, resolveAsset, clip, frame);
+        await applyMask(layer, clip.mask, sequence, resolveAsset, clip, frame, projectAssets);
         output.save();
         const requestedBlend = clip.blend_mode === 'normal' || !clip.blend_mode ? 'source-over' : clip.blend_mode;
         output.globalCompositeOperation = BLENDS.has(requestedBlend) ? requestedBlend : 'source-over';
         output.globalAlpha = transform.opacity;
         output.drawImage(layer, 0, 0);
         output.restore();
-        delete clip._projectAssets;
         drawn++;
       } catch (error) {
-        delete clip._projectAssets;
         warnings.push({ clip_id: clip.id, message: error.message });
       }
     }
