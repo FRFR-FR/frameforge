@@ -157,7 +157,8 @@
       },
       settings: {
         width: 1280, height: 720, fps: 30, color_space: 'srgb',
-        pixel_aspect_ratio: 1, sample_rate: 48000, audio_channels: 2
+        pixel_aspect_ratio: 1, sample_rate: 48000, audio_channels: 2,
+        post_processing: { renderer: 'auto', fallback: 'canvas2d', passes: [] }
       },
       assets: [],
       sequences: [{
@@ -424,7 +425,7 @@
   const KEYFRAME_PROPERTIES = ['position.x','position.y','scale.x','scale.y','rotation_degrees','opacity','anchor.x','anchor.y'];
 
   function addGraphicClip(project, trackId, generatorType, parameters, startFrame, durationFrames) {
-    if (!['text','shape','svg'].includes(generatorType)) throw new Error('Unsupported generated graphic type.');
+    if (!['text','shape','svg','particles'].includes(generatorType)) throw new Error('Unsupported generated graphic type.');
     const track = findTrack(project, trackId);
     if (!['graphic','title'].includes(track.type)) throw new Error('Generated graphics require a Graphics or Titles track.');
     const sequence = getMainSequence(project);
@@ -432,7 +433,9 @@
       ? { text: 'Your title', font_family: 'Arial, sans-serif', font_size: 72, font_weight: 700, color: '#ffffff', align: 'center', box_width: 900, box_height: 180 }
       : generatorType === 'shape'
         ? { shape: 'rect', width: 420, height: 220, fill: '#287fbd', stroke: '#ffffff', stroke_width: 0, radius: 18 }
-        : { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#287fbd"/></svg>' };
+        : generatorType === 'svg'
+        ? { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#287fbd"/></svg>' }
+        : { preset: 'sparks', count: 72, seed: 1337, speed: 1, size: 3.5, color: '#ffc46b', spread: 1, gravity: 72, life_seconds: 1.8 };
     const next = Object.assign({}, defaults, clone(parameters || {}));
     if (generatorType === 'svg') validateSvgText(next.svg);
     const start = Math.max(0, Math.round(Number(startFrame) || 0));
@@ -639,13 +642,128 @@
       .sort((a, b) => (a.track.order - b.track.order) || a.clip.start_frame - b.clip.start_frame);
   }
 
+
+  const PARTICLE_PRESETS = ['sparks','dust','embers','magic','confetti'];
+  const CLIP_EFFECT_TYPES = ['blur','glow','vignette','brightness-contrast','saturation','light-rays','chromatic-aberration','glitch','ripple','shake','motion-blur'];
+  const POST_PROCESS_TYPES = ['brightness-contrast','saturation','vignette','blur','glow','light-rays','chromatic-aberration','glitch','ripple','shake','motion-blur','custom'];
+  const TRANSITION_TYPES = ['crossfade','fade','wipe','zoom','whip_pan','radial','hypnosis_wheel','swirl_warp','glitch'];
+
+  function addPostProcessPass(project, type, parameters) {
+    if (!POST_PROCESS_TYPES.includes(type)) throw new Error('Unsupported post-processing pass: ' + type);
+    const settings = project.settings.post_processing || (project.settings.post_processing = { renderer: 'auto', fallback: 'canvas2d', passes: [] });
+    if (!Array.isArray(settings.passes)) settings.passes = [];
+    const defaults = {
+      'brightness-contrast': { brightness: 0, contrast: 1, intensity: 1 },
+      saturation: { saturation: 1, intensity: 1 },
+      vignette: { strength: 0.35, radius: 0.72, intensity: 1 },
+      blur: { radius: 2, intensity: 1 },
+      glow: { strength: 0.45, radius: 12, intensity: 1 },
+      'light-rays': { strength: 0.3, angle: 0, intensity: 1 },
+      'chromatic-aberration': { amount: 2, intensity: 1 },
+      glitch: { amount: 0.35, seed: 7, intensity: 1 },
+      ripple: { amount: 0.25, frequency: 8, intensity: 1 },
+      shake: { amount: 5, seed: 13, intensity: 1 },
+      'motion-blur': { amount: 4, intensity: 1 },
+      custom: { fragment: '', intensity: 1 }
+    };
+    const pass = {
+      id: makeId('pass'), type, enabled: true,
+      parameters: Object.assign({}, defaults[type], clone(parameters || {})),
+      keyframes: []
+    };
+    settings.passes.push(pass);
+    return pass;
+  }
+
+  function removePostProcessPass(project, passId) {
+    const passes = project.settings.post_processing?.passes || [];
+    project.settings.post_processing.passes = passes.filter(pass => pass.id !== passId);
+  }
+
+  function setPostProcessRenderer(project, renderer) {
+    if (!['auto','webgl','canvas2d'].includes(renderer)) throw new Error('Renderer must be auto, webgl or canvas2d.');
+    const settings = project.settings.post_processing || (project.settings.post_processing = { renderer: 'auto', fallback: 'canvas2d', passes: [] });
+    settings.renderer = renderer;
+    settings.fallback = 'canvas2d';
+    return settings;
+  }
+
+  function setClipEffect(project, clipId, type, parameters) {
+    if (!CLIP_EFFECT_TYPES.includes(type)) throw new Error('Unsupported clip effect: ' + type);
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    found.clip.effects = Array.isArray(found.clip.effects) ? found.clip.effects : [];
+    let effect = found.clip.effects.find(item => item.type === type);
+    if (!effect) {
+      effect = { id: makeId('effect'), type, enabled: true, parameters: {}, keyframes: [] };
+      found.clip.effects.push(effect);
+    }
+    effect.enabled = true;
+    effect.parameters = Object.assign({}, effect.parameters || {}, clone(parameters || {}));
+    effect.keyframes = Array.isArray(effect.keyframes) ? effect.keyframes : [];
+    return effect;
+  }
+
+  function setEffectParameterKeyframe(project, clipId, effectId, property, globalFrame, value, interpolation) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    const effect = (found.clip.effects || []).find(item => item.id === effectId);
+    if (!effect) throw new Error('Effect was not found on this clip.');
+    if (!['intensity','amount','radius','strength','saturation','brightness','contrast','frequency'].includes(property)) {
+      throw new Error('Unsupported animated effect parameter.');
+    }
+    const local = Math.round(Number(globalFrame) || 0) - found.clip.start_frame;
+    if (local < 0 || local > found.clip.duration_frames) throw new Error('Playhead must be inside the clip to keyframe an effect.');
+    const interpolationMode = interpolation || 'ease_in_out';
+    if (!['step','linear','ease_in','ease_out','ease_in_out','bezier'].includes(interpolationMode)) throw new Error('Unsupported keyframe interpolation.');
+    effect.keyframes = Array.isArray(effect.keyframes) ? effect.keyframes : [];
+    const record = { property, frame: local, value: Number(value), interpolation: interpolationMode };
+    if (!Number.isFinite(record.value)) throw new Error('Effect keyframe value must be finite.');
+    const existing = effect.keyframes.findIndex(key => key.property === property && key.frame === local);
+    if (existing >= 0) effect.keyframes[existing] = record;
+    else effect.keyframes.push(record);
+    effect.keyframes.sort((a,b) => a.frame-b.frame);
+    return record;
+  }
+
+  function evaluateEffectParameters(effect, localFrame) {
+    const parameters = clone(effect.parameters || {});
+    for (const property of ['intensity','amount','radius','strength','saturation','brightness','contrast','frequency']) {
+      if (Number.isFinite(Number(parameters[property]))) {
+        parameters[property] = evaluateKeyframes({ keyframes: effect.keyframes || [] }, property, localFrame, Number(parameters[property]));
+      }
+    }
+    return parameters;
+  }
+
+  function setClipTransition(project, clipId, edge, transition) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    if (!['in','out'].includes(edge)) throw new Error('Transition edge must be in or out.');
+    if (!transition || !TRANSITION_TYPES.includes(transition.type)) throw new Error('Choose a supported transition.');
+    const duration = Math.max(1, Math.min(found.clip.duration_frames, Math.round(Number(transition.duration_frames) || 1)));
+    const direction = transition.direction || 'right';
+    if (!['in','out','left','right','up','down','clockwise','counterclockwise'].includes(direction)) {
+      throw new Error('Unsupported transition direction.');
+    }
+    const record = {
+      type: transition.type, duration_frames: duration, direction,
+      parameters: Object.assign({ intensity: 1, segments: 12 }, clone(transition.parameters || {}))
+    };
+    found.clip[edge === 'in' ? 'transition_in' : 'transition_out'] = record;
+    return record;
+  }
+
+
   const api = {
     FORMAT, SCHEMA_VERSION, MAX_FILE_BYTES, HASH_LIMIT_BYTES, FORMATS, TRACK_TYPES,
     makeId, clone, extensionOf, classifyFile, verifySignature, validateSvgText,
     createDefaultProject, getMainSequence, addTrack, trackForAssetType,
     assetToProjectRecord, addAsset, addAssetClip, findClip, moveClip, trimClip,
     splitClip, duplicateClip, deleteClip, addGraphicClip, setClipTransform, setClipParent, setClipMask,
-    BLEND_MODES, KEYFRAME_PROPERTIES, setKeyframe, evaluateKeyframes, evaluateClipTransform, getActiveVisualClips, validateProject
+    BLEND_MODES, KEYFRAME_PROPERTIES, PARTICLE_PRESETS, CLIP_EFFECT_TYPES, POST_PROCESS_TYPES, TRANSITION_TYPES,
+    setKeyframe, evaluateKeyframes, evaluateClipTransform, getActiveVisualClips,
+    addPostProcessPass, removePostProcessPass, setPostProcessRenderer, setClipEffect, setEffectParameterKeyframe, evaluateEffectParameters, setClipTransition, validateProject
   };
   root.FFV2Core = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
