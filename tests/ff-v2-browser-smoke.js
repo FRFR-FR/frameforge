@@ -63,6 +63,11 @@ async function waitForServer(child) {
   throw new Error('Static test server did not start.');
 }
 
+async function waitForCompositorRevision(page, previous) {
+  await page.waitForFunction(value => Number(document.getElementById('ffv2CompositorStatus').dataset.renderId || 0) > value,
+    previous, { timeout: 20000 });
+}
+
 async function main() {
   const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], {
     stdio: 'ignore'
@@ -188,11 +193,12 @@ async function main() {
     await page.locator('#ffv2ParticlePreset').selectOption('embers');
     await page.locator('#ffv2AddParticles').click();
     assert.equal(await page.locator('.ffv2-clip').count(), 5);
+    const beforeParticleScrub = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id') || 0);
     await page.locator('#ffv2Playhead').evaluate(el => {
       el.value = '24';
       el.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('visual layer'));
+    await waitForCompositorRevision(page,beforeParticleScrub);
     const particleFrameA = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
       const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
       let hash=2166136261, visible=0;
@@ -252,15 +258,19 @@ async function main() {
     // Named atmosphere preset and ordered Canvas2D fallback passes.
     await page.locator('#ffv2PostRenderer').selectOption('canvas2d');
     await page.locator('#ffv2PostPreset').selectOption('soft_glow');
+    const beforePresetRender = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id') || 0);
     await page.locator('#ffv2ApplyPostPreset').click();
     assert.ok(await page.locator('.ffv2-postfx-row').count()>=2);
-    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('canvas2d'));
+    await waitForCompositorRevision(page,beforePresetRender);
+    assert.match(await page.locator('#ffv2CompositorStatus').textContent(), /canvas2d/i);
 
     // Add a custom GLSL pass and confirm the browser either runs WebGL or reports fallback.
     await page.locator('#ffv2PostRenderer').selectOption('webgl');
+    const beforeShaderRender = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id') || 0);
     await page.locator('#ffv2AddCustomShader').click();
+    await waitForCompositorRevision(page,beforeShaderRender);
     await page.waitForFunction(() => {
-      const text=document.getElementById('ffv2CompositorStatus').textContent;
+      const text=document.getElementById('ffv2CompositorStatus').textContent.toLowerCase();
       return text.includes('webgl') || text.includes('canvas2d') || text.includes('fell back');
     });
     assert.ok(await page.locator('.ffv2-postfx-row').count()>=3);
