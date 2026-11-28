@@ -45,6 +45,7 @@ class FrameForgeBlenderBridgeTests(unittest.TestCase):
 
     def test_vector_and_material_colour_conversions_are_stable(self):
         self.assertEqual(BRIDGE.xyz([1, 2, 3]), (1.0, 2.0, 3.0))
+        self.assertEqual(BRIDGE.three_vector_to_blender([1, 2, 3]), (1.0, -3.0, 2.0))
         self.assertEqual(BRIDGE.hex_rgba("#abc"), (170 / 255, 187 / 255, 204 / 255, 1.0))
         with self.assertRaises(ValueError):
             BRIDGE.xyz([1, 2])
