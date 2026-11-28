@@ -205,7 +205,8 @@
       if (mask.invert) { maskCtx.fillStyle = '#fff'; maskCtx.fillRect(0, 0, sequence.width, sequence.height); }
       maskCtx.save();
       maskCtx.filter = mask.feather > 0 ? 'blur(' + mask.feather + 'px)' : 'none';
-      maskCtx.fillStyle = mask.invert ? '#000' : '#fff';
+      maskCtx.globalCompositeOperation = mask.invert ? 'destination-out' : 'source-over';
+      maskCtx.fillStyle = '#fff';
       maskCtx.beginPath();
       if (mask.shape === 'ellipse') maskCtx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
       else maskCtx.rect(x, y, w, h);
