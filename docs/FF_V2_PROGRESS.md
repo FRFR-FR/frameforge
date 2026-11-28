@@ -343,9 +343,13 @@ The JavaScript and Python structural validators allow a required source-footage/
 
 ## Verification for batch 36–40
 
-The Foundation Validation workflow now syntax-checks both production modules and runs the production Node regression suite alongside the schema/Python tests. The Chromium Browser Smoke workflow runs the new production integration test after the existing V2, audio and director browser tests. The production browser fixture exercises a recipe, an editable SVG clip, local WAV import, the pending-audio gate, assembly of timeline clips, an unfilled source-footage beat and persistence after reload.
+The Foundation Validation workflow syntax-checked both production modules and ran the full Node regression suite plus the Python/schema validation suite. The Chromium Browser Smoke workflow ran the new production integration test after the existing V2, audio and director browser tests. The production browser fixture exercised recipe application, an editable SVG clip, local WAV import, the pending-audio packaging gate, editable track assembly, an explicitly unfilled source-footage beat and persistence after reload.
 
-**Run status note:** the workflow files and tests are committed and path-triggered on `main`. The GitHub connector in this session did not return push-triggered Actions run records/logs, so no unobserved CI pass is claimed here. See the workflow pages for the run outcomes.
+**Verified CI results on commit `34ac979ce91fd0fdea064d1740f9fa2b874efbb5`:**
+- [Foundation Validation run 46136634856 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46136634856): **74 JavaScript tests passed, 0 failed**; **31 Python tests passed**; JavaScript syntax checks, Python compilation, schema/example validation, semantic project validation and FFmpeg mux integration tests completed successfully.
+- [Browser Smoke run 46136634866 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46136634866): existing V2, audio and research-director smoke tests passed, as did **`FRAMEFORGE_V2_PRODUCTION_BROWSER_SMOKE_PASS`**. The production test confirmed editable SVG creation, local WAV import, pending-audio rights blocking, assembled track clips, missing-source recording, project validation and persistence after reload.
+
+See the [Foundation Validation workflow](../.github/workflows/ff-v2-foundation-tests.yml) and [Browser Smoke workflow](../.github/workflows/ff-v2-browser-smoke.yml).
 
 - [Production workflow implementation guide](FF_V2_PRODUCTION_WORKFLOWS.md)
 - [Production module](../ff-v2-production.js) and [production UI controls](../ff-v2-production-ui.js)
