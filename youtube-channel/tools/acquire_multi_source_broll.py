@@ -354,7 +354,8 @@ def main():
     for section in plan:
         if not {"id", "title", "query", "count", "match_groups"}.issubset(section) or len(section["match_groups"]) < 2:
             raise SystemExit(f"Invalid topic-specific B-roll section: {section.get('id')}")
-        section["queries"] = list(dict.fromkeys([section["query"], *section.get("queries", [])]))[:3]
+        query_limit = 9 if section["id"] == "section_06" else 4
+        section["queries"] = list(dict.fromkeys([section["query"], *section.get("queries", [])]))[:query_limit]
     keys = {name: os.environ.get(name, "").strip()
             for name in ("PIXABAY_API_KEY", "COVERR_API_KEY", "PEXELS_API_KEY", "DVIDS_API_KEY")}
     searchers = [
@@ -426,7 +427,7 @@ def main():
         if audio_file and (root / audio_file).is_file():
             seconds = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "csv=p=0", str(root / audio_file)], text=True).strip())
-        shots = max(1, int((max(0, seconds - 12) + SHOT - .001) // SHOT) + 1)
+        shots = max(1, math.ceil(max(0.0, seconds - 12.0) / SHOT))
         minimum = max(6, shots)
         target = max(int(section["count"]), minimum)
         targets[sid] = target

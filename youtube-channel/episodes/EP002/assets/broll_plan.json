@@ -200,26 +200,17 @@
   {
     "id": "section_06",
     "title": "From a pattern on a mask to a pattern on silicon",
-    "query": "photoresist",
+    "query": "photolithography reticle semiconductor wafer exposure",
     "queries": [
-      "photoresist",
-      "wafer photoresist",
-      "photoresist coating",
-      "spin coating wafer",
-      "photolithography",
-      "semiconductor wafer",
-      "silicon wafer processing",
-      "Accelerated Materials Discovery Project Photoresist",
-      "How EUV lithography works",
-      "semiconductor microchip fabrication",
-      "How ST designs and manufactures semiconductor devices",
-      "JSR and IBM Quantum envision a revolution in semiconductor manufacturing",
-      "photoresist coating silicon wafer manufacturing process",
-      "spin coating photoresist wafer cleanroom",
-      "semiconductor photoresist coating lithography resist",
-      "photolithography pattern transfer wafer",
-      "resist coating semiconductor wafer exposure",
-      "wafer photoresist deposition and development"
+      "photolithography reticle semiconductor wafer exposure",
+      "photomask reticle semiconductor lithography machine",
+      "wafer spin coating photoresist semiconductor cleanroom",
+      "semiconductor photolithography mask aligner wafer",
+      "silicon wafer photoresist coating lithography equipment",
+      "semiconductor wafer exposure developer photolithography",
+      "microfabrication cleanroom photolithography mask aligner",
+      "EUV lithography wafer reticle scanner cleanroom",
+      "semiconductor photoresist coating and pattern transfer process"
     ],
     "count": 6,
     "cutaway_seconds": 12,
@@ -233,7 +224,8 @@
         "semiconductor",
         "microchip",
         "chip",
-        "silicon"
+        "silicon",
+        "photolithography"
       ],
       [
         "coating",
@@ -248,7 +240,11 @@
         "etch",
         "exposure",
         "resist",
-        "deposition"
+        "deposition",
+        "scanner",
+        "aligner",
+        "mask",
+        "fabrication"
       ]
     ],
     "context_only_allowed": false
