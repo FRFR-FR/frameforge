@@ -277,6 +277,36 @@ ctx.stroke();</pre>
         </div>
 
         <div class="ffv2-editor-subpanel">
+          <strong>Clip effects · keyframable intensity</strong>
+          <div class="ffv2-control-grid compact">
+            <label>Effect <select id="ffv2ClipEffectType">
+              <option value="glow">Glow</option><option value="blur">Blur</option><option value="vignette">Vignette</option><option value="brightness-contrast">Brightness / contrast</option><option value="saturation">Saturation</option><option value="light-rays">Light rays</option><option value="chromatic-aberration">Chromatic aberration</option><option value="glitch">Glitch</option><option value="ripple">Ripple / warp</option><option value="shake">Camera shake</option><option value="motion-blur">Motion blur</option>
+            </select></label>
+            <label>Intensity <input id="ffv2ClipEffectIntensity" type="number" min="0" max="2" step="0.05" value="0.5" /></label>
+          </div>
+          <button id="ffv2AddClipEffect" class="button small">Add / update clip effect</button>
+          <label>Effect to keyframe <select id="ffv2EffectKeyframeTarget"><option value="">Add a clip effect first</option></select></label>
+          <button id="ffv2KeyframeEffect" class="button small">＋ Keyframe effect intensity</button>
+          <small id="ffv2ClipEffectInfo" class="ffv2-info-text">Effects are evaluated in clip-local time.</small>
+        </div>
+
+        <div class="ffv2-editor-subpanel">
+          <strong>Clip transitions · incoming / outgoing</strong>
+          <div class="ffv2-control-grid compact">
+            <label>Transition <select id="ffv2TransitionType">
+              <option value="fade">Fade</option><option value="crossfade">Crossfade</option><option value="wipe">Wipe</option><option value="zoom">Zoom</option><option value="whip_pan">Whip pan</option><option value="radial">Radial</option><option value="hypnosis_wheel">Hypnosis wheel</option><option value="swirl_warp">Swirl / warp</option><option value="glitch">Glitch</option>
+            </select></label>
+            <label>Duration frames <input id="ffv2TransitionDuration" type="number" min="1" max="300" value="18" /></label>
+            <label>Direction <select id="ffv2TransitionDirection"><option value="right">Right</option><option value="left">Left</option><option value="up">Up</option><option value="down">Down</option><option value="clockwise">Clockwise</option><option value="counterclockwise">Counter-clockwise</option></select></label>
+            <label>Intensity <input id="ffv2TransitionIntensity" type="number" min="0" max="2" step="0.1" value="1" /></label>
+          </div>
+          <button id="ffv2ApplyTransitionIn" class="button small">Apply transition in</button>
+          <button id="ffv2ApplyTransitionOut" class="button small">Apply transition out</button>
+          <button id="ffv2ClearTransitions" class="button small quiet">Clear transitions</button>
+          <small id="ffv2TransitionInfo" class="ffv2-info-text">Transitions are attached to the selected clip edges.</small>
+        </div>
+
+        <div class="ffv2-editor-subpanel">
           <strong>Typography · SVG · vector shapes</strong>
           <div id="ffv2GraphicTextFields" class="ffv2-control-grid">
             <label>Text / title <input id="ffv2GraphicText" type="text" maxlength="500" /></label>
@@ -307,11 +337,38 @@ ctx.stroke();</pre>
           <button id="ffv2AddLowerThird" class="button small">＋ Lower third</button>
           <button id="ffv2AddShape" class="button small">＋ Shape</button>
           <button id="ffv2AddSvg" class="button small">＋ SVG</button>
+          <button id="ffv2AddParticles" class="button small">＋ Particles</button>
           <button id="ffv2RenderFrame" class="button small primary">Render frame</button>
           <button id="ffv2DownloadFrame" class="button small">Download PNG</button>
         </div>
       </div>
       <div class="ffv2-compositor-stage"><canvas id="ffv2CompositorCanvas" width="1280" height="720" aria-label="V2 transparent layer compositor preview"></canvas></div>
+      <div class="ffv2-postfx-panel">
+        <div class="ffv2-postfx-heading"><strong>Post-processing · optional GPU shaders</strong><small id="ffv2ShaderCapability">Checking WebGL capability…</small></div>
+        <div class="ffv2-control-grid compact">
+          <label>Render backend <select id="ffv2PostRenderer"><option value="auto">Automatic · GPU if available</option><option value="webgl">Prefer WebGL</option><option value="canvas2d">Canvas 2D only</option></select></label>
+          <label>Effect pass <select id="ffv2PostType">
+            <option value="brightness-contrast">Brightness / contrast</option><option value="saturation">Saturation</option><option value="vignette">Vignette</option><option value="blur">Blur</option><option value="glow">Glow / bloom</option><option value="light-rays">Light rays</option><option value="chromatic-aberration">Chromatic aberration</option><option value="glitch">Glitch</option><option value="ripple">Ripple / warp</option><option value="shake">Shake</option><option value="motion-blur">Motion blur</option>
+          </select></label>
+        </div>
+        <button id="ffv2AddPostPass" class="button small">＋ Add ordered pass</button>
+        <div id="ffv2PostPassList" class="ffv2-postfx-list"></div>
+        <details class="ffv2-custom-shader">
+          <summary>Custom GLSL shader pass</summary>
+          <p class="ffv2-info-text">WebGL 1 fragment shader. Required interface: varying vec2 v_uv; uniform sampler2D u_image; uniform float u_intensity. Preserve alpha in gl_FragColor.a. Compilation is tested at render time; invalid shaders fall back safely.</p>
+          <textarea id="ffv2CustomShader" rows="8" spellcheck="false">precision mediump float;
+varying vec2 v_uv;
+uniform sampler2D u_image;
+uniform float u_intensity;
+void main() {
+  vec4 color = texture2D(u_image, v_uv);
+  color.rgb = mix(color.rgb, color.rgb * vec3(1.0, 0.82, 0.72), u_intensity);
+  gl_FragColor = vec4(color.rgb, color.a);
+}</textarea>
+          <button id="ffv2AddCustomShader" class="button small">＋ Add custom shader pass</button>
+        </details>
+        <small class="ffv2-info-text">Passes run in the order shown. If WebGL, shader compilation or a device feature is unavailable, supported effects use Canvas 2D fallbacks. Custom GLSL is skipped by the Canvas 2D fallback.</small>
+      </div>
       <div id="ffv2CompositorStatus" class="ffv2-save-status" role="status">Ready to composite visual timeline layers.</div>
       <small class="ffv2-info-text">The preview renders the current playhead frame. This is a PNG-frame compositor, not yet the final MP4 export pipeline. Keep source assets backed up separately.</small>
     </div>
@@ -334,6 +391,7 @@ ctx.stroke();</pre>
   <footer class="app-footer">FrameForge is a local drawing and animation tool. Your project stays in this browser unless you export or share the project file.</footer>
   <script src="frameforge-3d.js"></script>
   <script src="ff-v2-core.js"></script>
+  <script src="ff-v2-shaders.js"></script>
   <script src="ff-v2-renderer.js"></script>
   <script src="ff-v2-studio.js"></script>
   <script src="app.js"></script>
