@@ -12,8 +12,15 @@ on:
       - "ff-v2-director.js"
       - "ff-v2-production.js"
       - "ff-v2-production-ui.js"
+      - "ff-v2-render-queue.js"
       - "ff-v2-studio.js"
       - "tools/mux_ffmpeg.py"
+      - "tools/merge_render_chunks.py"
+      - "tools/export_ffmpeg.py"
+      - "tools/qa_render.py"
+      - "tools/create_review.py"
+      - "tools/package_delivery.py"
+      - "tests/test_render_pipeline.py"
       - "tests/test_mux_ffmpeg.py"
       - "ff-v2-renderer.js"
       - "ff-v2-3d-studio.js"
@@ -79,6 +86,7 @@ jobs:
           node --check ff-v2-director.js
           node --check ff-v2-production.js
           node --check ff-v2-production-ui.js
+          node --check ff-v2-render-queue.js
           node --check ff-v2-studio.js
           node --check ff-v2-renderer.js
           node --check ff-v2-3d-studio.js
