@@ -1,0 +1,24 @@
+{
+  "policy": "imported-vfx-first",
+  "checked_on": "2026-11-28",
+  "note": "Source manifest only. Media binaries are downloaded at render time and are not committed to the FrameForge repository.",
+  "vfx_assets": [
+    {
+      "asset_id": "pixabay:237888",
+      "title": "Flame, fire, flaming",
+      "creator": "Luis_Humanoide",
+      "type": "CGI fire simulation overlay",
+      "source_description": "The Pixabay item page describes this as a flame overlay and a fire simulation made in EmberGen.",
+      "source_page": "https://pixabay.com/videos/flame-fire-flaming-heat-burn-237888/",
+      "license": "Pixabay Content License",
+      "license_url": "https://pixabay.com/service/license-summary/",
+      "license_summary": "Free to use and adapt without attribution, subject to prohibited uses and third-party rights.",
+      "download_method": "Pixabay API at render time using the PIXABAY_API_KEY GitHub Actions secret",
+      "preferred_rendition": "medium",
+      "source_resolution": "1920x1080",
+      "source_fps": 30,
+      "composite_intent": "Screen-blended fire footage above the base photo and behind the isolated subject",
+      "rights_state": "reviewed-for-this-demo"
+    }
+  ]
+}
