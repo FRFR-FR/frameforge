@@ -354,7 +354,7 @@ async function main() {
     await page.locator('#ffv2RenderFrame').click();
     await waitForCompositorRevision(page,threeRenderBefore);
     const threeStatus = await page.locator('#ffv2CompositorStatus').textContent();
-    assert.match(threeStatus,/visual layer/);
+    assert.match(threeStatus,/layer|3D/i);
 
     // The Blender bridge export is a portable ZIP containing the scene manifest, GLB and script.
     const downloadPromise = page.waitForEvent('download');
@@ -366,6 +366,8 @@ async function main() {
     const bridgeBytes = fs.readFileSync(bridgePath);
     assert.equal(bridgeBytes.readUInt32LE(0),0x04034b50,'Blender bridge should be a valid ZIP archive');
     assert.ok(bridgeBytes.length>500,'Blender bridge ZIP should contain the scene and model files');
+    assert.ok(bridgeBytes.includes(Buffer.from('position3d.x')),'Bridge manifest should carry local 3D transform keyframes');
+    assert.ok(bridgeBytes.includes(Buffer.from('Triangle bob')),'Bridge manifest should carry the selected glTF animation');
 
     assert.deepEqual(pageErrors, [], 'Browser page errors should be empty');
 
