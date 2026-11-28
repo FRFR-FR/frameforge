@@ -8,6 +8,34 @@
   const MAX_RESULTS = 8;
   const MAX_LABELS = 8;
 
+  const VFX_SOURCE_POLICY = {
+    mode: 'imported-first',
+    priority: ['approved_imported_vfx', 'pending_imported_vfx', 'other_visual_assets', 'procedural_fallback'],
+    imported_vfx_tags: ['vfx', 'vfx-overlay', 'imported-vfx'],
+    preferred_media_types: ['video', 'model3d', 'image'],
+    procedural_vfx_fallback_requires_explicit_opt_in: true,
+    note: 'Tag externally sourced effect assets with vfx or vfx:<category>. Keep rights pending until individually reviewed.'
+  };
+
+  function isImportedVfxAsset(asset) {
+    if (!asset || !['video', 'model3d', 'image'].includes(asset.media_type)) return false;
+    const tags = (Array.isArray(asset.tags) ? asset.tags : []).map(value => String(value).trim().toLowerCase());
+    return tags.some(tag => VFX_SOURCE_POLICY.imported_vfx_tags.includes(tag) || tag.startsWith('vfx:'));
+  }
+
+  function prioritizeImportedVfx(assets) {
+    return [...(assets || [])].sort((left, right) => {
+      const score = asset => {
+        if (!isImportedVfxAsset(asset)) return 100;
+        const status = String(asset.rights?.status || 'pending').toLowerCase();
+        const rightsRank = status === 'approved' ? 0 : status === 'pending' ? 10 : 30;
+        const mediaRank = asset.media_type === 'video' ? 0 : asset.media_type === 'model3d' ? 1 : 2;
+        return rightsRank + mediaRank;
+      };
+      return score(left) - score(right);
+    });
+  }
+
   const RECIPES = {
     character_reveal: {
       label: 'Character reveal',
@@ -135,6 +163,14 @@
       rights: 'Each file page declares its own licence and attribution requirements; inspect it individually.',
       homepage: 'https://commons.wikimedia.org/',
       api: 'https://commons.wikimedia.org/w/api.php'
+    },
+    pixabay_vfx: {
+      label: 'Pixabay VFX',
+      modes: ['video'],
+      auth: 'Open item search is available in the browser; API downloads require a Pixabay API key and should run in a secure render environment.',
+      rights: 'Pixabay Content License: free to use and adapt, subject to prohibited-use terms and additional third-party rights. Check each item page.',
+      homepage: 'https://pixabay.com/videos/',
+      api: 'https://pixabay.com/api/videos/'
     },
     poly_haven: {
       label: 'Poly Haven',
@@ -439,13 +475,15 @@
     }
     if (provider === 'poly_haven') return 'https://polyhaven.com/' + (mediaType === 'model3d' ? 'models' : mediaType === 'texture' ? 'textures' : 'hdris');
     if (provider === 'internet_archive') return 'https://archive.org/search?query=' + q;
+    if (provider === 'pixabay_vfx') return 'https://pixabay.com/videos/search/' + q + '/';
     throw new Error('This provider uses a manual browser workflow or is not supported.');
   }
 
   async function searchProvider(provider, query, mediaType, fetchImpl) {
     if (!text(query, 200)) throw new Error('Enter a search phrase first.');
     const fetcher = fetchImpl || root.fetch;
-    if (provider === 'poly_haven' || provider === 'internet_archive') {
+    if (provider === 'poly_haven' || provider === 'internet_archive' || provider === 'pixabay_vfx') {
+      if (provider === 'pixabay_vfx' && mediaType !== 'video') throw new Error('Pixabay VFX search supports video assets only.');
       return { provider: PROVIDERS[provider].label, mode: 'manual', url: providerSearchUrl(provider, query, mediaType), results: [] };
     }
     if (!['openverse','wikimedia_commons'].includes(provider)) throw new Error('Unsupported media provider.');
@@ -601,7 +639,9 @@
       const recipe = beat.shot_recipe || null;
       const duration = Math.max(1, Math.round(beat.recipe_duration_frames || (beat.end_frame - beat.start_frame)));
       const linkedAssets = (beat.asset_ids || []).map(id => (project.assets || []).find(asset => asset.id === id)).filter(Boolean);
-      const visualAssets = linkedAssets.filter(asset => ['image','video','graphic','model3d'].includes(asset.media_type));
+      const visualAssets = prioritizeImportedVfx(
+        linkedAssets.filter(asset => ['image','video','graphic','model3d'].includes(asset.media_type))
+      );
       const audioAssets = linkedAssets.filter(asset => asset.media_type === 'audio');
       let visualCreated = 0;
 
@@ -691,7 +731,8 @@
   }
 
   const api = {
-    RECIPES, PROVIDERS, listRecipes, instantiateShotRecipe, applyShotRecipe, safeHttpUrl,
+    RECIPES, PROVIDERS, VFX_SOURCE_POLICY, isImportedVfxAsset, prioritizeImportedVfx,
+    listRecipes, instantiateShotRecipe, applyShotRecipe, safeHttpUrl,
     buildGraphicSvg, createProceduralGraphicClip, createProceduralParticleClip, providerSearchUrl, searchProvider,
     importOptionsForSelection, registerAudioMetadata, audioCatalogue, buildAudioCredits,
     audioPackagingReport, assembleShotPlan
