@@ -712,6 +712,46 @@ void main() {
         </div>
       </details>
     </section>
+    <section class="ffv2-render-queue-panel" id="ffv2RenderQueuePanel" aria-label="Resumable V2 render queue">
+      <details open>
+        <summary>
+          <span><strong>41 · Resumable V2 render queue</strong><small>Render the actual V2 compositor frame-by-frame, in restartable chunks stored locally.</small></span>
+          <span id="ffv2RenderQueueJobSummary">No render job selected</span>
+        </summary>
+        <div class="ffv2-render-queue-body">
+          <div class="ffv2-render-queue-grid">
+            <label>Frames per chunk
+              <select id="ffv2RenderQueueChunkSize" class="ffv2-production-input">
+                <option value="12">12 · lower memory use</option>
+                <option value="24" selected>24 · balanced</option>
+                <option value="48">48</option>
+                <option value="96">96 · larger storage demand</option>
+              </select>
+            </label>
+            <label>Saved render jobs
+              <select id="ffv2RenderQueueJobs" class="ffv2-production-input"><option value="">No saved jobs</option></select>
+            </label>
+          </div>
+          <div class="ffv2-production-actions">
+            <button id="ffv2RenderQueueCreate" class="button small">Create render job</button>
+            <button id="ffv2RenderQueueStart" class="button small primary" disabled>Start / resume</button>
+            <button id="ffv2RenderQueuePause" class="button small quiet" disabled>Pause safely</button>
+          </div>
+          <progress id="ffv2RenderQueueProgress" class="ffv2-render-queue-progress" max="100" value="0"></progress>
+          <div id="ffv2RenderQueueProgressText" class="ffv2-production-note">Create a job to split your timeline into resumable frame chunks.</div>
+          <div class="ffv2-render-queue-grid">
+            <label>Chunk to export
+              <select id="ffv2RenderQueueChunk" class="ffv2-production-input"><option value="0">Create a render job first</option></select>
+            </label>
+            <label>Chunk export
+              <button id="ffv2RenderQueueExport" class="button small" disabled>Download completed chunk ZIP</button>
+            </label>
+          </div>
+          <div id="ffv2RenderQueueStatus" class="ffv2-production-note" role="status" aria-live="polite">Render queue uses local IndexedDB. Close/reopen the page and resume a saved job; stored frames are skipped.</div>
+          <p class="ffv2-production-note">Each chunk ZIP contains numbered PNG frames and a manifest with resolution, FPS and frame range. Export each completed chunk, then merge the ZIP files with <code>tools/merge_render_chunks.py</code> before FFmpeg export. Keep separate backups of your imported media: the project JSON does not embed those files. Browser storage is quota-limited; pause if storage space is low.</p>
+        </div>
+      </details>
+    </section>
     <div class="timeline-foot"><span>Tip: duplicate a frame, then make small changes for traditional frame-by-frame animation.</span><span>30 FPS default</span></div>
   </section>
 
@@ -740,6 +780,7 @@ void main() {
   <script src="ff-v2-director.js"></script>
   <script src="ff-v2-production.js"></script>
   <script src="ff-v2-production-ui.js"></script>
+  <script src="ff-v2-render-queue.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
