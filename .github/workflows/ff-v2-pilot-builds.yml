@@ -1,0 +1,81 @@
+name: FrameForge V2 Pilot Builds and QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/render_v2_pilots.py"
+      - "projects/v2-pilots/**"
+      - "tests/test_v2_pilots.py"
+      - "requirements-dev.txt"
+      - ".github/workflows/ff-v2-pilot-builds.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frameforge-v2-pilot-builds
+  cancel-in-progress: true
+
+jobs:
+  build-pilots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out FrameForge
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned development dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+      - name: Install standard CPU FFmpeg tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+      - name: Validate both projects and media manifests
+        run: |
+          python tools/validate_project.py projects/v2-pilots/entertainment-power-scale/project.json
+          python tools/validate_media_manifest.py projects/v2-pilots/entertainment-power-scale/media_manifest.json
+          python tools/validate_project.py projects/v2-pilots/cybersecurity-phishing-check/project.json
+          python tools/validate_media_manifest.py projects/v2-pilots/cybersecurity-phishing-check/media_manifest.json
+          python -m unittest discover -s tests -p "test_v2_pilots.py" -v
+      - name: Render both 720p pilots
+        run: |
+          python tools/render_v2_pilots.py --pilot entertainment --output-dir artifacts/pilots/entertainment
+          python tools/render_v2_pilots.py --pilot cybersecurity --output-dir artifacts/pilots/cybersecurity
+      - name: Technical QA, review files and delivery ZIPs
+        run: |
+          for pilot in entertainment cybersecurity; do
+            if [ "$pilot" = "entertainment" ]; then
+              project_dir="projects/v2-pilots/entertainment-power-scale"
+            else
+              project_dir="projects/v2-pilots/cybersecurity-phishing-check"
+            fi
+            python tools/qa_render.py --input "artifacts/pilots/$pilot/pilot.mp4" --expect-audio --expected-width 1280 --expected-height 720 --expected-fps 24 --expected-frames 288 --json-out "artifacts/pilots/$pilot/qa-report.json"
+            python tools/create_review.py --input "artifacts/pilots/$pilot/pilot.mp4" --output-dir "artifacts/pilots/$pilot/review" --sample-interval 1.5 --max-scene-previews 8
+            extra_args=(--extra "$project_dir/README.md" --extra "$project_dir/narration.txt" --extra "$project_dir/media_manifest.json")
+            for asset in "$project_dir"/assets/*.svg; do extra_args+=(--extra "$asset"); done
+            python tools/package_delivery.py --video "artifacts/pilots/$pilot/pilot.mp4" --project "$project_dir/project.json" --qa-report "artifacts/pilots/$pilot/qa-report.json" --review-dir "artifacts/pilots/$pilot/review" "${extra_args[@]}" --output "artifacts/pilots/$pilot/delivery.zip"
+          done
+      - name: Enforce 100 MB output cap
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root=Path("artifacts/pilots")
+          files=[p for p in root.rglob("*") if p.is_file()]
+          total=sum(p.stat().st_size for p in files)
+          print(f"Pilot artefacts: {len(files)} files, {total/1048576:.2f} MB")
+          if total > 100*1024*1024:
+              raise SystemExit("Pilot output exceeds the 100 MB cap.")
+          PY
+      - name: Upload both pilots and their review packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: frameforge-v2-pilots-${{ github.run_number }}
+          path: artifacts/pilots/
+          if-no-files-found: error
+          retention-days: 3
