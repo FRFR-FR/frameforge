@@ -154,7 +154,8 @@ def import_model(bpy, manifest_path, model):
     root_obj.location = three_vector_to_blender(transform.get("position"))
     root_obj.rotation_mode = "XYZ"
     root_obj.rotation_euler = three_euler_to_blender(transform.get("rotation"))
-    root_obj.scale = xyz(transform.get("scale"), (1.0, 1.0, 1.0))
+    sx, sy, sz = xyz(transform.get("scale"), (1.0, 1.0, 1.0))
+    root_obj.scale = (sx, sz, sy)
     animation_name = (model.get("animation") or {}).get("clip_name", "")
     time_scale = max(0.001, float((model.get("animation") or {}).get("time_scale", 1.0)))
     if animation_name and (model.get("animation") or {}).get("enabled", True):
