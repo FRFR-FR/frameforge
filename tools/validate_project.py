@@ -123,6 +123,65 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
                             "Clip " + str(clip.get("id")) +
                             " references missing evidence claim: " + str(claim_id)
                         )
+
+    reference_ids = _unique_ids(research.get("reference_videos", []), "reference video", errors)
+    raw_references = research.get("reference_videos", [])
+    for reference in raw_references if isinstance(raw_references, list) else []:
+        if isinstance(reference, dict) and reference.get("reference_only") is not True:
+            errors.append("Reference video must be marked reference_only: " + str(reference.get("id")))
+
+    raw_plan = data.get("shot_plan")
+    if raw_plan is not None:
+        if not isinstance(raw_plan, dict) or not isinstance(raw_plan.get("beats"), list):
+            errors.append("Shot plan must contain a beats array.")
+        else:
+            beat_ids = _unique_ids(raw_plan["beats"], "shot beat", errors)
+            for beat in raw_plan["beats"]:
+                if not isinstance(beat, dict):
+                    continue
+                start = beat.get("start_frame")
+                end = beat.get("end_frame")
+                if not isinstance(start, int) or not isinstance(end, int) or start < 0 or end <= start:
+                    errors.append("Shot beat has invalid frame timing: " + str(beat.get("id")))
+                raw_linked_claims = beat.get("evidence_claim_ids", [])
+                linked_claims = raw_linked_claims if isinstance(raw_linked_claims, list) else []
+                proof_role = beat.get("visual_role") in {"factual_evidence", "comparative_evidence"}
+                if proof_role and not linked_claims:
+                    errors.append("Evidence shot beat must reference at least one claim: " + str(beat.get("id")))
+                for claim_id in linked_claims:
+                    if claim_id not in claim_ids:
+                        errors.append(
+                            "Shot beat " + str(beat.get("id")) +
+                            " references missing research claim: " + str(claim_id)
+                        )
+                        continue
+                    claim = next((item for item in claims if isinstance(item, dict) and item.get("id") == claim_id), None)
+                    if proof_role and claim and (
+                        claim.get("verification_status") != "verified" or
+                        not claim.get("source_ids") or
+                        claim.get("classification") not in {"factual", "comparative"}
+                    ):
+                        errors.append(
+                            "Shot beat " + str(beat.get("id")) +
+                            " cannot present an unverified or unsourced claim as evidence: " + str(claim_id)
+                        )
+
+    raw_rights_review = data.get("rights_review")
+    if isinstance(raw_rights_review, dict):
+        reviews = raw_rights_review.get("asset_reviews", [])
+        review_ids = _unique_ids(reviews, "asset rights review", errors)
+        for review in reviews if isinstance(reviews, list) else []:
+            if not isinstance(review, dict):
+                continue
+            asset_id = review.get("asset_id")
+            if asset_id not in asset_ids:
+                errors.append("Rights review references missing asset: " + str(asset_id))
+            if review.get("decision") in {"approved", "approved_with_limits"} and (
+                len(str(review.get("basis", "")).strip()) < 10 or
+                not str(review.get("reviewer", "")).strip() or
+                not review.get("reviewed_at")
+            ):
+                errors.append("Approved rights review needs a basis, reviewer and review date: " + str(asset_id))
     return errors
 
 
