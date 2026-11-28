@@ -363,3 +363,45 @@ button { color: inherit; cursor: pointer; }
   .ffv2-compositor-actions .button { flex: 1 1 auto; }
   .ffv2-compositor-panel { padding: 8px; }
 }
+
+
+/* FrameForge V2 particle, effects, shader and transition UI */
+.ffv2-particle-select { display:inline-flex; align-items:center; gap:5px; color:#91a8be; font-size:8px; }
+.ffv2-particle-select select {
+  max-width:92px; padding:5px; border:1px solid #344a61; border-radius:5px;
+  background:#09131e; color:#e0ebf6; font-size:9px;
+}
+.ffv2-postfx-panel {
+  display:grid; gap:8px; margin-top:10px; padding:10px;
+  border:1px solid #2a4057; border-radius:8px; background:#0d1723;
+}
+.ffv2-postfx-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.ffv2-postfx-heading strong { color:#cfe3f7; font-size:10px; }
+.ffv2-postfx-heading small { color:#87a2bb; font-size:8px; }
+.ffv2-postfx-panel .button { font-size:8px; padding:6px 9px; }
+.ffv2-postfx-list { display:grid; gap:6px; }
+.ffv2-postfx-row {
+  display:grid; grid-template-columns:minmax(110px,1.2fr) auto minmax(90px,1fr) 34px auto;
+  align-items:center; gap:7px; padding:7px;
+  border:1px solid #263b51; border-radius:6px; background:#101e2c;
+}
+.ffv2-postfx-row > strong { color:#d3e4f4; font-size:9px; overflow-wrap:anywhere; }
+.ffv2-postfx-row > label { font-size:8px; color:#91a8be; }
+.ffv2-postfx-row > input[type=range] { width:100%; min-width:0; accent-color:var(--accent); }
+.ffv2-postfx-row output { color:#9cb2c8; font:9px ui-monospace,monospace; }
+.ffv2-postfx-actions { display:flex; gap:3px; }
+.ffv2-postfx-actions .button { min-width:25px; padding:4px; }
+.ffv2-custom-shader { border-top:1px solid #263b51; padding-top:8px; }
+.ffv2-custom-shader summary { color:#a9c4dc; font-size:9px; cursor:pointer; }
+.ffv2-custom-shader textarea {
+  box-sizing:border-box; width:100%; margin-top:7px; padding:8px;
+  border:1px solid #344a61; border-radius:6px; background:#08111b;
+  color:#d9e9f6; font:9px/1.5 ui-monospace,monospace;
+}
+@media (max-width:760px) {
+  .ffv2-postfx-row { grid-template-columns:minmax(0,1fr) auto; }
+  .ffv2-postfx-row > input[type=range] { grid-column:1 / 2; }
+  .ffv2-postfx-row output { grid-column:2 / 3; }
+  .ffv2-postfx-actions { grid-column:1 / -1; }
+  .ffv2-particle-select { flex:1 1 100%; }
+}
