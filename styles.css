@@ -669,7 +669,9 @@ button { color: inherit; cursor: pointer; }
   padding:8px;
   background:#0a1420;
   color:#e4edf6;
-  font:10px/1.4 inherit;
+  font-size:10px;
+  line-height:1.4;
+  font-family:inherit;
 }
 .ffv2-production-input:focus { outline:1px solid #5ca8ed; border-color:#5ca8ed; }
 .ffv2-production-actions { display:flex; flex-wrap:wrap; gap:6px; }
