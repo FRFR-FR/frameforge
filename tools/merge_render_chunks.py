@@ -36,7 +36,11 @@ def png_dimensions(data: bytes) -> tuple[int, int]:
 def read_chunk(path: Path) -> tuple[dict[str, Any], dict[int, bytes], str]:
     if not path.is_file():
         raise FileNotFoundError(f"Chunk archive does not exist: {path}")
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    checksum = hashlib.sha256()
+    with path.open("rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            checksum.update(block)
+    digest = checksum.hexdigest()
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
         if any(PurePosixPath(name).is_absolute() or ".." in PurePosixPath(name).parts for name in names):
