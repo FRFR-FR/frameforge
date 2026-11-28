@@ -211,7 +211,109 @@ ctx.stroke();</pre>
         <button id="ffv2SplitClip" class="button small">Split at playhead</button>
         <button id="ffv2DuplicateClip" class="button small">Duplicate</button>
         <button id="ffv2DeleteClip" class="button small danger-text">Delete</button>
+
+        <div class="ffv2-editor-subpanel">
+          <strong>Transform · crop · compositing</strong>
+          <div class="ffv2-control-grid">
+            <label>Position X <input id="ffv2TransformX" type="number" step="1" /></label>
+            <label>Position Y <input id="ffv2TransformY" type="number" step="1" /></label>
+            <label>Scale X <input id="ffv2TransformScaleX" type="number" step="0.01" /></label>
+            <label>Scale Y <input id="ffv2TransformScaleY" type="number" step="0.01" /></label>
+            <label>Rotation ° <input id="ffv2TransformRotation" type="number" step="1" /></label>
+            <label>Opacity <input id="ffv2TransformOpacity" type="number" min="0" max="1" step="0.05" /></label>
+            <label>Anchor X <input id="ffv2TransformAnchorX" type="number" min="0" max="1" step="0.05" /></label>
+            <label>Anchor Y <input id="ffv2TransformAnchorY" type="number" min="0" max="1" step="0.05" /></label>
+            <label>Fit <select id="ffv2TransformFit"><option value="contain">Contain</option><option value="cover">Cover</option><option value="stretch">Stretch</option></select></label>
+          </div>
+          <label class="ffv2-inline-check"><input id="ffv2CropEnabled" type="checkbox" /> Enable normalized source crop</label>
+          <div class="ffv2-control-grid compact">
+            <label>Crop X <input id="ffv2CropX" type="number" min="0" max="1" step="0.01" /></label>
+            <label>Crop Y <input id="ffv2CropY" type="number" min="0" max="1" step="0.01" /></label>
+            <label>Crop width <input id="ffv2CropW" type="number" min="0.01" max="1" step="0.01" /></label>
+            <label>Crop height <input id="ffv2CropH" type="number" min="0.01" max="1" step="0.01" /></label>
+          </div>
+          <div class="ffv2-control-grid compact">
+            <label>Blend mode <select id="ffv2BlendMode">
+              <option value="normal">Normal</option><option value="multiply">Multiply</option><option value="screen">Screen</option><option value="overlay">Overlay</option><option value="darken">Darken</option><option value="lighten">Lighten</option><option value="color-dodge">Color dodge</option><option value="color-burn">Color burn</option><option value="hard-light">Hard light</option><option value="soft-light">Soft light</option><option value="difference">Difference</option><option value="exclusion">Exclusion</option><option value="hue">Hue</option><option value="saturation">Saturation</option><option value="color">Color</option><option value="luminosity">Luminosity</option><option value="lighter">Additive</option><option value="destination-over">Behind</option>
+            </select></label>
+            <label>Parent layer <select id="ffv2ParentClip"><option value="">No parent</option></select></label>
+          </div>
+          <button id="ffv2ApplyTransform" class="button small">Apply transform / crop</button>
+          <button id="ffv2ApplyParent" class="button small">Apply parent</button>
+        </div>
+
+        <div class="ffv2-editor-subpanel">
+          <strong>Keyframes · local clip time</strong>
+          <div class="ffv2-control-grid compact">
+            <label>Animated property <select id="ffv2KeyframeProperty">
+              <option value="position.x">Position X</option><option value="position.y">Position Y</option>
+              <option value="scale.x">Scale X</option><option value="scale.y">Scale Y</option>
+              <option value="rotation_degrees">Rotation</option><option value="opacity">Opacity</option>
+              <option value="anchor.x">Anchor X</option><option value="anchor.y">Anchor Y</option>
+            </select></label>
+            <label>Value at playhead <input id="ffv2KeyframeValue" type="number" step="0.01" /></label>
+            <label>Interpolation <select id="ffv2KeyframeInterpolation"><option value="ease_in_out">Ease in/out</option><option value="linear">Linear</option><option value="ease_in">Ease in</option><option value="ease_out">Ease out</option><option value="step">Hold / step</option><option value="bezier">Bezier</option></select></label>
+          </div>
+          <button id="ffv2SetKeyframe" class="button small">＋ Set keyframe at playhead</button>
+          <small id="ffv2KeyframeInfo" class="ffv2-info-text">No keyframes</small>
+        </div>
+
+        <div class="ffv2-editor-subpanel">
+          <strong>Masks · mattes · feather</strong>
+          <div class="ffv2-control-grid compact">
+            <label>Mask type <select id="ffv2MaskType"><option value="none">None</option><option value="shape">Shape mask</option><option value="alpha">Alpha matte</option><option value="luma">Luma matte</option></select></label>
+            <label>Shape <select id="ffv2MaskShape"><option value="rect">Rectangle</option><option value="ellipse">Ellipse</option></select></label>
+            <label>Feather px <input id="ffv2MaskFeather" type="number" min="0" max="100" step="1" /></label>
+            <label>Matte asset <select id="ffv2MaskAsset"><option value="">Choose matte asset</option></select></label>
+          </div>
+          <label class="ffv2-inline-check"><input id="ffv2MaskInvert" type="checkbox" /> Invert mask</label>
+          <div class="ffv2-control-grid compact">
+            <label>Mask X <input id="ffv2MaskX" type="number" min="0" max="1" step="0.01" /></label>
+            <label>Mask Y <input id="ffv2MaskY" type="number" min="0" max="1" step="0.01" /></label>
+            <label>Mask width <input id="ffv2MaskW" type="number" min="0.01" max="1" step="0.01" /></label>
+            <label>Mask height <input id="ffv2MaskH" type="number" min="0.01" max="1" step="0.01" /></label>
+          </div>
+          <button id="ffv2ApplyMask" class="button small">Apply mask / matte</button>
+        </div>
+
+        <div class="ffv2-editor-subpanel">
+          <strong>Typography · SVG · vector shapes</strong>
+          <div id="ffv2GraphicTextFields" class="ffv2-control-grid">
+            <label>Text / title <input id="ffv2GraphicText" type="text" maxlength="500" /></label>
+            <label>Font family <select id="ffv2GraphicFont"><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Trebuchet MS, sans-serif">Trebuchet MS</option><option value="Verdana, sans-serif">Verdana</option></select></label>
+            <label>Font size <input id="ffv2GraphicFontSize" type="number" min="1" max="600" /></label>
+            <label>Text colour <input id="ffv2GraphicColor" type="color" /></label>
+            <label>Background CSS colour <input id="ffv2GraphicBackground" type="text" placeholder="transparent or rgba(...)" /></label>
+          </div>
+          <div id="ffv2GraphicShapeFields" class="ffv2-control-grid hidden">
+            <label>Shape <select id="ffv2GraphicShape"><option value="rect">Rectangle</option><option value="ellipse">Ellipse</option><option value="line">Line</option><option value="polygon">Polygon</option></select></label>
+            <label>Fill <input id="ffv2GraphicFill" type="color" /></label>
+            <label>Stroke <input id="ffv2GraphicStroke" type="color" /></label>
+          </div>
+          <div id="ffv2GraphicSvgFields" class="hidden">
+            <label>Inline SVG <textarea id="ffv2GraphicSvg" rows="5" spellcheck="false"></textarea></label>
+            <small class="ffv2-info-text">Scripts, event handlers, embedded objects and external resources are rejected.</small>
+          </div>
+          <button id="ffv2ApplyGraphic" class="button small">Apply graphic style</button>
+        </div>
       </div>
+    </div>
+
+    <div class="ffv2-compositor-panel">
+      <div class="ffv2-compositor-header">
+        <div><strong>V2 Layer Compositor</strong><small>Transparent Canvas 2D preview · deterministic frame render</small></div>
+        <div class="ffv2-compositor-actions">
+          <button id="ffv2AddTitle" class="button small">＋ Title</button>
+          <button id="ffv2AddLowerThird" class="button small">＋ Lower third</button>
+          <button id="ffv2AddShape" class="button small">＋ Shape</button>
+          <button id="ffv2AddSvg" class="button small">＋ SVG</button>
+          <button id="ffv2RenderFrame" class="button small primary">Render frame</button>
+          <button id="ffv2DownloadFrame" class="button small">Download PNG</button>
+        </div>
+      </div>
+      <div class="ffv2-compositor-stage"><canvas id="ffv2CompositorCanvas" width="1280" height="720" aria-label="V2 transparent layer compositor preview"></canvas></div>
+      <div id="ffv2CompositorStatus" class="ffv2-save-status" role="status">Ready to composite visual timeline layers.</div>
+      <small class="ffv2-info-text">The preview renders the current playhead frame. This is a PNG-frame compositor, not yet the final MP4 export pipeline. Keep source assets backed up separately.</small>
     </div>
     <div class="timeline-foot"><span>Tip: duplicate a frame, then make small changes for traditional frame-by-frame animation.</span><span>30 FPS default</span></div>
   </section>
@@ -232,6 +334,7 @@ ctx.stroke();</pre>
   <footer class="app-footer">FrameForge is a local drawing and animation tool. Your project stays in this browser unless you export or share the project file.</footer>
   <script src="frameforge-3d.js"></script>
   <script src="ff-v2-core.js"></script>
+  <script src="ff-v2-renderer.js"></script>
   <script src="ff-v2-studio.js"></script>
   <script src="app.js"></script>
 </body>
