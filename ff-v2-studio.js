@@ -247,7 +247,46 @@
     throw new Error('This media category is not supported.');
   }
 
-  async function importOneFile(file) {
+  function buildImportProvenance(options) {
+    const input = options.provenance || {};
+    const allowed = ['user_supplied','procedural','public_domain','open_license','permissioned','paid_license','unknown'];
+    const result = {
+      source_type: allowed.includes(input.source_type) ? input.source_type : 'user_supplied',
+      acquired_at: new Date().toISOString(),
+      notes: String(input.notes || "Imported from the user's device. Ownership and publication rights still require review.").slice(0, 3000)
+    };
+    const sourceUrl = safeHttpUrl(input.source_url);
+    if (sourceUrl) result.source_url = sourceUrl;
+    for (const key of ['source_title','creator','provider']) {
+      if (input[key]) result[key] = String(input[key]).slice(0, key === 'source_title' ? 500 : 300);
+    }
+    return result;
+  }
+
+  function safeHttpUrl(value) {
+    try {
+      const url = new URL(String(value || ''));
+      return ['http:','https:'].includes(url.protocol) ? url.href : '';
+    } catch (_) { return ''; }
+  }
+
+  function buildImportRights(options) {
+    const input = options.rights || {};
+    const result = {
+      status: 'pending',
+      attribution_required: Boolean(input.attribution_required),
+      restrictions: Array.isArray(input.restrictions)
+        ? [...new Set(input.restrictions.map(value => String(value).slice(0, 1000)))].slice(0, 30)
+        : ['Review ownership, licence, permission and reuse rights before publication.']
+    };
+    if (input.license_name) result.license_name = String(input.license_name).slice(0, 300);
+    if (input.license_url && safeHttpUrl(input.license_url)) result.license_url = safeHttpUrl(input.license_url);
+    if (input.attribution_text) result.attribution_text = String(input.attribution_text).slice(0, 2000);
+    return result;
+  }
+
+  async function importOneFile(file, options) {
+    const importOptions = options || {};
     const classification = Core.classifyFile(file);
     const firstBytes = new Uint8Array(await file.slice(0, 64).arrayBuffer());
     const signatureError = Core.verifySignature(classification.extension, firstBytes);
@@ -293,18 +332,9 @@
           bounds: metadata.bounds,
           animation_clips: metadata.animation_clips || []
         },
-        provenance: {
-          source_type: 'user_supplied',
-          creator: '',
-          acquired_at: new Date().toISOString(),
-          notes: "Imported from the user's device. This does not establish ownership or permission to publish."
-        },
-        rights: {
-          status: 'pending',
-          attribution_required: false,
-          restrictions: ['Review ownership, permission and reuse rights before publication.']
-        },
-        tags: [],
+        provenance: buildImportProvenance(importOptions),
+        rights: buildImportRights(importOptions),
+        tags: Array.isArray(importOptions.tags) ? [...new Set(importOptions.tags.map(value => String(value).slice(0, 100)))].slice(0, 40) : [],
         created_at: new Date().toISOString()
       };
 
@@ -1644,11 +1674,20 @@
         state.objectUrls.delete(id);
       }
     }
-    state.assetRecords = state.project.assets.map(ref => byId.get(ref.id) || ({
-      id: ref.id, label: ref.label || 'Missing local asset', file_name: ref.label || '',
-      media_type: ref.media_type, metadata: ref.metadata || {}, tags: ref.tags || [],
-      rights: ref.rights || { status: 'pending' }, missing: true
-    }));
+    state.assetRecords = state.project.assets.map(ref => {
+      const stored = byId.get(ref.id);
+      if (!stored) return {
+        id: ref.id, label: ref.label || 'Missing local asset', file_name: ref.label || '',
+        media_type: ref.media_type, metadata: ref.metadata || {}, tags: ref.tags || [],
+        rights: ref.rights || { status: 'pending' }, provenance: ref.provenance || { source_type: 'unknown' }, missing: true
+      };
+      return Object.assign({}, stored, {
+        metadata: ref.metadata || stored.metadata || {},
+        rights: ref.rights || stored.rights || { status: 'pending' },
+        provenance: ref.provenance || stored.provenance || { source_type: 'unknown' },
+        tags: ref.tags || stored.tags || []
+      });
+    });
   }
 
   async function showRecoveryCount() {
@@ -1885,8 +1924,27 @@
       const record = await requestResult(transaction.objectStore('assets').get(id));
       return record?.blob || null;
     },
+    importAsset: (file, options) => importOneFile(file, options),
+    updateAssetRecord: async (id, patch) => {
+      const asset = state.assetRecords.find(item => item.id === id);
+      if (!asset) throw new Error('Asset was not found in the local library.');
+      Object.assign(asset, patch || {});
+      if (state.db) {
+        const transaction = state.db.transaction('assets', 'readwrite');
+        transaction.objectStore('assets').put(asset);
+        await txDone(transaction);
+      }
+      Core.addAsset(state.project, asset);
+      scheduleSave();
+      renderAssets();
+      renderTracks();
+      return asset;
+    },
+    addAssetToTimeline,
     setPlayhead,
     renderTracks,
+    refreshTimeline: () => { renderTracks(); renderClipInspector(); },
+    refreshAssets: renderAssets,
     markDirty: () => scheduleSave()
   };
 
