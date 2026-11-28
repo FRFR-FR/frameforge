@@ -37,7 +37,7 @@ async function waitForServer(server) {
   const started=Date.now();
   while(Date.now()-started<15000){
     if(server.exitCode!==null)throw new Error('Director smoke server exited.');
-    try{const response=await fetch(BASE_URL);if(response.ok)return;}catch(_){}
+    try{const response=await fetch(BASE_URL);const ok=response.ok;await response.arrayBuffer();if(ok)return;}catch(_){}
     await new Promise(resolve=>setTimeout(resolve,200));
   }
   throw new Error('Director smoke server did not start.');
