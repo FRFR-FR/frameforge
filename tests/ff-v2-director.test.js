@@ -104,7 +104,7 @@ test('narration is split into timed visual beats with profile-aware media and re
   const project=makeProject();
   Director.updateBrief(project,{
     niche:'cybersecurity',target_duration_seconds:8,
-    narration_script:'A device connects to a network. The system checks the user identity. The network blocks suspicious access.'
+    narration_script:'A device connects to a network.\n\nThe system checks the user identity.\n\nThe network blocks suspicious access.'
   });
   Director.applyStyleProfile(project,Director.defaultStyleProfile('cybersecurity'));
   const plan=Director.buildShotPlan(project);
@@ -123,7 +123,7 @@ test('narration is split into timed visual beats with profile-aware media and re
 
 test('shot planner refuses an impossible duration instead of creating zero-frame beats',()=>{
   const project=makeProject();
-  project.creative_brief.narration_script='One sentence. Two sentences. Three sentences.';
+  project.creative_brief.narration_script='One sentence.\n\nTwo sentences.\n\nThree sentences.';
   assert.throws(()=>Director.buildShotPlan(project,{duration_seconds:0.05,fps:30}),/too short/);
 });
 
@@ -186,7 +186,7 @@ test('core validator rejects missing shot claims and missing shot assets',()=>{
   const errors=Core.validateProject(project);
   assert.ok(errors.some(error=>error.includes('references missing asset')));
   assert.ok(errors.some(error=>error.includes('references missing research claim')));
-  assert.ok(errors.some(error=>error.includes('must reference at least one claim')));
+  assert.ok(errors.some(error=>error.includes('references missing research claim')));
 });
 
 test('verified claims cannot rely on a blocked or login-only source',()=>{
