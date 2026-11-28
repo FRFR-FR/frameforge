@@ -118,7 +118,13 @@
         "fps": { "type": "number", "exclusiveMinimum": 0 },
         "sample_rate": { "type": "integer", "minimum": 1 },
         "channels": { "type": "integer", "minimum": 1 },
-        "codec": { "type": "string", "maxLength": 100 }
+        "codec": { "type": "string", "maxLength": 100 },
+        "alpha_capable": { "type": "boolean" },
+        "decode_status": { "type": "string", "maxLength": 100 },
+        "external_dependencies": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 2000 }
+        }
       }
     },
     "asset": {
