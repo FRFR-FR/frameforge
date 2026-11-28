@@ -627,3 +627,84 @@ button { color: inherit; cursor: pointer; }
   .ffv2-director-grid, .ffv2-shot-card .ffv2-director-grid { grid-template-columns:1fr; }
   .ffv2-rights-asset-list { grid-template-columns:1fr; }
 }
+
+
+/* FrameForge V2 shot recipes, open media, procedural graphics and assembly */
+.ffv2-production-panel {
+  margin: 10px 0 16px;
+  border: 1px solid #263a50;
+  border-radius: 9px;
+  background: #0e1926;
+  overflow: hidden;
+}
+.ffv2-production-panel > details > summary {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  list-style:none;
+  padding:12px;
+  background:#122134;
+}
+.ffv2-production-panel > details > summary::-webkit-details-marker { display:none; }
+.ffv2-production-body { display:grid; gap:10px; padding:0 11px 12px; }
+.ffv2-production-step {
+  display:grid;
+  gap:9px;
+  padding:11px;
+  border:1px solid #263c52;
+  border-radius:8px;
+  background:#101e2c;
+}
+.ffv2-production-step h3 { margin:0; color:#d9e9f8; font-size:11px; }
+.ffv2-production-step p { margin:0; color:#91a7bd; font-size:9px; line-height:1.55; }
+.ffv2-production-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.ffv2-production-grid label, .ffv2-production-full { display:grid; gap:5px; color:#9eb2c6; font-size:9px; }
+.ffv2-production-input {
+  width:100%;
+  min-width:0;
+  border:1px solid #34475d;
+  border-radius:6px;
+  padding:8px;
+  background:#0a1420;
+  color:#e4edf6;
+  font:10px/1.4 inherit;
+}
+.ffv2-production-input:focus { outline:1px solid #5ca8ed; border-color:#5ca8ed; }
+.ffv2-production-actions { display:flex; flex-wrap:wrap; gap:6px; }
+.ffv2-production-note {
+  padding:8px 9px;
+  border:1px solid #293e54;
+  border-radius:6px;
+  background:#0b1723;
+  color:#90a8bf;
+  font-size:9px;
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.ffv2-provider-results, .ffv2-audio-catalogue { display:grid; gap:6px; }
+.ffv2-provider-result, .ffv2-audio-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:9px;
+  padding:8px;
+  border:1px solid #263d53;
+  border-radius:6px;
+  background:#0b1723;
+}
+.ffv2-provider-result > div:first-child, .ffv2-audio-row > div:first-child { min-width:0; display:grid; gap:3px; }
+.ffv2-provider-result strong, .ffv2-audio-row strong { color:#d9e8f7; font-size:9px; overflow-wrap:anywhere; }
+.ffv2-provider-result small, .ffv2-audio-row small { color:#829bb2; font-size:8px; overflow-wrap:anywhere; }
+.ffv2-provider-result a { color:#9bcafa; font-size:9px; white-space:nowrap; }
+.ffv2-provider-result button { flex:0 0 auto; }
+.ffv2-production-step > .button { justify-self:start; }
+@media (max-width:760px) {
+  .ffv2-production-body { padding:0 7px 8px; }
+  .ffv2-production-step { padding:8px; }
+  .ffv2-production-grid { grid-template-columns:1fr; }
+  .ffv2-provider-result, .ffv2-audio-row { flex-direction:column; }
+  .ffv2-production-actions .button { flex:1 1 44%; text-align:center; }
+}
