@@ -49,7 +49,6 @@ Both demo MP4s were built as 1280×720, 24 FPS, 12-second H.264/AAC files on a s
 - Latest Browser Smoke: [run 46150580603](https://github.com/FRFR-FR/frameforge/actions/runs/46150580603) — editor, audio, director, production, render-queue and mobile smoke tests passed, including the new anger-rise VFX.
 - Latest Pages deployment: [run 46150580658](https://github.com/FRFR-FR/frameforge/actions/runs/46150580658) — successful.
 - Pilot Builds and QA: [run 46146137635](https://github.com/FRFR-FR/frameforge/actions/runs/46146137635) — both 720p MP4s passed full decode and technical QA without black/frozen segments or QA/rights warnings. The two video files are 1.52 MB and 1.36 MB; the combined artifact is 6.46 MB and expires on 2026-12-01 at 12:46 UTC.
-- Pilot Builds and QA: [run 46146137635](https://github.com/FRFR-FR/frameforge/actions/runs/46146137635) — both 720p MP4s passed full decode and technical QA without black/frozen segments or QA/rights warnings. The two video files are 1.52 MB and 1.36 MB; the combined artifact is 6.46 MB and expires on 2026-12-01 at 12:46 UTC.
 
 The manual release workflow blocks publication unless the latest Foundation Validation, Pilot Builds/QA and Browser Smoke runs on `main` succeeded. It then re-runs the Python and JavaScript core suites on the release commit and validates both pilot projects before creating the annotated tag and GitHub Release. The release publisher is ready but has not been dispatched, so no `v2.0.0` tag or GitHub Release exists yet.
 
