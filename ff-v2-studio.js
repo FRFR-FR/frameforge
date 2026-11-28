@@ -109,12 +109,12 @@
     return row;
   }
 
-  async function loadImageMetadata(file, url) {
+  async function loadImageMetadata(file, url, extension) {
     let image;
     try {
       if (typeof createImageBitmap === 'function') {
         image = await createImageBitmap(file);
-        const result = { width: image.width, height: image.height, alpha_capable: true, decode_status: 'decoded' };
+        const result = { width: image.width, height: image.height, alpha_capable: ['png', 'gif', 'webp', 'avif', 'svg'].includes(extension), decode_status: 'decoded' };
         image.close();
         return result;
       }
@@ -124,7 +124,7 @@
         image.onerror = () => reject(new Error('The browser could not decode this image.'));
         image.src = url;
       });
-      return { width: image.naturalWidth, height: image.naturalHeight, alpha_capable: true, decode_status: 'decoded' };
+      return { width: image.naturalWidth, height: image.naturalHeight, alpha_capable: ['png', 'gif', 'webp', 'avif', 'svg'].includes(extension), decode_status: 'decoded' };
     } catch (error) {
       throw new Error('Image decode failed: ' + error.message);
     }
@@ -202,7 +202,7 @@
         const svgText = await file.text();
         Core.validateSvgText(svgText);
       }
-      return await loadImageMetadata(file, url);
+      return await loadImageMetadata(file, url, extension);
     }
     if (category === 'video') return await loadMediaMetadata('video', url);
     if (category === 'audio') return await loadMediaMetadata('audio', url);
