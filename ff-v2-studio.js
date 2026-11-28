@@ -437,6 +437,12 @@
     return records.filter(item => item.frame >= startFrame && item.frame < endFrame).sort((a, b) => a.frame - b.frame);
   }
 
+  async function getRenderFrameRecords(jobId) {
+    if (!state.db) return [];
+    const transaction = state.db.transaction('renderFrames', 'readonly');
+    return requestResult(transaction.objectStore('renderFrames').index('job_id').getAll(IDBKeyRange.only(jobId)));
+  }
+
   async function countRenderFrames(jobId) {
     if (!state.db) return 0;
     const transaction = state.db.transaction('renderFrames', 'readonly');
@@ -2007,6 +2013,7 @@
       saveFrame: saveRenderFrame,
       getFrame: getRenderFrame,
       getFrames: getRenderFrames,
+      getAllFrames: getRenderFrameRecords,
       countFrames: countRenderFrames,
       clearFrames: clearRenderFrames
     },
