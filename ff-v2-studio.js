@@ -9,7 +9,7 @@
   }
 
   const DB_NAME = 'FrameForgeDB';
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const MAX_RECOVERY_VERSIONS = 6;
   const state = {
     db: null,
@@ -55,6 +55,11 @@
         if (!database.objectStoreNames.contains('assets')) database.createObjectStore('assets', { keyPath: 'id' });
         if (!database.objectStoreNames.contains('v2projects')) database.createObjectStore('v2projects', { keyPath: 'id' });
         if (!database.objectStoreNames.contains('recovery')) database.createObjectStore('recovery', { keyPath: 'id' });
+        if (!database.objectStoreNames.contains('renderJobs')) database.createObjectStore('renderJobs', { keyPath: 'id' });
+        if (!database.objectStoreNames.contains('renderFrames')) {
+          const frames = database.createObjectStore('renderFrames', { keyPath: 'id' });
+          frames.createIndex('job_id', 'job_id', { unique: false });
+        }
       };
       request.onsuccess = () => {
         const database = request.result;
@@ -384,6 +389,73 @@
     const url = URL.createObjectURL(asset.blob);
     state.objectUrls.set(asset.id, url);
     return url;
+  }
+
+  async function saveRenderJob(job) {
+    if (!state.db) throw new Error('Local database is not ready.');
+    const transaction = state.db.transaction('renderJobs', 'readwrite');
+    transaction.objectStore('renderJobs').put(Core.clone(job));
+    await txDone(transaction);
+    return Core.clone(job);
+  }
+
+  async function listRenderJobs() {
+    if (!state.db) return [];
+    const transaction = state.db.transaction('renderJobs', 'readonly');
+    const jobs = await requestResult(transaction.objectStore('renderJobs').getAll());
+    return jobs.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+  }
+
+  async function getRenderJob(id) {
+    if (!state.db) return null;
+    const transaction = state.db.transaction('renderJobs', 'readonly');
+    return (await requestResult(transaction.objectStore('renderJobs').get(id))) || null;
+  }
+
+  async function saveRenderFrame(jobId, frame, blob, metadata) {
+    if (!state.db) throw new Error('Local database is not ready.');
+    const key = jobId + ':' + String(frame).padStart(9, '0');
+    const transaction = state.db.transaction('renderFrames', 'readwrite');
+    transaction.objectStore('renderFrames').put(Object.assign({
+      id: key, job_id: jobId, frame: frame, blob: blob, stored_at: new Date().toISOString()
+    }, metadata || {}));
+    await txDone(transaction);
+    return key;
+  }
+
+  async function getRenderFrame(jobId, frame) {
+    if (!state.db) return null;
+    const key = jobId + ':' + String(frame).padStart(9, '0');
+    const transaction = state.db.transaction('renderFrames', 'readonly');
+    return (await requestResult(transaction.objectStore('renderFrames').get(key))) || null;
+  }
+
+  async function getRenderFrames(jobId, startFrame, endFrame) {
+    if (!state.db) return [];
+    const transaction = state.db.transaction('renderFrames', 'readonly');
+    const records = await requestResult(transaction.objectStore('renderFrames').index('job_id').getAll(IDBKeyRange.only(jobId)));
+    return records.filter(item => item.frame >= startFrame && item.frame < endFrame).sort((a, b) => a.frame - b.frame);
+  }
+
+  async function countRenderFrames(jobId) {
+    if (!state.db) return 0;
+    const transaction = state.db.transaction('renderFrames', 'readonly');
+    return requestResult(transaction.objectStore('renderFrames').index('job_id').count(IDBKeyRange.only(jobId)));
+  }
+
+  async function clearRenderFrames(jobId) {
+    if (!state.db) return;
+    const transaction = state.db.transaction('renderFrames', 'readwrite');
+    const index = transaction.objectStore('renderFrames').index('job_id');
+    const request = index.openKeyCursor(IDBKeyRange.only(jobId));
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (cursor) {
+        transaction.objectStore('renderFrames').delete(cursor.primaryKey);
+        cursor.continue();
+      }
+    };
+    await txDone(transaction);
   }
 
   function formatAssetSummary(asset) {
@@ -1925,6 +1997,19 @@
       return record?.blob || null;
     },
     importAsset: (file, options) => importOneFile(file, options),
+    resolveRenderAsset,
+    resolve3DAsset,
+    resolve3DDependency,
+    renderStorage: {
+      saveJob: saveRenderJob,
+      listJobs: listRenderJobs,
+      getJob: getRenderJob,
+      saveFrame: saveRenderFrame,
+      getFrame: getRenderFrame,
+      getFrames: getRenderFrames,
+      countFrames: countRenderFrames,
+      clearFrames: clearRenderFrames
+    },
     updateAssetRecord: async (id, patch) => {
       const asset = state.assetRecords.find(item => item.id === id);
       if (!asset) throw new Error('Asset was not found in the local library.');
