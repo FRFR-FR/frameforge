@@ -35,7 +35,10 @@ async function main() {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => window.FFV2Studio?.getProject?.() && window.FFV2RenderQueue);
+    await page.waitForFunction(() => window.FFV2Studio?.getProject?.() &&
+      window.FFV2RenderQueue?.isBound?.() === true &&
+      document.getElementById('ffv2RenderQueueStatus')?.textContent.includes('Render queue ready'),
+      null, { timeout: 20000 });
 
     await page.evaluate(async () => {
       const project = window.FFV2Studio.getProject();
