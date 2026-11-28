@@ -180,7 +180,7 @@ test('rejects active or externally linked SVG content', () => {
 
 test('anger-rise is a supported, keyframable clip effect', () => {
   const project = Core.createDefaultProject();
-  const track = project.sequences[0].tracks.find(item => item.type === 'image');
+  const track = project.sequences[0].tracks.find(item => item.type === 'graphic');
   const clip = Core.addGraphicClip(project, track.id, 'shape', { width:300, height:500 }, 0, 80);
   const effect = Core.setClipEffect(project, clip.id, 'anger-rise', {
     intensity:0, tint_strength:0.58, flame_height:0.22, burst_threshold:0.985
