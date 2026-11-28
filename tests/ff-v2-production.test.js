@@ -257,7 +257,7 @@ test('shot orchestrator creates real clips, requested procedural art and records
   beats[1].visual_role = 'illustration';
   beats[2].media_mix = ['source_footage'];
   beats[2].asset_ids = [];
-  beats[2].visual_role = 'factual_evidence';
+  beats[2].visual_role = 'illustration';
   beats[2].evidence_requirement = 'actual_footage';
   beats[2].audio_cues = ['subtle impact'];
 
