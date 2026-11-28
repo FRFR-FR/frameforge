@@ -201,7 +201,7 @@
       license_name: value('ffv2ProductionLicense'),
       license_url: value('ffv2ProductionLicenseUrl'),
       attribution_text: value('ffv2ProductionAttribution'),
-      restrictions: value('ffv2ProductionRestrictions').split(/\\r?\\n/).map(item => item.trim()).filter(Boolean)
+      restrictions: value('ffv2ProductionRestrictions').split('\\n').map(item => item.trim()).filter(Boolean)
     };
     const merged = Object.assign({}, selectedResult || {}, manual);
     return root.FFV2Production.importOptionsForSelection(merged, value('ffv2AudioRole'));
@@ -272,7 +272,7 @@
         license_url: value('ffv2AudioLicenseUrl'),
         attribution_required: $('ffv2AudioAttributionRequired').checked,
         attribution_text: value('ffv2AudioAttribution'),
-        restrictions: value('ffv2AudioRestrictions').split(/\\r?\\n/).map(item => item.trim()).filter(Boolean)
+        restrictions: value('ffv2AudioRestrictions').split('\\n').map(item => item.trim()).filter(Boolean)
       });
       const role = value('ffv2AudioRole');
       asset.tags = (asset.tags || []).filter(tag => !String(tag).startsWith('audio-role:'));
