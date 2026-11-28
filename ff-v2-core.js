@@ -665,6 +665,39 @@
   const POST_PROCESS_TYPES = ['brightness-contrast','saturation','vignette','blur','glow','light-rays','chromatic-aberration','glitch','ripple','shake','motion-blur','custom'];
   const TRANSITION_TYPES = ['crossfade','fade','wipe','zoom','whip_pan','radial','hypnosis_wheel','swirl_warp','glitch'];
 
+
+  const POST_PROCESS_PRESETS = {
+    cinematic: [
+      ['brightness-contrast',{brightness:0,contrast:1.12,intensity:0.55}],
+      ['saturation',{saturation:0.88,intensity:0.55}],
+      ['vignette',{radius:0.68,strength:0.28,intensity:0.85}]
+    ],
+    soft_glow: [
+      ['glow',{radius:14,strength:0.42,intensity:0.8}],
+      ['light-rays',{strength:0.2,rays:14,intensity:0.45}]
+    ],
+    noir: [
+      ['saturation',{saturation:0,intensity:1}],
+      ['brightness-contrast',{brightness:-0.02,contrast:1.24,intensity:0.7}],
+      ['vignette',{radius:0.65,strength:0.4,intensity:0.9}]
+    ],
+    documentary: [
+      ['brightness-contrast',{brightness:0.015,contrast:1.06,intensity:0.5}],
+      ['saturation',{saturation:0.94,intensity:0.45}]
+    ],
+    dream_haze: [
+      ['blur',{radius:1.2,intensity:0.4}],
+      ['glow',{radius:18,strength:0.25,intensity:0.9}],
+      ['vignette',{radius:0.76,strength:0.15,intensity:0.45}]
+    ]
+  };
+
+  function applyPostProcessPreset(project, presetName) {
+    const preset = POST_PROCESS_PRESETS[presetName];
+    if (!preset) throw new Error('Unknown post-processing preset.');
+    return preset.map(([type,parameters])=>addPostProcessPass(project,type,parameters));
+  }
+
   function addPostProcessPass(project, type, parameters) {
     if (!POST_PROCESS_TYPES.includes(type)) throw new Error('Unsupported post-processing pass: ' + type);
     const settings = project.settings.post_processing || (project.settings.post_processing = { renderer: 'auto', fallback: 'canvas2d', passes: [] });
@@ -778,9 +811,9 @@
     createDefaultProject, getMainSequence, addTrack, trackForAssetType,
     assetToProjectRecord, addAsset, addAssetClip, findClip, moveClip, trimClip,
     splitClip, duplicateClip, deleteClip, addGraphicClip, setClipTransform, setClipParent, setClipMask,
-    BLEND_MODES, KEYFRAME_PROPERTIES, ANIMATABLE_PROPERTIES, PARTICLE_PRESETS, CLIP_EFFECT_TYPES, POST_PROCESS_TYPES, TRANSITION_TYPES,
+    BLEND_MODES, KEYFRAME_PROPERTIES, ANIMATABLE_PROPERTIES, PARTICLE_PRESETS, CLIP_EFFECT_TYPES, POST_PROCESS_TYPES, POST_PROCESS_PRESETS, TRANSITION_TYPES,
     setKeyframe, evaluateKeyframes, evaluateClipTransform, setClipPlaybackRate, evaluateClipPlaybackRate, getActiveVisualClips,
-    addPostProcessPass, removePostProcessPass, setPostProcessRenderer, setClipEffect, setEffectParameterKeyframe, evaluateEffectParameters, setClipTransition, validateProject
+    addPostProcessPass, applyPostProcessPreset, removePostProcessPass, setPostProcessRenderer, setClipEffect, setEffectParameterKeyframe, evaluateEffectParameters, setClipTransition, validateProject
   };
   root.FFV2Core = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
