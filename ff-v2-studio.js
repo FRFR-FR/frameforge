@@ -567,7 +567,7 @@
 
   function renderPlayheadLine() {
     const line = $('ffv2PlayheadLine');
-    if (line) line.style.left = (state.playhead * timelineScale()) + 'px';
+    if (line) line.style.left = (170 + state.playhead * timelineScale()) + 'px';
   }
 
   function beginClipDrag(event, clip, track, element) {
