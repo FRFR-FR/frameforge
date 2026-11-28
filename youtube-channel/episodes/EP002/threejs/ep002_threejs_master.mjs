@@ -3,6 +3,7 @@ import * as THREE from 'three';
 /*
   Underneath Everything — EP002 Three.js visual master
   Original conceptual reconstructions. No stock footage or stock stills.
+  Rigged assemblies: pivots, bounded hinges/sliders, OBB SAT collision tests and travel-stop response.
   Not an exact model or recording of a proprietary ASML / ZEISS / Intel machine.
   Compatible with the supplied Offline Three.js MP4 Studio:
   exports mountScene(container, options) and returns seek(t), resize(w,h), pause(), dispose().
@@ -21,16 +22,21 @@ const SECTION_NAMES = [
 ];
 
 function mat(T, color, metalness, roughness, emissive, transparent, opacity) {
-  return new T.MeshStandardMaterial({
+  return new T.MeshPhysicalMaterial({
     color: color,
-    metalness: metalness === undefined ? 0.35 : metalness,
-    roughness: roughness === undefined ? 0.32 : roughness,
+    metalness: metalness === undefined ? 0.42 : metalness,
+    roughness: roughness === undefined ? 0.28 : roughness,
+    clearcoat: metalness > 0.65 ? 0.42 : 0.16,
+    clearcoatRoughness: 0.2,
+    reflectivity: 0.72,
     emissive: emissive || 0x000000,
-    emissiveIntensity: emissive ? 1.8 : 0,
+    emissiveIntensity: emissive ? 1.45 : 0,
     transparent: !!transparent,
-    opacity: opacity === undefined ? 1 : opacity
+    opacity: opacity === undefined ? 1 : opacity,
+    side: transparent ? T.DoubleSide : T.FrontSide
   });
 }
+
 function addBox(T, parent, name, pos, size, material, outlined) {
   var mesh = new T.Mesh(new T.BoxGeometry(size[0], size[1], size[2]), material);
   mesh.name = name;
@@ -86,6 +92,94 @@ function addRing(T, parent, name, pos, radius, tube, material, rotation) {
   parent.add(mesh);
   return mesh;
 }
+
+function makePivot(T,parent,name,position){
+  var rig=new T.Group(); rig.name=name;
+  if(position)rig.position.set(position[0],position[1],position[2]);
+  parent.add(rig); return rig;
+}
+function makeHinge(T,parent,name,position,axis,minAngle,maxAngle){
+  var rig=makePivot(T,parent,name,position), key=axis||"z";
+  var low=minAngle===undefined?-0.35:minAngle, high=maxAngle===undefined?0.35:maxAngle;
+  return {rig:rig,set:function(v){rig.rotation[key]=T.MathUtils.clamp(v,low,high);},limits:[low,high]};
+}
+function makeSlider(T,parent,name,position,axis,minTravel,maxTravel){
+  var rig=makePivot(T,parent,name,position), key=axis||"x", home=rig.position[key];
+  var low=minTravel===undefined?-0.5:minTravel, high=maxTravel===undefined?0.5:maxTravel;
+  return {rig:rig,set:function(v){rig.position[key]=home+T.MathUtils.clamp(v,low,high);},limits:[low,high],axis:key};
+}
+/* Oriented-box SAT collision checks; blocked motion is clamped to the last safe pose. */
+function createCollisionWorld(T){
+  var tests=0,blocked=0;
+  function register(name,object,size){return {name:name,object:object,half:[size[0]/2,size[1]/2,size[2]/2]};}
+  function box(body){
+    var o=body.object, c=new T.Vector3(),q=new T.Quaternion(),sc=new T.Vector3();
+    o.updateWorldMatrix(true,false);o.getWorldPosition(c);o.getWorldQuaternion(q);o.getWorldScale(sc);
+    return {center:c,axes:[new T.Vector3(1,0,0).applyQuaternion(q),new T.Vector3(0,1,0).applyQuaternion(q),new T.Vector3(0,0,1).applyQuaternion(q)],
+      half:[body.half[0]*Math.abs(sc.x),body.half[1]*Math.abs(sc.y),body.half[2]*Math.abs(sc.z)]};
+  }
+  function overlaps(A,B){
+    tests++;var a=box(A),b=box(B),R=[[],[],[]],AR=[[],[],[]];
+    for(var i=0;i<3;i++)for(var j=0;j<3;j++){R[i][j]=a.axes[i].dot(b.axes[j]);AR[i][j]=Math.abs(R[i][j])+1e-7;}
+    var d=new T.Vector3().subVectors(b.center,a.center),t=[d.dot(a.axes[0]),d.dot(a.axes[1]),d.dot(a.axes[2])],ra,rb,v;
+    for(var i=0;i<3;i++){ra=a.half[i];rb=b.half[0]*AR[i][0]+b.half[1]*AR[i][1]+b.half[2]*AR[i][2];if(Math.abs(t[i])>ra+rb)return false;}
+    for(var j=0;j<3;j++){ra=a.half[0]*AR[0][j]+a.half[1]*AR[1][j]+a.half[2]*AR[2][j];rb=b.half[j];if(Math.abs(d.dot(b.axes[j]))>ra+rb)return false;}
+    for(var i=0;i<3;i++)for(var j=0;j<3;j++){
+      ra=a.half[(i+1)%3]*AR[(i+2)%3][j]+a.half[(i+2)%3]*AR[(i+1)%3][j];
+      rb=b.half[(j+1)%3]*AR[i][(j+2)%3]+b.half[(j+2)%3]*AR[i][(j+1)%3];
+      v=Math.abs(t[(i+2)%3]*R[(i+1)%3][j]-t[(i+1)%3]*R[(i+2)%3][j]);
+      if(v>ra+rb)return false;
+    }
+    return true;
+  }
+  function move(body,target,obstacles,iterations){
+    var obj=body.object,from=obj.position.clone(),to=target.clone(),n=iterations||18;
+    obj.position.copy(to);obj.updateWorldMatrix(true,false);
+    var hit=(obstacles||[]).some(function(o){return overlaps(body,o);});
+    if(!hit)return {blocked:false,fraction:1,position:obj.position.clone()};
+    blocked++;var lo=0,hi=1;
+    for(var k=0;k<n;k++){
+      var mid=(lo+hi)/2;obj.position.copy(from).lerp(to,mid);obj.updateWorldMatrix(true,false);
+      var collision=(obstacles||[]).some(function(o){return overlaps(body,o);});
+      if(collision)hi=mid;else lo=mid;
+    }
+    obj.position.copy(from).lerp(to,Math.max(0,lo-0.0005));obj.updateWorldMatrix(true,false);
+    return {blocked:true,fraction:lo,position:obj.position.clone()};
+  }
+  return {register:register,overlaps:overlaps,move:move,report:function(){return {solver:"oriented-box SAT",overlapTests:tests,blockedMoves:blocked,status:"active"};}};
+}
+function addBoltCircle(T,parent,name,center,radius,count,boltRadius,material){
+  var group=new T.Group();group.name=name;group.position.set(center[0],center[1],center[2]);parent.add(group);
+  for(var i=0;i<count;i++){
+    var a=i/count*Math.PI*2;
+    var bolt=addCylinder(T,group,name+" fastener "+i,[Math.cos(a)*radius,0,Math.sin(a)*radius],boltRadius,boltRadius,0.055,material,12);
+    bolt.rotation.x=Math.PI/2;
+  }
+  return group;
+}
+function addPulseBeam(T,parent,name,start,end,radius,material){
+  var a=new T.Vector3(start[0],start[1],start[2]),b=new T.Vector3(end[0],end[1],end[2]);
+  var d=new T.Vector3().subVectors(b,a),length=d.length(),rig=makePivot(T,parent,name,start);
+  rig.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());
+  var beam=new T.Mesh(new T.CylinderGeometry(radius,radius,length,24,1,false),material);
+  beam.position.y=length*0.5;beam.scale.y=0.001;rig.add(beam);
+  return {rig:rig,beam:beam,length:length,setProgress:function(p){
+    var q=T.MathUtils.clamp(p,0,1);beam.scale.y=Math.max(0.001,q);beam.position.y=length*q*0.5;beam.visible=q>0.005;
+  }};
+}
+function addParabolicReflector(T,parent,name,radius,depth,material){
+  var positions=[],indices=[],radial=40,around=96;
+  for(var i=0;i<=radial;i++){
+    var r=radius*i/radial,x=depth*(r/radius)*(r/radius);
+    for(var j=0;j<=around;j++){var a=j/around*Math.PI*2;positions.push(x,r*Math.cos(a),r*Math.sin(a));}
+  }
+  for(var i=0;i<radial;i++)for(var j=0;j<around;j++){
+    var n=i*(around+1)+j,m=n+around+1;indices.push(n,m,n+1,n+1,m,m+1);
+  }
+  var geo=new T.BufferGeometry();geo.setAttribute("position",new T.Float32BufferAttribute(positions,3));geo.setIndex(indices);geo.computeVertexNormals();
+  var mesh=new T.Mesh(geo,material);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+}
+
 function addLabel(T, parent, text, pos, scale) {
   var canvas = document.createElement("canvas");
   canvas.width = 1024;
@@ -149,85 +243,176 @@ function addChamber(T, group, width, depth) {
 }
 
 /* 01 and 04 — two-pulse tin droplet / plasma source. */
-function makeTinScene(T, detailed) {
-  var g = new T.Group();
-  addChamber(T, g, 9.5, 4.0);
-  var silver = mat(T, PALETTE.tin, 0.92, 0.16);
-  var redGlow = mat(T, PALETTE.red, 0.15, 0.2, PALETTE.red);
-  var hot = mat(T, PALETTE.orange, 0.08, 0.18, PALETTE.orange);
-  var cyan = mat(T, PALETTE.cyan, 0.25, 0.18, PALETTE.cyan);
-  addLabel(T, g, detailed ? "TWO LASER PULSES · TIN PLASMA" : "A LASER STRIKES A TIN DROPLET", [-3.6, 2.0, 0.05], 4.2);
-  var droplet = addSphere(T, g, "molten tin droplet", [-2.4, 0, 0.3], detailed ? 0.14 : 0.20, silver, 40);
-  var prePulse = addBeam(T, g, "pre-pulse beam", [-2.8, -1.1, 1.1], [-1.9, 0, 0.3], 0.035, redGlow);
-  var mainPulse = addBeam(T, g, "main laser pulse", [-1.1, -1.7, 1.15], [-0.25, 0, 0.35], 0.06, redGlow);
-  var plasma = addSphere(T, g, "glowing tin plasma", [-0.1, 0, 0.35], 0.35, hot, 40);
-  var halo = addRing(T, g, "plasma shock ring", [-0.1, 0, 0.35], 0.55, 0.025, hot, [0, Math.PI / 2, 0]);
-  var collector = addRing(T, g, "collector mirror", [1.7, 0, 0.35], 1.1, 0.12,
-    mat(T, PALETTE.gold, 0.9, 0.12), [0, Math.PI / 2, 0]);
-  var euv = addBeam(T, g, "EUV radiation path", [0.1, 0, 0.35], [3.55, 0, 0.35], 0.025, cyan);
-  var spark = pulsePoints(T, g, 65, PALETTE.orange, 1.15);
-  addLabel(T, g, detailed ? "25 µm DROPLET · ~70 m/s · UP TO 50,000 Hz" : "CONCEPTUAL RECONSTRUCTION", [-2.7, -2.3, 0], 3.7);
+/* 01 and 04 — articulated two-pulse tin-droplet source, a conceptual engineering reconstruction. */
+function makeTinScene(T,detailed){
+  var g=new T.Group();g.name=detailed?"EUV SOURCE ASSEMBLY — MACRO":"EUV SOURCE ASSEMBLY — OVERVIEW";
+  var steel=mat(T,0x78899A,0.92,0.22),brushed=mat(T,0xB4C0CA,0.86,0.20),titanium=mat(T,0x596B7C,0.88,0.25);
+  var ceramic=mat(T,0xD9E0E5,0.2,0.28),black=mat(T,0x101923,0.48,0.42);
+  var glass=mat(T,0x6C99BA,0.22,0.12,0x071B30,true,0.2);
+  var gold=mat(T,0xC3A16A,0.9,0.19),tin=mat(T,0xD2DCE5,0.94,0.13);
+  var hot=mat(T,0xFFB35C,0.08,0.16,0xFF6A28),cyan=mat(T,PALETTE.cyan,0.12,0.15,0x53CFFF);
+  // Machined vacuum vessel, flanges, seals, service skid and inspection window.
+  var vessel=addCylinder(T,g,"vacuum vessel",[0,0,0],1.62,1.62,6.9,black,72);vessel.rotation.z=Math.PI/2;
+  [-3.46,3.46].forEach(function(x){
+    var flange=addCylinder(T,g,"vacuum vessel end flange",[x,0,0],1.78,1.78,0.22,brushed,72);flange.rotation.z=Math.PI/2;
+    addRing(T,g,"flange seal",[x+(x<0?-0.12:0.12),0,0],1.7,0.045,black,[0,Math.PI/2,0]);
+    addBoltCircle(T,g,"flange bolt circle",[x,0,0],1.55,20,0.055,steel);
+  });
+  addBox(T,g,"lower vacuum skid",[0,-1.96,0],[8.2,0.26,4.1],black,true);
+  addBox(T,g,"upper equipment bridge",[0,2.0,-1.55],[7.8,0.18,1.15],steel,true);
+  [-3.7,3.7].forEach(function(x){
+    addBox(T,g,"vessel pedestal",[x,-1.42,0],[0.32,1.0,0.58],titanium,true);
+    addBox(T,g,"pedestal foot",[x,-1.91,0],[0.78,0.12,0.95],brushed,true);
+  });
+  addRing(T,g,"inspection viewport bezel",[0,0,1.54],1.08,0.12,brushed,[Math.PI/2,0,0]);
+  var viewport=addCylinder(T,g,"inspection viewport glass",[0,0,1.52],0.94,0.94,0.045,glass,64);viewport.rotation.x=Math.PI/2;
+  addBoltCircle(T,g,"viewport fasteners",[0,0,1.61],1.04,12,0.035,steel);
+
+  // Droplet generator with a piezoelectric sleeve and replaceable ceramic orifice.
+  var nozzleRig=makePivot(T,g,"DROPLET GENERATOR RIG",[0,1.52,0]);
+  addCylinder(T,nozzleRig,"tin feed tube",[0,0.35,0],0.18,0.18,0.82,steel,40);
+  addCylinder(T,nozzleRig,"piezoelectric actuator sleeve",[0,-0.05,0],0.29,0.29,0.40,gold,48);
+  addCylinder(T,nozzleRig,"ceramic droplet nozzle",[0,-0.43,0],0.14,0.055,0.46,ceramic,48);
+  addRing(T,nozzleRig,"nozzle orifice rim",[0,-0.67,0],0.085,0.022,brushed);
+  addRing(T,nozzleRig,"piezo clamp",[0,0.10,0],0.31,0.035,steel);
+  addBox(T,g,"generator service bracket",[0,0.75,-0.62],[0.76,0.48,0.38],titanium,true);
+  addBoltCircle(T,g,"generator bracket fasteners",[0,0.74,-0.40],0.27,8,0.035,brushed);
+
+  // Two separately articulated laser heads with yaw and pitch pivots.
+  function laserHead(name,position,tilt){
+    var base=makePivot(T,g,name+" BASE",position);
+    addBox(T,base,name+" isolation foot",[0,-0.46,0],[1.35,0.22,1.1],titanium,true);
+    var yaw=makeHinge(T,base,name+" YAW BEARING",[0,0,0],"y",-0.08,0.08);
+    var pitch=makeHinge(T,yaw.rig,name+" PITCH BEARING",[0,0.18,0],"z",-0.12,0.12);
+    var barrel=makePivot(T,pitch.rig,name+" LASER BARREL",[0.35,0,0]);
+    var body=addCylinder(T,barrel,name+" machined optical barrel",[0,0,0],0.34,0.34,1.12,steel,48);body.rotation.z=Math.PI/2;
+    addRing(T,barrel,name+" focusing collar",[0.56,0,0],0.30,0.055,gold,[0,Math.PI/2,0]);
+    var optic=addCylinder(T,barrel,name+" fused silica window",[0.62,0,0],0.23,0.23,0.055,glass,40);optic.rotation.z=Math.PI/2;
+    addRing(T,barrel,name+" beam aperture",[0.69,0,0],0.24,0.035,brushed,[0,Math.PI/2,0]);
+    addBox(T,base,name+" gimbal saddle",[0.22,0.06,0],[0.98,0.22,0.82],black,true);
+    addBoltCircle(T,base,name+" saddle fasteners",[0.22,-0.08,0],0.40,8,0.028,brushed);
+    yaw.set(tilt*0.22);pitch.set(tilt);
+    return {base:base,yaw:yaw,pitch:pitch,barrel:barrel};
+  }
+  var preHead=laserHead("PRE-PULSE LASER",[-2.9,-0.48,0.63],-0.025);
+  var mainHead=laserHead("MAIN PULSE LASER",[-2.9,0.20,-0.62],-0.025);
+  preHead.base.scale.setScalar(0.76);mainHead.base.scale.setScalar(0.92);
+  addBox(T,g,"laser head alignment rail",[-2.92,-1.20,0],[1.1,0.18,2.2],titanium,true);
+  addBox(T,g,"laser service manifold",[-3.42,-0.20,0],[0.18,1.55,2.1],steel,true);
+  for(var h=0;h<5;h++)addBeam(T,g,"laser coolant line",[-3.38,-0.65+h*0.18,-0.92],[-2.85,-0.65+h*0.18,-0.92],0.035,h%2?gold:titanium);
+
+  var dropletRig=makePivot(T,g,"TIN DROPLET CARRIER",[0,0.46,0]);
+  var droplet=addSphere(T,dropletRig,"molten tin droplet",[0,0,0],0.125,tin,48);
+  var dropProxy=makePivot(T,g,"TIN DROPLET COLLISION PROXY",[0,0.46,0]);
+  var collision=createCollisionWorld(T);
+  var dropletBody=collision.register("tin droplet",dropProxy,[0.25,0.25,0.25]);
+  var nozzleBody=collision.register("nozzle envelope",nozzleRig,[0.34,0.34,0.34]);
+
+  // Concave parabolic collector mounted on a bounded tip/tilt joint.
+  var collectorBase=makePivot(T,g,"COLLECTOR MIRROR MOUNT",[1.82,-0.10,0]);
+  addCylinder(T,collectorBase,"collector mount pedestal",[0,-0.94,0],0.32,0.40,0.58,titanium,40);
+  addRing(T,collectorBase,"collector alignment ring",[0,0,0],1.22,0.085,gold,[0,Math.PI/2,0]);
+  var collectorTilt=makeHinge(T,collectorBase,"COLLECTOR TIP/TILT JOINT",[0,0,0],"y",-0.035,0.035);
+  addParabolicReflector(T,collectorTilt.rig,"parabolic collector mirror — conceptual",[0.99][0]||1.05,0.62,mat(T,0xD7C5A4,0.96,0.09));
+  addRing(T,collectorTilt.rig,"collector mirror retaining rim",[0,0,0],1.07,0.045,brushed,[0,Math.PI/2,0]);
+  [-0.7,0,0.7].forEach(function(z){addBeam(T,collectorTilt.rig,"collector kinematic support",[0.14,-0.05,z],[0.40,-0.78,z],0.055,titanium);});
+  for(var bolt=0;bolt<16;bolt++){
+    var a=bolt/16*Math.PI*2;
+    addSphere(T,collectorTilt.rig,"collector retaining screw",[0.02,1.12*Math.cos(a),1.12*Math.sin(a)],0.035,steel,12);
+  }
+  var plasmaRig=makePivot(T,g,"PLASMA EXPANSION RIG",[0,-0.34,0]);
+  var plasma=addSphere(T,plasmaRig,"ionized tin plasma",[0,0,0],0.28,hot,48);
+  var halo=addRing(T,plasmaRig,"plasma emission shell",[0,0,0],0.55,0.025,hot,[Math.PI/2,0,0]);
+  var spark=pulsePoints(T,plasmaRig,150,0xFF9A4A,1.35);
+  var rays=[];
+  for(var k=0;k<13;k++){
+    var a=k/12*Math.PI*0.56-Math.PI*0.28;
+    rays.push(addPulseBeam(T,g,"EUV collector output ray "+k,[0.10,0,0.05],[3.45,Math.sin(a)*0.95,Math.cos(a)*0.95],0.012,cyan));
+  }
+  addRing(T,g,"EUV output aperture",[3.35,0.02,0],0.58,0.07,brushed,[0,Math.PI/2,0]);
+  addBox(T,g,"source support chassis",[0,-2.22,0],[8.1,0.16,4.4],black,true);
+  addLabel(T,g,detailed?"TWO-PULSE LASER-PRODUCED TIN PLASMA":"EUV SOURCE · CONCEPTUAL RECONSTRUCTION",[-3.5,2.28,0.2],4.3);
+
   return {
-    group: g,
-    tick: function(p) {
-      droplet.position.x = -2.45 + Math.min(1, p * 2.0) * 1.85;
-      droplet.scale.setScalar(1 - 0.12 * Math.max(0, Math.min(1, (p - 0.16) * 3)));
-      var strike = Math.max(0, 1 - Math.abs(p - 0.22) * 8);
-      prePulse.visible = p < 0.34;
-      mainPulse.visible = p > 0.18 && p < 0.48;
-      plasma.scale.setScalar(0.15 + strike * (detailed ? 2.1 : 1.7) + Math.max(0, p - 0.3) * 0.7);
-      plasma.material.emissiveIntensity = 0.5 + strike * 4;
-      halo.scale.setScalar(0.2 + strike * 1.9 + p * 0.2);
-      halo.rotation.z = p * Math.PI * 2;
-      spark.visible = p > 0.18 && p < 0.86;
-      spark.scale.setScalar(0.2 + strike * 2.0 + p * 0.35);
-      euv.scale.x = Math.max(0.05, Math.min(1, (p - 0.27) * 5));
-      collector.rotation.y = 0.18 * Math.sin(p * Math.PI * 2);
+    group:g,collisionSystem:collision,
+    tick:function(p){
+      var fall=T.MathUtils.smoothstep(p,0.03,0.35),dropY=0.46-1.12*fall;
+      dropletRig.position.y=dropY;dropProxy.position.y=dropY;
+      droplet.rotation.z=0.24*Math.sin(p*8);
+      var pre=T.MathUtils.smoothstep(p,0.15,0.24)*(1-T.MathUtils.smoothstep(p,0.27,0.34));
+      var main=T.MathUtils.smoothstep(p,0.40,0.50)*(1-T.MathUtils.smoothstep(p,0.52,0.60));
+      var post=T.MathUtils.smoothstep(p,0.51,0.78);
+      preHead.pitch.set(-0.025+0.012*Math.sin(p*4));mainHead.pitch.set(-0.025+0.012*Math.sin(p*4+0.7));
+      if(pre>0.02)droplet.scale.set(1+0.55*pre,1-0.68*pre,1+0.28*pre);
+      else if(main>0.02)droplet.scale.set(1+0.75*main,1-0.55*main,1+0.45*main);
+      else if(post>0.01)droplet.scale.setScalar(Math.max(0.015,1-post));
+      else droplet.scale.setScalar(1);
+      plasma.scale.setScalar(0.001+post*(0.55+1.55*Math.sin(Math.PI*T.MathUtils.clamp((p-0.50)/0.29,0,1))));
+      plasma.material.emissiveIntensity=0.5+post*4.2;
+      halo.scale.setScalar(0.001+post*2.0);halo.rotation.x=p*2.7;halo.rotation.z=-p*3.2;
+      spark.visible=post>0.015;spark.scale.setScalar(0.001+post*1.25);
+      rays.forEach(function(ray,i){ray.setProgress(T.MathUtils.clamp((p-0.66-i*0.004)*7,0,1));});
+      collectorTilt.set(0.012*Math.sin(p*Math.PI*2));
+      // If an animated target ever enters the nozzle envelope, clamp it before penetration.
+      if(collision.overlaps(dropletBody,nozzleBody)){
+        dropletRig.position.y=Math.min(dropletRig.position.y,nozzleRig.position.y-0.40);
+        dropProxy.position.y=dropletRig.position.y;
+      }
     }
   };
 }
 
 /* 02 — layered wafer and interconnect stack. */
-function makeWaferScene(T) {
-  var g = new T.Group();
-  var waferMat = mat(T, 0x2A5C91, 0.88, 0.18);
-  var silver = mat(T, PALETTE.silver, 0.8, 0.22);
-  var copper = mat(T, PALETTE.gold, 0.82, 0.21);
-  var dark = mat(T, PALETTE.navy, 0.68, 0.25);
-  var stack = new T.Group();
-  g.add(stack);
-  var layers = [];
-  for (var i = 0; i < 8; i++) {
-    var z = -0.8 + i * 0.24;
-    var disk = addCylinder(T, stack, "wafer layer " + i, [0, 0, z], 1.65, 1.65, 0.13, i % 2 ? silver : waferMat, 64);
-    layers.push(disk);
-    for (var j = -3; j <= 3; j++) {
-      var trace = addBox(T, stack, "interconnect", [j * 0.36, 0, z + 0.09], [0.025, 2.65, 0.028], i % 2 ? copper : dark);
-      trace.rotation.z = i * 0.09;
+/* 02 — precision wafer stack with rigid layer carriers and metrology alignment hardware. */
+function makeWaferScene(T){
+  var g=new T.Group();
+  var silicon=mat(T,0x425C72,0.84,0.19),dielectric=mat(T,0xD7DFE6,0.18,0.23);
+  var copper=mat(T,0xB87945,0.91,0.18),interposer=mat(T,0x274A69,0.78,0.22),frame=mat(T,0x66798A,0.88,0.24);
+  var waferRig=makePivot(T,g,"SILICON WAFER CARRIER",[0,-0.95,0]);
+  addCylinder(T,waferRig,"300 mm silicon substrate",[0,0,0],1.7,1.7,0.13,silicon,96);
+  addRing(T,waferRig,"wafer bevel edge",[0,0.075,0],1.67,0.035,mat(T,0xAFC0CE,0.88,0.15));
+  var layers=[];
+  for(var i=0;i<9;i++){
+    var carrier=makePivot(T,g,"INTERCONNECT LAYER RIG "+i,[0,-0.68+i*0.19,0]);
+    var layerMat=i%3===0?dielectric:(i%3===1?copper:interposer);
+    addCylinder(T,carrier,"fabricated interconnect layer "+i,[0,0,0],1.53,1.53,0.065,layerMat,80);
+    for(var j=-6;j<=6;j++){
+      var trace=addBox(T,carrier,"copper interconnect trace",[j*0.22,0.046,0],[0.018,0.012,2.56],i%2?copper:frame);
+      trace.rotation.y=(i%2?1:-1)*0.12;
+      addBox(T,carrier,"cross-layer via trace",[0,0.047,j*0.20],[2.45,0.012,0.016],copper);
     }
+    var proxy=makePivot(T,carrier,"LAYER COLLISION ENVELOPE",[0,0.07,0]);
+    layers.push({carrier:carrier,proxy:proxy,base:-0.68+i*0.19});
   }
-  for (var row = -3; row <= 3; row++) {
-    for (var col = -3; col <= 3; col++) {
-      var die = addBox(T, stack, "die pattern", [col * 0.42, row * 0.42, 1.15], [0.35, 0.35, 0.035], mat(T, 0x244B78, 0.65, 0.22));
-      die.add(new T.LineSegments(new T.EdgesGeometry(die.geometry), new T.LineBasicMaterial({ color: PALETTE.cyan })));
-    }
+  var alignFrame=makePivot(T,g,"WAFER ALIGNMENT FRAME",[0,-0.05,0]);
+  var posts=[];
+  for(var k=0;k<4;k++){
+    var a=k*Math.PI/2+Math.PI/4,x=Math.cos(a)*1.88,z=Math.sin(a)*1.88;
+    posts.push(addCylinder(T,alignFrame,"ceramic alignment post",[x,0,z],0.055,0.055,1.8,dielectric,24));
+    addRing(T,alignFrame,"alignment post collar",[x,0.48,z],0.09,0.025,copper);
   }
-  addLabel(T, g, "A PROCESSOR IS BUILT LAYER BY LAYER", [-3.1, 2.4, 0], 4.0);
-  var rings = [];
-  for (var r = 0; r < 3; r++) rings.push(addRing(T, g, "layer alignment reference", [0, 0, -0.55 + r * 0.5],
-    1.83 + r * 0.11, 0.018, mat(T, PALETTE.cyan, 0.2, 0.2, PALETTE.cyan)));
-  return {
-    group: g,
-    tick: function(p) {
-      layers.forEach(function(layer, index) {
-        var target = -0.8 + index * 0.24;
-        layer.position.z = target + Math.sin(p * Math.PI * 2 + index * 0.23) * 0.09;
-      });
-      stack.rotation.z = p * Math.PI * 0.3;
-      stack.rotation.x = 0.1 * Math.sin(p * Math.PI * 2);
-      rings.forEach(function(ring, index) { ring.rotation.z = p * (index % 2 ? -1 : 1) * 0.8; });
+  var metrology=makePivot(T,g,"THREE-POINT METROLOGY FRAME",[0,1.25,0]);
+  for(var m=0;m<3;m++){
+    var angle=m/3*Math.PI*2;
+    addBeam(T,metrology,"metrology probe arm",[0,0.16,0],[Math.cos(angle)*1.8,0.05,Math.sin(angle)*1.8],0.04,frame);
+    addSphere(T,metrology,"laser displacement sensor",[Math.cos(angle)*1.8,0.05,Math.sin(angle)*1.8],0.105,mat(T,0x344C63,0.82,0.18),24);
+  }
+  addLabel(T,g,"SILICON · DIELECTRIC · COPPER · VIA",[-3.3,2.35,0],3.9);
+  var collision=createCollisionWorld(T);
+  var bodies=layers.map(function(layer,index){return collision.register("interconnect layer "+index,layer.proxy,[3.08,0.12,3.08]);});
+  return {group:g,collisionSystem:collision,tick:function(p){
+    layers.forEach(function(layer,index){
+      var pulse=Math.sin(p*Math.PI*2+index*0.31)*0.008;
+      layer.carrier.position.y=layer.base+(p>0.28&&p<0.78?(index-4)*0.01:0)+pulse;
+    });
+    waferRig.rotation.y=0.04*Math.sin(p*Math.PI*2);metrology.rotation.y=0.03*Math.sin(p*Math.PI*2);
+    posts.forEach(function(post,index){post.rotation.z=0.004*Math.sin(p*5+index);});
+    for(var q=0;q<bodies.length-1;q++){
+      if(collision.overlaps(bodies[q],bodies[q+1])){
+        layers[q+1].carrier.position.y=layers[q].carrier.position.y+0.20;
+      }
     }
-  };
+  }};
 }
 
 /* 03 — compare the 193 nm DUV and 13.5 nm EUV wavelengths. */
