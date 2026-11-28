@@ -269,7 +269,7 @@
   function inferEvidenceRequirement(text, media) {
     const lower = text.toLowerCase();
     if (/\b(footage|recording|video shows|photo shows|camera captured|actual image|caught on camera|documented the event)\b/.test(lower)) return 'actual_footage';
-    if (/\b(percent|percentage|rate|data|survey|study|statistic|number|revenue|price|chart)\b/.test(lower) || media.includes('diagram')) return 'sourced_data';
+    if (/\b(percent|percentage|rate|data|survey|study|statistic|number|revenue|price|chart)\b/.test(lower)) return 'sourced_data';
     if (/\b(document|report|letter|court|filing|official|according to|record|archive|source)\b/.test(lower)) return 'source_document';
     return 'none';
   }
