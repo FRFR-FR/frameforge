@@ -206,7 +206,7 @@ A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU 
 **Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
 
 
-## FrameForge V2 — foundations and workspace (steps 1–10)
+## FrameForge V2 — foundations, timeline, compositor and motion graphics (steps 1–15)
 
 The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). Batch status is recorded in [docs/FF_V2_PROGRESS.md](docs/FF_V2_PROGRESS.md).
 
@@ -219,9 +219,12 @@ Foundation and architecture:
 
 Current editor workspace:
 - [V2 media import, asset library, timeline and persistence guide](docs/FF_V2_MEDIA_AND_TIMELINE.md)
-- [V2 media/timeline core](ff-v2-core.js)
+- [V2 compositing, transforms, keyframes, masks and graphics guide](docs/FF_V2_COMPOSITING_AND_MOTION.md)
+- [V2 project/timeline/compositing core](ff-v2-core.js)
+- [V2 Canvas 2D layer compositor](ff-v2-renderer.js)
 - [V2 browser studio](ff-v2-studio.js)
 - [V2 core regression tests](tests/ff-v2-core.test.js)
+- [V2 renderer tests](tests/ff-v2-renderer.test.js)
 - [V2 Chromium browser smoke test](tests/ff-v2-browser-smoke.js)
 - [Foundation CI](.github/workflows/ff-v2-foundation-tests.yml)
 - [Browser smoke CI](.github/workflows/ff-v2-browser-smoke.yml)
@@ -241,4 +244,4 @@ python tools/validate_media_manifest.py examples/media-asset-manifest.example.js
 
 The checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) workflow. The real-browser integration check runs separately in [FrameForge V2 Browser Smoke](.github/workflows/ff-v2-browser-smoke.yml). Both use read-only repository permissions and do not start any Blender or media-render job.
 
-**Current V2 boundary:** steps 6–10 add validated media import, local asset management, an editable multi-track project model, clip operations and local recovery. The V2 timeline is not yet connected to a final compositor or export renderer; those upgrades are scheduled later in the roadmap. V2 project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB.
+**Current V2 boundary:** steps 6–15 add validated local media import, an editable multi-track timeline, local recovery, a Canvas 2D layer compositor, transform/crop/anchor controls, transform keyframes and parenting, masks/mattes/blend modes, and generated title/SVG/shape graphics. The compositor renders the current frame and can export a transparent PNG; it is not yet a full-sequence or final MP4 renderer. V2 project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB.
