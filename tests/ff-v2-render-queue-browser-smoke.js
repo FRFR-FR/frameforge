@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 /* Chromium regression: V2 frame queue pause/resume, chunk ZIP export and reload persistence. */
-const { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -11,34 +10,49 @@ const http = require('node:http');
 const PORT = 4177;
 const BASE_URL = 'http://127.0.0.1:' + PORT;
 
-async function checkHttpServer() {
-  return new Promise(resolve => {
-    const request = http.get(BASE_URL, response => {
-      response.resume();
-      response.on('end', () => resolve(Boolean(response.statusCode && response.statusCode >= 200 && response.statusCode < 500)));
-      response.on('error', () => resolve(false));
-    });
-    request.setTimeout(1500, () => { request.destroy(); resolve(false); });
-    request.on('error', () => resolve(false));
+function createStaticServer() {
+  const root = path.resolve(__dirname, '..');
+  const mime = {
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.svg': 'image/svg+xml',
+    '.wasm': 'application/wasm',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp'
+  };
+  return http.createServer(async (request, response) => {
+    try {
+      const url = new URL(request.url, BASE_URL);
+      const requested = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
+      const file = path.resolve(root, '.' + requested);
+      if (file !== root && !file.startsWith(root + path.sep)) {
+        response.writeHead(403);
+        response.end('Forbidden');
+        return;
+      }
+      const contents = await fs.readFile(file);
+      response.writeHead(200, { 'Content-Type': mime[path.extname(file).toLowerCase()] || 'application/octet-stream' });
+      response.end(contents);
+    } catch (_) {
+      response.writeHead(404);
+      response.end('Not found');
+    }
   });
 }
 
-async function waitForServer(server) {
-  const started = Date.now();
-  while (Date.now() - started < 15000) {
-    if (server.exitCode !== null) throw new Error('Render queue smoke server exited.');
-    if (await checkHttpServer()) return;
-    await new Promise(resolve => setTimeout(resolve, 200));
-  }
-  throw new Error('Render queue smoke server did not start.');
-}
-
 async function main() {
-  const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { stdio: 'ignore' });
+  const server = createStaticServer();
   let browser;
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'frameforge-render-queue-'));
   try {
-    await waitForServer(server);
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(PORT, '127.0.0.1', resolve);
+    });
     browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
     const context = await browser.newContext({ acceptDownloads: true, viewport: { width: 1440, height: 1100 } });
     const page = await context.newPage();
@@ -150,7 +164,7 @@ async function main() {
     await context.close();
   } finally {
     if (browser) await browser.close();
-    server.kill('SIGTERM');
+    await new Promise(resolve => server.close(resolve));
     await fs.rm(temporary, { recursive: true, force: true });
   }
 }
