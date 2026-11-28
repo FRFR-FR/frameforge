@@ -98,7 +98,7 @@
 
   function validateSvgText(text) {
     if (typeof DOMParser === 'undefined') {
-      if (/<\s*script\b|<\s*foreignObject\b|\bon[a-z]+\s*=|(?:href|src)\s*=\s*["']\s*(?:https?:|javascript:|data:)/i.test(text)) {
+      if (/<\s*script\b|<\s*foreignObject\b|\bon[a-z]+\s*=|@import|url\s*\(\s*['"]?(?!#)|(?:href|src)\s*=\s*["']\s*(?:https?:|javascript:|data:)/i.test(text)) {
         throw new Error('SVG contains active or external content and was rejected.');
       }
       return;
@@ -111,7 +111,7 @@
       throw new Error('SVG contains active content and was rejected.');
     }
     for (const styleElement of Array.from(doc.querySelectorAll('style'))) {
-      if (/@import|url\\s*\\(\\s*['"]?(?!#)/i.test(styleElement.textContent || '')) {
+      if (/@import|url\s*\(\s*['"]?(?!#)/i.test(styleElement.textContent || '')) {
         throw new Error('SVG external style imports/resources are not allowed.');
       }
     }
@@ -123,7 +123,7 @@
         if ((name === 'href' || name.endsWith(':href')) && value && !value.startsWith('#')) {
           throw new Error('SVG external references are not allowed. Embed local vector shapes instead.');
         }
-        if (name === 'style' && /url\s*\(\s*['"]?(?:https?:|javascript:|data:)/i.test(value)) {
+        if (name === 'style' && /url\s*\(\s*['"]?(?!#)/i.test(value)) {
           throw new Error('SVG external styles/resources are not allowed.');
         }
       }
