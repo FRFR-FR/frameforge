@@ -437,7 +437,7 @@
 
   const BLEND_MODES = ['normal','multiply','screen','overlay','darken','lighten','color-dodge','color-burn','hard-light','soft-light','difference','exclusion','hue','saturation','color','luminosity','lighter','destination-over'];
   const KEYFRAME_PROPERTIES = ['position.x','position.y','scale.x','scale.y','rotation_degrees','opacity','anchor.x','anchor.y'];
-  const ANIMATABLE_PROPERTIES = KEYFRAME_PROPERTIES.concat(['playback_rate']);
+  const ANIMATABLE_PROPERTIES = KEYFRAME_PROPERTIES.concat(['playback_rate','position3d.x','position3d.y','position3d.z','rotation3d.x','rotation3d.y','rotation3d.z','scale3d.x','scale3d.y','scale3d.z']);
 
   function addGraphicClip(project, trackId, generatorType, parameters, startFrame, durationFrames) {
     if (!['text','shape','svg','particles'].includes(generatorType)) throw new Error('Unsupported generated graphic type.');
