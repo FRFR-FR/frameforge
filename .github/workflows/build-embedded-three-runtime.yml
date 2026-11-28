@@ -1,4 +1,4 @@
-name: Build offline Three.js runtime bundle
+name: Build and vendor offline Three.js runtime
 
 on:
   workflow_dispatch:
@@ -7,18 +7,22 @@ on:
       - ".github/workflows/build-embedded-three-runtime.yml"
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: frameforge-three-runtime-v0-164-1
+  cancel-in-progress: false
 
 jobs:
   bundle:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Bundle Three.js and GLTFLoader into one browser script
+      - name: Build pinned Three.js runtime and GLTF tools
         run: |
           set -euo pipefail
           mkdir -p /tmp/frameforge-three-runtime
@@ -28,17 +32,34 @@ jobs:
           cat > entry.js <<'JS'
           import * as THREE from "three";
           import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-          globalThis.THREE = { ...THREE, GLTFLoader };
+          import { clone } from "three/addons/utils/SkeletonUtils.js";
+          globalThis.THREE = { ...THREE, GLTFLoader, SkeletonUtils: { clone } };
           JS
-          ./node_modules/.bin/esbuild entry.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=frameforge-three-runtime.js
-          test -s frameforge-three-runtime.js
-          ls -lh frameforge-three-runtime.js
-          sha256sum frameforge-three-runtime.js > frameforge-three-runtime.sha256
+          ./node_modules/.bin/esbuild entry.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=frameforge-three-runtime.min.js
+          test -s frameforge-three-runtime.min.js
+          sha256sum frameforge-three-runtime.min.js | awk '{print $1}' > frameforge-three-runtime.sha256
+          cp node_modules/three/LICENSE ./THREE-LICENSE.txt
+          printf '{\n  "three": "0.164.1",\n  "esbuild": "0.24.2",\n  "entrypoints": ["THREE", "GLTFLoader", "SkeletonUtils.clone"],\n  "format": "browser IIFE",\n  "sha256": "%s"\n}\n' "$(cat frameforge-three-runtime.sha256)" > runtime-manifest.json
+          ls -lh frameforge-three-runtime.min.js THREE-LICENSE.txt runtime-manifest.json
+      - name: Commit controlled runtime build
+        run: |
+          set -euo pipefail
+          mkdir -p vendor/three/0.164.1
+          cp /tmp/frameforge-three-runtime/frameforge-three-runtime.min.js vendor/three/0.164.1/
+          cp /tmp/frameforge-three-runtime/THREE-LICENSE.txt vendor/three/0.164.1/
+          cp /tmp/frameforge-three-runtime/runtime-manifest.json vendor/three/0.164.1/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vendor/three/0.164.1
+          if git diff --cached --quiet; then
+            echo "VENDORED_THREE_RUNTIME_UNCHANGED"
+          else
+            git commit -m "Vendor offline Three.js runtime r164.1"
+            git push
+          fi
       - uses: actions/upload-artifact@v4
         with:
-          name: FrameForge-ThreeJS-Offline-Runtime
-          path: |
-            /tmp/frameforge-three-runtime/frameforge-three-runtime.js
-            /tmp/frameforge-three-runtime/frameforge-three-runtime.sha256
+          name: FrameForge-ThreeJS-Offline-Runtime-0.164.1
+          path: vendor/three/0.164.1/*
           if-no-files-found: error
           retention-days: 14
