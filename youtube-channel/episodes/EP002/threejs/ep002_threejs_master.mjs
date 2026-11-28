@@ -46,7 +46,7 @@ function addBox(T, parent, name, pos, size, material, outlined) {
   mesh.castShadow = true; mesh.receiveShadow = true;
   if (outlined) {
     var edges = new T.EdgesGeometry(mesh.geometry);
-    mesh.add(new T.LineSegments(edges, new T.LineBasicMaterial({ color: 0x52749D, transparent: true, opacity: 0.72 })));
+    mesh.add(new T.LineSegments(edges, new T.LineBasicMaterial({ color: 0x253748, transparent: true, opacity: 0.28 })));
   }
   parent.add(mesh);
   return mesh;
@@ -177,6 +177,26 @@ function addBoltCircle(T,parent,name,center,radius,count,boltRadius,material){
   }
   return group;
 }
+function addBoltCircleX(T,parent,name,x,radius,count,boltRadius,material){
+  var group=new T.Group();group.name=name;group.position.x=x;parent.add(group);
+  for(var i=0;i<count;i++){
+    var a=i/count*Math.PI*2;
+    var bolt=addCylinder(T,group,name+" fastener "+i,[0,Math.cos(a)*radius,Math.sin(a)*radius],
+      boltRadius,boltRadius,0.065,material,12);
+    bolt.rotation.z=Math.PI/2;
+  }
+  return group;
+}
+function addBoltCircleZ(T,parent,name,z,radius,count,boltRadius,material){
+  var group=new T.Group();group.name=name;group.position.z=z;parent.add(group);
+  for(var i=0;i<count;i++){
+    var a=i/count*Math.PI*2;
+    var bolt=addCylinder(T,group,name+" fastener "+i,[Math.cos(a)*radius,Math.sin(a)*radius,0],
+      boltRadius,boltRadius,0.055,material,12);
+    bolt.rotation.x=Math.PI/2;
+  }
+  return group;
+}
 function addPulseBeam(T,parent,name,start,end,radius,material){
   var a=new T.Vector3(start[0],start[1],start[2]),b=new T.Vector3(end[0],end[1],end[2]);
   var d=new T.Vector3().subVectors(b,a),length=d.length(),rig=makePivot(T,parent,name,start);
@@ -284,7 +304,7 @@ function makeTinScene(T,detailed){
   [-3.46,3.46].forEach(function(x){
     addRing(T,g,"vacuum vessel annular end flange",[x,0,0],1.72,0.14,brushed,[0,Math.PI/2,0]);
     addRing(T,g,"flange vacuum seal",[x+(x<0?-0.13:0.13),0,0],1.61,0.045,black,[0,Math.PI/2,0]);
-    addBoltCircle(T,g,"flange bolt circle",[x,0,0],1.52,24,0.048,steel);
+    addBoltCircleX(T,g,"flange axial fasteners",x,1.52,24,0.048,steel);
   });
   [-1.58,1.58].forEach(function(y){
     addBeam(T,g,"longitudinal cutaway rim rail",[-3.25,y,0.03],[3.25,y,0.03],0.075,brushed);
@@ -298,7 +318,7 @@ function makeTinScene(T,detailed){
   });
   addRing(T,g,"inspection viewport bezel",[0,0,1.60],1.08,0.12,brushed,[Math.PI/2,0,0]);
   var viewport=addCylinder(T,g,"inspection viewport glass",[0,0,1.57],0.94,0.94,0.045,glass,64);viewport.rotation.x=Math.PI/2;
-  addBoltCircle(T,g,"viewport fasteners",[0,0,1.65],1.04,12,0.035,steel);
+  addBoltCircleZ(T,g,"viewport radial fasteners",1.65,1.04,12,0.035,steel);
   addBox(T,g,"vacuum service manifold",[2.95,1.08,-0.52],[0.46,0.82,0.62],titanium,true);
   for(var port=0;port<4;port++)addRing(T,g,"vacuum service port collar",[2.70,0.82+port*0.18,-0.18],0.105,0.028,gold,[0,Math.PI/2,0]);
 
@@ -320,6 +340,10 @@ function makeTinScene(T,detailed){
     var pitch=makeHinge(T,yaw.rig,name+" PITCH BEARING",[0,0.18,0],"z",-0.12,0.12);
     var barrel=makePivot(T,pitch.rig,name+" LASER BARREL",[0.35,0,0]);
     var body=addCylinder(T,barrel,name+" machined optical barrel",[0,0,0],0.34,0.34,1.12,steel,48);body.rotation.z=Math.PI/2;
+    for(var fin=0;fin<8;fin++){
+      addRing(T,barrel,name+" barrel heat-sink fin "+fin,[-0.44+fin*0.125,0,0],0.355,0.018,brushed,[0,Math.PI/2,0]);
+    }
+    addRing(T,barrel,name+" rear service coupling",[-0.60,0,0],0.31,0.06,gold,[0,Math.PI/2,0]);
     addRing(T,barrel,name+" focusing collar",[0.56,0,0],0.30,0.055,gold,[0,Math.PI/2,0]);
     var optic=addCylinder(T,barrel,name+" fused silica window",[0.62,0,0],0.23,0.23,0.055,glass,40);optic.rotation.z=Math.PI/2;
     addRing(T,barrel,name+" beam aperture",[0.69,0,0],0.24,0.035,brushed,[0,Math.PI/2,0]);
@@ -329,15 +353,15 @@ function makeTinScene(T,detailed){
     return {base:base,yaw:yaw,pitch:pitch,barrel:barrel};
   }
   var preHead=laserHead("PRE-PULSE LASER",[-2.9,-0.48,0.63],-0.025);
-  var mainHead=laserHead("MAIN PULSE LASER",[-2.9,0.20,-0.62],-0.025);
+  var mainHead=laserHead("MAIN PULSE LASER",[-2.9,0.20,0.62],-0.025);
   preHead.base.scale.setScalar(0.76);mainHead.base.scale.setScalar(0.92);
   // Separate expanding optical pulses are animated to contact the moving tin target.
   // The first, lower-energy pulse reshapes the droplet; the stronger second pulse drives plasma formation.
   var laserCore=mat(T,0xFFF2DC,0.08,0.12,0xFF873F);
   var prePulseOuter=addPulseBeam(T,g,"PRE-PULSE LASER BEAM",[-1.86,-0.48,0.63],[0,-0.36,0],0.050,redGlow);
   var prePulseCore=addPulseBeam(T,g,"PRE-PULSE LASER HOT CORE",[-1.86,-0.48,0.63],[0,-0.36,0],0.018,laserCore);
-  var mainPulseOuter=addPulseBeam(T,g,"MAIN HIGH-ENERGY LASER BEAM",[-1.86,0.20,-0.62],[0,-0.64,0],0.078,redGlow);
-  var mainPulseCore=addPulseBeam(T,g,"MAIN HIGH-ENERGY LASER HOT CORE",[-1.86,0.20,-0.62],[0,-0.64,0],0.027,laserCore);
+  var mainPulseOuter=addPulseBeam(T,g,"MAIN HIGH-ENERGY LASER BEAM",[-1.86,0.20,0.62],[0,-0.64,0],0.078,redGlow);
+  var mainPulseCore=addPulseBeam(T,g,"MAIN HIGH-ENERGY LASER HOT CORE",[-1.86,0.20,0.62],[0,-0.64,0],0.027,laserCore);
   addBox(T,g,"laser head alignment rail",[-2.92,-1.20,0],[1.1,0.18,2.2],titanium,true);
   addBox(T,g,"laser service manifold",[-3.42,-0.20,0],[0.18,1.55,2.1],steel,true);
   for(var h=0;h<5;h++)addBeam(T,g,"laser coolant line",[-3.38,-0.65+h*0.18,-0.92],[-2.85,-0.65+h*0.18,-0.92],0.035,h%2?gold:titanium);
@@ -355,7 +379,6 @@ function makeTinScene(T,detailed){
   addRing(T,collectorBase,"collector alignment ring",[0,0,0],1.22,0.085,gold,[0,Math.PI/2,0]);
   var collectorTilt=makeHinge(T,collectorBase,"COLLECTOR TIP/TILT JOINT",[0,0,0],"y",-0.035,0.035);
   var collectorDish=addParabolicReflector(T,collectorTilt.rig,"parabolic collector mirror — conceptual",1.05,0.62,mat(T,0xD7C5A4,0.96,0.09));
-  collectorDish.rotation.y=Math.PI;
   addRing(T,collectorTilt.rig,"collector mirror retaining rim",[0,0,0],1.07,0.045,brushed,[0,Math.PI/2,0]);
   [-0.7,0,0.7].forEach(function(z){addBeam(T,collectorTilt.rig,"collector kinematic support",[0.14,-0.05,z],[0.40,-0.78,z],0.055,titanium);});
   for(var bolt=0;bolt<16;bolt++){
@@ -767,7 +790,7 @@ export function mountScene(container,options){
   var duration=(options&&options.duration)||699.25;
   var renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
   renderer.setPixelRatio(1);renderer.setSize(width,height,false);
-  renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+  renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.setClearColor(0x0A1420,1);
   renderer.domElement.style.display="block";container.innerHTML="";container.appendChild(renderer.domElement);
   var scene=new T.Scene();scene.background=new T.Color(0x0A1420);scene.fog=new T.FogExp2(0x0A1420,0.010);
@@ -785,11 +808,11 @@ export function mountScene(container,options){
   var envTexture=new T.CanvasTexture(envCanvas);envTexture.mapping=T.EquirectangularReflectionMapping;
   envTexture.colorSpace=T.SRGBColorSpace;envTexture.needsUpdate=true;scene.environment=envTexture;scene.environmentIntensity=0.8;
   var camera=new T.PerspectiveCamera(37,width/height,0.1,140);camera.position.set(6.9,4.5,8.5);camera.lookAt(0,0,0);
-  scene.add(new T.HemisphereLight(0xD9E7F5,0x253140,1.25));
-  var key=new T.DirectionalLight(0xFFF5E8,3.1);key.position.set(-4.5,8.5,6.5);key.castShadow=true;
+  scene.add(new T.HemisphereLight(0xD9E7F5,0x253140,1.55));
+  var key=new T.DirectionalLight(0xFFF5E8,3.5);key.position.set(-4.5,8.5,6.5);key.castShadow=true;
   key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-10;key.shadow.camera.right=10;
   key.shadow.camera.top=10;key.shadow.camera.bottom=-10;key.shadow.bias=-0.00025;scene.add(key);
-  var fill=new T.DirectionalLight(0x8EB8E1,1.25);fill.position.set(7,3,5);scene.add(fill);
+  var fill=new T.DirectionalLight(0x8EB8E1,1.55);fill.position.set(7,3,5);scene.add(fill);
   var rim=new T.DirectionalLight(0x7B9FC4,1.45);rim.position.set(1,5,-8);scene.add(rim);
   var redRim=new T.PointLight(PALETTE.red,13,16);redRim.position.set(-5,1.7,3);scene.add(redRim);
   var floor=new T.Mesh(new T.PlaneGeometry(55,55),mat(T,0x182736,0.18,0.82));
