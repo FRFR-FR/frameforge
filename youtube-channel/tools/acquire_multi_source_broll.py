@@ -3,7 +3,7 @@
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
-import argparse, csv, hashlib, html, json, os, re, subprocess, time
+import argparse, csv, hashlib, html, json, math, os, re, subprocess, time
 import requests
 import acquire_pixabay_broll as pix
 
