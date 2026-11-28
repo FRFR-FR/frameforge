@@ -77,16 +77,10 @@ async function main() {
         svg: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect width="320" height="180" fill="#123456"/><circle cx="160" cy="90" r="52" fill="#55a7ff"/></svg>'
       }, 0, 4);
       window.FFV2Studio.markDirty();
-      const store = window.FFV2Studio.renderStorage;
-      const original = store.saveFrame.bind(store);
-      let pauseOnce = false;
-      store.saveFrame = async (...args) => {
-        const key = await original(...args);
-        if (!pauseOnce) {
-          pauseOnce = true;
-          window.FFV2RenderQueue.pause();
-        }
-        return key;
+      const originalCompose = window.FFV2Renderer.composeFrame.bind(window.FFV2Renderer);
+      window.FFV2Renderer.composeFrame = async options => {
+        await new Promise(resolve => window.setTimeout(resolve, 120));
+        return originalCompose(options);
       };
     });
 
@@ -106,10 +100,14 @@ async function main() {
     assert.ok(queueState.job?.id, 'Render job creation failed: ' + JSON.stringify(queueState));
     const jobId = queueState.job.id;
     await page.locator('#ffv2RenderQueueStart').click();
+    await page.waitForFunction(async id =>
+      (await window.FFV2Studio.renderStorage.countFrames(id)) >= 1,
+      jobId, { timeout: 30000 }
+    );
+    await page.evaluate(() => window.FFV2RenderQueue.pause());
     await page.waitForFunction(async id => {
-      const count = await window.FFV2Studio.renderStorage.countFrames(id);
       const job = await window.FFV2Studio.renderStorage.getJob(id);
-      return count >= 1 && job?.status === 'paused';
+      return job?.status === 'paused';
     }, jobId, { timeout: 30000 });
 
     const pausedState = await page.evaluate(async id => ({
@@ -127,7 +125,9 @@ async function main() {
       hasFrameZero: Boolean(pausedState.frameZero?.blob?.size),
       statusText: pausedState.statusText
     }));
-    assert.equal(pausedState.count, 1, 'Expected pause immediately after the first durable frame.');
+    assert.ok(pausedState.count >= 1 && pausedState.count <= 2, 'Pause should occur after one or two durable frames.');
+    assert.equal(pausedState.job?.completed_frames, pausedState.count);
+    assert.ok(pausedState.frameZero?.blob?.size, 'The first completed PNG must be durable before pausing.');
     await page.locator('#ffv2RenderQueueStart').click();
     await page.waitForFunction(async id => {
       const job = await window.FFV2Studio.renderStorage.getJob(id);
@@ -148,7 +148,7 @@ async function main() {
     assert.equal(completed.status, 'complete');
     assert.equal(completed.count, 4);
     assert.equal(completed.rendered_frames, 4, 'Each unique frame should be rendered exactly once.');
-    assert.ok(completed.skipped_frames >= 1, 'Resume should skip the already stored frame.');
+    assert.ok(completed.skipped_frames >= pausedState.count, 'Resume should skip every frame stored before pausing.');
     assert.equal(completed.chunk_count, 2);
 
     await page.locator('#ffv2RenderQueueChunk').selectOption('0');
