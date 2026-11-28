@@ -1,7 +1,7 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–40  
+**Current completed batch:** Steps 1–45  
 **Last updated:** 2026-11-28
 
 ## Batch 1–5 status
@@ -356,14 +356,61 @@ See the [Foundation Validation workflow](../.github/workflows/ff-v2-foundation-t
 - [Production Node regression tests](../tests/ff-v2-production.test.js)
 - [Production Chromium integration test](../tests/ff-v2-production-browser-smoke.js)
 
-## Current V2 boundary after steps 1–40
+## Batch 41–45 status
 
-The V2 timeline feeds a single-frame Canvas 2D compositor with optional WebGL 1 post-processing, procedural VFX, clip effects/transitions and a WebGL Three.js r164.1 renderer for GLB/glTF scenes. It exports transparent PNG frames and packages 3D scenes for Blender. The audio engine provides editable multi-track mixing, waveforms, event-linked SFX, automation, ducking and WAV mastering; the FFmpeg utility muxes a WAV master with an already-rendered silent video. Steps 31–35 added the production brief, public-source/reference dossier, niche profiles, timed narration director and evidence/rights review. Steps 36–40 add nine shot recipes, capped Openverse/Wikimedia discovery and manual Poly Haven/Internet Archive paths, editable procedural SVG/particle clips, a rights-aware audio catalogue/credit/usage-limit report and editable shot-plan assembly. Source downloads remain manual, imported media remains pending until documented rights review, and incomplete required source shots remain explicitly unfilled and readiness-blocked. V2 still does **not** render an entire timeline to MP4 automatically. Full-sequence rendering, resumable chunks, integrated FFmpeg export and technical QA are next roadmap steps (41–43). The legacy V1 editor and existing Blender production workflows remain available.
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 41 | Resumable V2 frame render queue | Complete | Browser queue renders actual V2 compositor frames into IndexedDB; pause/resume skips durable frames; chunk ZIP download and reload persistence passed Chromium smoke |
+| 42 | FFmpeg export profiles | Complete | Idempotent chunk merger and H.264 profiles for 720p horizontal/vertical and optional 1080p horizontal/vertical; output probe checks dimensions, FPS, frame count and audio stream |
+| 43 | Automated technical QA | Complete | FFprobe metadata, full decode, black/freeze detection, audio stream/level checks and declared sync marker reporting covered by synthetic-media tests |
+| 44 | Visual/audio review tools | Complete | Contact sheet, scene-change preview stills, audio waveform, review JSON and browser-readable HTML tested |
+| 45 | Delivery package and attribution notes | Complete | ZIP includes MP4, V2 project, asset rights/provenance manifest, attribution notes, render report and optional QA/review artefacts; file sizes reported in MB |
+
+## Step 41 — Resumable V2 frame render queue
+
+Added the **Resumable V2 render queue** panel below the V2 timeline. It calls the actual V2 Canvas/Three.js compositor for each sequence frame and stores the resulting PNG Blob in IndexedDB's dedicated `renderFrames` store. Render job metadata is stored separately in `renderJobs`. Jobs capture a project signature: resuming after project edits is blocked so frames from different edit versions cannot be mixed. The queue supports pause after the active frame is persisted, resume from stored frames, and per-chunk ZIP downloads containing numbered PNGs plus resolution/FPS/frame-range metadata.
+
+The Chromium test rendered a four-frame fixture in two chunks. It paused after two durable frames, resumed while skipping those stored frames, completed the sequence, exported a valid PNG chunk ZIP and reloaded the browser to confirm the completed job and four frame Blobs remained available. The storage is local to the browser/device and subject to IndexedDB quota; download the chunks as backups. A browser closed before a frame completes may redo that one incomplete frame.
+
+## Step 42 — FFmpeg export profiles
+
+Added `tools/merge_render_chunks.py` to merge browser chunk ZIPs into an ordered numbered-PNG frame directory. It validates chunk metadata, frame ranges, image signatures/dimensions and safe archive paths. It is idempotent: identical chunks/frames are skipped, conflicting duplicates and mixed job/project signatures are rejected, and the merged render manifest lists missing frames.
+
+Added `tools/export_ffmpeg.py` with H.264 profiles for 720p horizontal (1280×720), 720p vertical (720×1280), optional 1080p horizontal (1920×1080) and 1080p vertical (1080×1920). It supports 24/25/30/50/60 FPS, configurable CRF/preset and optional stereo 48 kHz AAC audio from a WAV master. The tool verifies the final MP4's actual output dimensions, frame rate, frame count and audio-stream presence with ffprobe, and reports file size in MB. Final encoding runs locally (or in another explicitly authorised free environment) with FFmpeg installed; GitHub Pages does not run native FFmpeg.
+
+## Step 43 — Automated technical QA
+
+Added `tools/qa_render.py`. It checks FFprobe stream metadata, dimensions/FPS/frame count/duration, full decode, sustained black segments, possible frozen holds, audio stream presence and audio mean/sample peak levels. Optional JSON sync markers compare declared video-frame/audio-time locations within one frame. The report distinguishes errors from warnings; a possible frozen hold is a warning by default and can be made strict. Sync markers are metadata comparisons, not acoustic waveform-based offset measurement. Black detection may flag intentional black creative shots; human interpretation is still required.
+
+## Step 44 — Visual/audio review tools
+
+Added `tools/create_review.py` to build a time-sampled contact sheet, scene-change still previews, an audio waveform when an audio stream exists, `review.json` and a browser-readable `review.html`. The review pack makes it easier to inspect the sequence without opening every frame. It is an inspection aid, not a replacement for human creative/audio approval.
+
+## Step 45 — Delivery package and attribution notes
+
+Added `tools/package_delivery.py`. It packages the final MP4, editable V2 project JSON, generated asset provenance/rights manifest, attribution notes, render report and optional QA report/review folder. It reports MP4 and ZIP sizes in MB alongside resolution, FPS, duration and codec metadata, and checks ZIP CRC integrity. Rights notes list credits and usage limits, and flag pending/unresolved assets. The packager does not approve rights or independently determine legal use. V2 project JSON does not embed imported binary files from browser IndexedDB; users must supply separately exported media as additional package files when the recipient needs to reopen the full edit.
+
+## Verification for batch 41–45
+
+Verified on commit `5fcca0a0109654eead76edc1c2d871df4cbb5a30`:
+
+- [Foundation Validation run 46141969613 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46141969613): **74 JavaScript tests passed, 0 failed**; **42 Python tests passed**. This included chunk ZIP merge/idempotency tests, real FFmpeg export with WAV and ffprobe validation, black-frame/audio QA, contact-sheet generation, delivery ZIP contents, syntax checks and V2 project/schema validation.
+- [Browser Smoke run 46141969605 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46141969605): all five Chromium markers passed — V2, audio, research director, production workflows and **`FRAMEFORGE_V2_RENDER_QUEUE_BROWSER_SMOKE_PASS`**. The queue test checked durable frame Blobs, pause/resume, skip-existing-frame behaviour, ZIP export and IndexedDB persistence after reload.
+- [GitHub Pages deployment run 46141968670 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46141968670).
+
+The browser queue stores PNG chunks locally; Python merging, final FFmpeg encoding, technical QA, visual/audio review and delivery packaging are local-tool steps. No paid compute, paid media API or cloud rendering service was introduced.
+
+## Current V2 boundary after steps 1–45
+
+The V2 timeline still has a single-frame Canvas 2D/Three.js compositor for interactive preview and PNG export, but steps 41–45 add a separate full-sequence, frame-by-frame browser render queue persisted in IndexedDB with resumable frame chunks and per-chunk ZIP export. The downloaded PNG chunks are merged and encoded to MP4 locally with `tools/merge_render_chunks.py` and `tools/export_ffmpeg.py` using FFmpeg/ffprobe. The output can be checked with `tools/qa_render.py`, visually/audio reviewed with `tools/create_review.py`, and packaged with rights/provenance/attribution notes using `tools/package_delivery.py`. Steps 31–35 added the production brief, public-source/reference dossier, niche profiles, timed narration director and evidence/rights review. Steps 36–40 add nine shot recipes, capped Openverse/Wikimedia discovery and manual Poly Haven/Internet Archive paths, editable procedural SVG/particle clips, a rights-aware audio catalogue/credit/usage-limit report and editable shot-plan assembly. Source downloads remain manual, imported media remains pending until documented rights review, and incomplete required source shots remain explicitly unfilled and readiness-blocked. The render queue is local to the browser; final MP4 encoding/QA/review/packaging require a local or otherwise authorised free environment with FFmpeg/ffprobe. This is not a GitHub/cloud render worker. The legacy V1 editor and existing Blender production workflows remain available.
 
 
 ## Remaining limits / not yet done
 
-- The V2 compositor still renders the selected playhead frame and exports PNG; it does not yet render a full sequence or create the V2 timeline MP4. The FFmpeg mux utility only combines a silent video made by an existing renderer with the WAV master. Full-sequence rendering, resumable chunks and integrated V2 FFmpeg export remain future steps (41–43).
+- The FFmpeg merger/exporter, QA tool, contact-sheet/waveform review generator and delivery packager run locally in Python/FFmpeg/ffprobe; they are not executed by GitHub Pages. The user must download the frame chunk ZIPs from the browser and run the commands in [FF_V2_RENDERING_QA_DELIVERY.md](FF_V2_RENDERING_QA_DELIVERY.md).
+- Technical QA is heuristic: intentional black sequences can be flagged, freeze detection can produce false positives, and sync-marker comparisons use supplied timing metadata rather than audio-waveform offset estimation. Human visual/audio review remains required.
+- Delivery packages include the final MP4 and project/rights metadata but cannot recover imported media Blobs from the browser's IndexedDB. Export those source assets separately and include them as extra package files when the full editable handoff is required.
+- The browser render queue renders the entire V2 sequence as PNG frames in the originating browser's IndexedDB, but storage is quota-limited and evictable. Download completed chunk ZIPs regularly. The queue is not cloud rendering and cannot run while the tab/device is closed; it pauses at saved frame boundaries and resumes when reopened.
 - The optional shader backend is native WebGL 1, not Three.js EffectComposer or WebGPU. Custom GLSL requires WebGL and is explicitly skipped under Canvas 2D fallback; built-in effects use Canvas 2D fallbacks where supported.
 - Browser GPU drivers, shader precision, texture limits, Canvas filters, codecs, storage and memory vary by device. Pixel-heavy depth-of-field and distortion work can be slow on phones, especially at higher resolutions. The optional Three.js GLB/glTF scene renderer specifically needs WebGL.
 - Imported 3D model pixels in V2 require WebGL; a device without WebGL can still inspect/import model metadata and use 2D editing, but cannot render those 3D tracks in the V2 compositor. The existing CPU-side `frameforge-3d.js` renderer remains available for code-authored geometry.
@@ -380,4 +427,4 @@ The V2 timeline feeds a single-frame Canvas 2D compositor with optional WebGL 1 
 
 ## Next batch
 
-The next five-step batch is **41–45** (resumable render queue, FFmpeg export profiles, automated technical QA, visual/audio review tools and delivery package/attribution notes). Do not start it until the user requests it.
+The next five-step batch is **46–50** (mobile-friendly controls/documentation, GitHub Actions integration/cost guardrails, entertainment pilot, second-niche pilot and stabilization/release). Do not start it until the user requests it.
