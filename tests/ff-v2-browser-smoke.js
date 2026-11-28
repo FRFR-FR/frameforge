@@ -3,6 +3,7 @@
 const { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 
 const PORT = 4173;
 const BASE_URL = 'http://127.0.0.1:' + PORT;
@@ -23,6 +24,45 @@ function pngChunk(type, data) {
   const crc = Buffer.alloc(4);
   crc.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])), 0);
   return Buffer.concat([length, typeBuffer, data, crc]);
+}
+
+function makeTestGlb() {
+  const positions = Buffer.alloc(36);
+  [0,0,0, 1,0,0, 0,1,0].forEach((n,i)=>positions.writeFloatLE(n,i*4));
+  const indices = Buffer.alloc(6);
+  [0,1,2].forEach((n,i)=>indices.writeUInt16LE(n,i*2));
+  const padding = Buffer.alloc(2);
+  const times = Buffer.alloc(8); times.writeFloatLE(0,0); times.writeFloatLE(1,4);
+  const translations = Buffer.alloc(24);
+  [0,0,0, 0,0,0.5].forEach((n,i)=>translations.writeFloatLE(n,i*4));
+  const binary = Buffer.concat([positions,indices,padding,times,translations]);
+  const gltf = {
+    asset:{version:'2.0',generator:'FrameForge smoke test'},
+    scene:0,scenes:[{nodes:[0]}],nodes:[{name:'Triangle',mesh:0}],
+    meshes:[{name:'Animated Triangle',primitives:[{attributes:{POSITION:0},indices:1}]}],
+    buffers:[{byteLength:76}],
+    bufferViews:[
+      {buffer:0,byteOffset:0,byteLength:36,target:34962},
+      {buffer:0,byteOffset:36,byteLength:6,target:34963},
+      {buffer:0,byteOffset:44,byteLength:8},
+      {buffer:0,byteOffset:52,byteLength:24}
+    ],
+    accessors:[
+      {bufferView:0,componentType:5126,count:3,type:'VEC3',min:[0,0,0],max:[1,1,0]},
+      {bufferView:1,componentType:5123,count:3,type:'SCALAR'},
+      {bufferView:2,componentType:5126,count:2,type:'SCALAR',min:[0],max:[1]},
+      {bufferView:3,componentType:5126,count:2,type:'VEC3'}
+    ],
+    animations:[{name:'Triangle bob',samplers:[{input:2,output:3,interpolation:'LINEAR'}],channels:[{sampler:0,target:{node:0,path:'translation'}}]}]
+  };
+  const json = Buffer.from(JSON.stringify(gltf));
+  const jsonPad = Buffer.concat([json,Buffer.alloc((4-json.length%4)%4,0x20)]);
+  const binPad = Buffer.concat([binary,Buffer.alloc((4-binary.length%4)%4)]);
+  const header = Buffer.alloc(12); header.write('glTF',0);header.writeUInt32LE(2,4);
+  const jsonHeader = Buffer.alloc(8);jsonHeader.writeUInt32LE(jsonPad.length,0);jsonHeader.writeUInt32LE(0x4e4f534a,4);
+  const binHeader = Buffer.alloc(8);binHeader.writeUInt32LE(binPad.length,0);binHeader.writeUInt32LE(0x004e4942,4);
+  const total = 12+8+jsonPad.length+8+binPad.length;header.writeUInt32LE(total,8);
+  return Buffer.concat([header,jsonHeader,jsonPad,binHeader,binPad]);
 }
 
 function makeTestPng() {
@@ -75,7 +115,7 @@ async function main() {
   let browser;
   try {
     await waitForServer(server);
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({ headless: true, args: ['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
     const context = await browser.newContext({ viewport: { width: 1365, height: 980 } });
     const page = await context.newPage();
     const pageErrors = [];
@@ -275,6 +315,58 @@ async function main() {
       return text.includes('webgl') || text.includes('canvas2d') || text.includes('fell back');
     });
     assert.ok(await page.locator('.ffv2-postfx-row').count()>=3);
+
+    // Import an actual animated glTF 2.0 model through the local, pinned Three.js runtime.
+    assert.equal(await page.evaluate(() => window.THREE?.REVISION), '164');
+    const glb = makeTestGlb();
+    await page.locator('#ffv2FileInput').setInputFiles({
+      name:'frameforge-animated-triangle.glb',
+      mimeType:'model/gltf-binary',
+      buffer:glb
+    });
+    await page.waitForFunction(() => document.querySelectorAll('.ffv2-asset-card').length===2, null, {timeout:20000});
+    const modelMeta = await page.locator('.ffv2-asset-card').nth(1).locator('.ffv2-asset-details').innerText();
+    assert.match(modelMeta,/glTF Binary 2.0/);
+    assert.match(modelMeta,/mesh/i);
+    await page.locator('.ffv2TargetTrack').count().catch(()=>{});
+    await page.locator('#ffv2TargetTrack').selectOption('');
+    await page.locator('.ffv2-asset-card').nth(1).locator('button.primary').click();
+    await page.waitForFunction(() => document.querySelectorAll('.ffv2-clip').length===6);
+    await page.locator('.ffv2-clip').last().click();
+    await page.waitForFunction(() => !document.getElementById('ffv23DClipControls').classList.contains('hidden'));
+    assert.equal(await page.locator('#ffv2ModelAnimation option').count(),2);
+    assert.equal(await page.locator('#ffv2ModelAnimation').inputValue(),'');
+    await page.locator('#ffv2ModelAnimation').selectOption('Triangle bob');
+    await page.locator('#ffv2ModelAnimationSpeed').fill('1.25');
+    await page.locator('#ffv2GroundContact').check();
+    await page.locator('#ffv2AabbCollision').check();
+    await page.locator('#ffv2Apply3DClip').click();
+    assert.match(await page.locator('#ffv23DModelInfo').textContent(),/1 mesh/);
+    await page.locator('#ffv2KeyframeProperty').selectOption('position3d.x');
+    await page.locator('#ffv2KeyframeValue').fill('1.25');
+    await page.locator('#ffv2SetKeyframe').click();
+    assert.match(await page.locator('#ffv2KeyframeInfo').textContent(),/1 keyframe/);
+
+    // Camera/lighting values are serializable, and the scene renderer reports its backend.
+    await page.locator('#ffv2CameraX').fill('5');
+    await page.locator('#ffv2AmbientIntensity').fill('0.6');
+    await page.locator('#ffv2Apply3DScene').click();
+    const threeRenderBefore = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id')||0);
+    await page.locator('#ffv2RenderFrame').click();
+    await waitForCompositorRevision(page,threeRenderBefore);
+    const threeStatus = await page.locator('#ffv2CompositorStatus').textContent();
+    assert.match(threeStatus,/visual layer/);
+
+    // The Blender bridge export is a portable ZIP containing the scene manifest, GLB and script.
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('#ffv2ExportBlender').click();
+    const bridgeDownload = await downloadPromise;
+    assert.match(bridgeDownload.suggestedFilename(),/blender-bridge\.zip$/);
+    const bridgePath = '/tmp/frameforge-v2-blender-bridge-test.zip';
+    await bridgeDownload.saveAs(bridgePath);
+    const bridgeBytes = fs.readFileSync(bridgePath);
+    assert.equal(bridgeBytes.readUInt32LE(0),0x04034b50,'Blender bridge should be a valid ZIP archive');
+    assert.ok(bridgeBytes.length>500,'Blender bridge ZIP should contain the scene and model files');
 
     assert.deepEqual(pageErrors, [], 'Browser page errors should be empty');
 
