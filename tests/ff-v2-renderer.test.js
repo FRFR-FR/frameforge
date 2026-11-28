@@ -6,7 +6,7 @@ const Renderer = require('../ff-v2-renderer.js');
 test('visual clips are ordered bottom to top and exclude disabled/audio tracks', () => {
   const p = Core.createDefaultProject();
   const seq = p.sequences[0];
-  const imageTrack = seq.tracks.find(t => t.type === 'image');
+  const imageTrack = seq.tracks.find(t => t.type === 'graphic');
   const titleTrack = seq.tracks.find(t => t.type === 'title');
   const audioTrack = seq.tracks.find(t => t.type === 'voiceover');
   const a = Core.addGraphicClip(p, titleTrack.id, 'text', { text: 'TOP' }, 0, 40);
