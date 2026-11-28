@@ -218,7 +218,7 @@ jobs:
           set -euo pipefail
           python "$EPISODE_DIR/render_episode.py"
 
-      - name: Validate master, footage coverage, no-caption rule and full decode
+      - name: Validate master, footage coverage, burned-in captions and full decode
         id: validate
         if: steps.broll.outputs.available == 'true' && steps.render.outcome == 'success'
         env:
@@ -257,13 +257,15 @@ jobs:
           assert a["codec_name"] == "aac" and a.get("sample_rate") == "48000" and int(a.get("channels", 0)) == 2, "Audio must be stereo AAC 48kHz"
           assert not any(s["codec_type"] == "subtitle" for s in meta["streams"]), "MP4 must not contain a subtitle stream"
           assert report.get("narration_provider") == "Kokoro-82M" and report.get("narration_voice_id") == "am_echo", "Kokoro Echo is mandatory"
-          assert report.get("captions") == "none", "Captions/subtitles must not be included"
+          assert report.get("captions") == "burned-in", "Kokoro captions must be burned into the picture"
+          assert int(report.get("max_source_clip_uses", 99)) == 1, "Each source asset may appear once maximum"
           assert report.get("chapter_labels") is True and report.get("channel_bug") is True, "Brand overlays are required"
           coverage = float(report.get("broll_coverage_percent", 0))
           graphics = float(report.get("graphics_percent", 0))
           assert 75 <= coverage <= 85, f"Measured B-roll share {coverage}% is outside the 75-85% target"
           assert 15 <= graphics <= 25, f"Motion-graphics share {graphics}% is outside the 15-25% target"
           assert int(report.get("unique_broll_clips", 0)) >= 40, "At least 40 unique relevant clips are required"
+          assert int(report.get("source_asset_uses", 0)) == int(report.get("unique_broll_clips", 0)), "A stock source was reused"
           assert int(report.get("subject_specific_clips", 0)) >= 10, "At least ten subject-specific clips are required"
           assert int(report.get("subject_specific_sections", 0)) >= 8, "Subject-specific footage must appear in at least eight sections"
           assert int(report.get("max_source_clip_uses", 99)) <= 2, "A source clip was reused more than twice"
@@ -318,4 +320,3 @@ jobs:
             ${{ steps.episode.outputs.dir }}/broll_acquisition_report.json
             ${{ steps.episode.outputs.dir }}/output/footage_attribution_description.txt
           if-no-files-found: warn
-          retention-days: 14

@@ -2,6 +2,7 @@
 """B-roll-first EP002 assembly: 720p H.264/AAC, Kokoro Echo, subtitles and strict QC."""
 from pathlib import Path
 import csv
+import hashlib
 import json
 import math
 import os
@@ -17,7 +18,7 @@ ASSETS = ROOT / "assets" / "broll"
 FPS = 24
 SHOT_SECONDS = 7.0
 CUTAWAY_SECONDS = 12.0
-MAX_SOURCE_USES = 2
+MAX_SOURCE_USES = 1
 MIN_BROLL_PERCENT = 75.0
 MAX_BROLL_PERCENT = 85.0
 CUTS = {
@@ -60,6 +61,14 @@ def duration(path):
     return float(probe(path)["format"]["duration"])
 
 
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def load_manifest():
     manifest_path = ROOT / "asset-manifest-broll.csv"
     if not manifest_path.is_file():
@@ -78,6 +87,19 @@ def load_manifest():
                 raise RuntimeError(f"Clip failed AI-generated-footage exclusion: {row.get('filename')}")
             if row.get("full_decode_check") != "PASS":
                 raise RuntimeError(f"Clip failed full-file decode: {row.get('filename')}")
+            review_status = row.get("visual_review_status", "PENDING").strip().upper()
+            if review_status not in ("APPROVED", "REJECTED", "PENDING"):
+                raise RuntimeError(f"Invalid visual-review status for {row.get('filename')}: {review_status}")
+            row["visual_review_status"] = review_status
+            if review_status == "APPROVED":
+                if row.get("relevance_level") != "subject-specific":
+                    raise RuntimeError(f"Only subject-specific footage can be visually approved: {row.get('filename')}")
+                if not row.get("visual_review_note", "").strip() or not row.get("visual_reviewed_at", "").strip():
+                    raise RuntimeError(f"Approved footage needs a reviewer note and review timestamp: {row.get('filename')}")
+                if row.get("media_type", "video").lower() not in ("video", "video/mp4", "mp4"):
+                    raise RuntimeError(f"Still images cannot be B-roll: {row.get('filename')}")
+                if row.get("motion_verified", "PASS").upper() not in ("PASS", "TRUE"):
+                    raise RuntimeError(f"Clip has not passed motion verification: {row.get('filename')}")
             filename = row["filename"].replace("\\", "/")
             if filename in by_filename:
                 raise RuntimeError(f"Duplicate rights manifest row: {filename}")
@@ -269,8 +291,8 @@ def markdown_report(report):
 - Relevant moving real-world B-roll: {report['broll_coverage_percent']}% ({report['broll_seconds']} seconds; {report['unique_broll_clips']} unique clips used)
 - Subject-specific / context-only B-roll: {report['subject_specific_clips']} / {report['context_only_clips']} unique clips
 - Original conceptual 3D motion graphics: {report['graphics_percent']}% ({report['graphics_seconds']} seconds; ten 12-second scenes)
-- Source reuse: maximum {report['max_source_clip_uses']} uses per clip
-- Captions/subtitles: none
+- Source reuse: maximum {report['max_source_clip_uses']} uses per source asset (global URL + SHA-256 gate)
+- Captions/subtitles: burned into picture; separate SRT retained
 - Chapter labels / channel bug: included over moving footage
 - Thumbnail: {report['thumbnail']} ({report['thumbnail_size_mb']} MB)
 - QC contact sheet: {report['qc_contact_sheet']}
@@ -314,9 +336,22 @@ def main():
     manifest = load_manifest()
     clipmap = {}
     clip_durations = {}
+    clip_hashes = {}
     for section in sections:
         section_id = section["id"]
-        clips = sorted((ASSETS / section_id).glob("*.mp4"))
+        discovered = sorted((ASSETS / section_id).glob("*.mp4"))
+        clips = []
+        for clip in discovered:
+            relative = clip.relative_to(ROOT).as_posix()
+            if relative not in manifest:
+                raise RuntimeError(f"Clip is absent from the rights/relevance manifest: {relative}")
+            record = manifest[relative]
+            if record.get("visual_review_status") != "APPROVED":
+                continue
+            if record.get("relevance_level") != "subject-specific":
+                continue
+            clips.append(clip)
+
         section_audio = ROOT / section["audio_file"]
         section_seconds = duration(section_audio)
         remaining = section_seconds - CUTAWAY_SECONDS
@@ -324,14 +359,15 @@ def main():
         minimum_unique = max(4, math.ceil(shots_needed / MAX_SOURCE_USES))
         if len(clips) < minimum_unique:
             raise RuntimeError(
-                f"{section_id}: {len(clips)} relevant clips available; {minimum_unique} are required "
-                "for the two-use cap. No unrelated filler will be substituted."
+                f"{section_id}: only {len(clips)} visually approved, subject-specific clips are eligible; "
+                f"{minimum_unique} globally unique assets are required under the one-use rule. "
+                "Do not use generic or context-only footage. Render the matching Three.js scene from "
+                "threejs/ep002_threejs_master.mjs and keep this episode blocked until the approved footage "
+                "and diagram timeline are integrated."
             )
         for clip in clips:
-            relative = clip.relative_to(ROOT).as_posix()
-            if relative not in manifest:
-                raise RuntimeError(f"Clip is absent from the rights/relevance manifest: {relative}")
             clip_durations[clip] = validate_clip(clip)
+            clip_hashes[clip] = sha256_file(clip)
         clipmap[section_id] = clips
 
     frames_dir = OUT / "3d_frames"
@@ -349,6 +385,8 @@ def main():
     broll_seconds = 0.0
     source_uses = {}
     unique_sources = set()
+    used_source_urls = set()
+    used_source_hashes = set()
     shot_index = 0
 
     for section in sections:
@@ -365,9 +403,17 @@ def main():
 
         while remaining > 0.01:
             shot_seconds = min(SHOT_SECONDS, remaining)
-            available = [clip for clip in clips if uses[clip] < MAX_SOURCE_USES]
+            available = [
+                clip for clip in clips
+                if uses[clip] < MAX_SOURCE_USES
+                and manifest[clip.relative_to(ROOT).as_posix()]["source_url"] not in used_source_urls
+                and clip_hashes[clip] not in used_source_hashes
+            ]
             if not available:
-                raise RuntimeError(f"{section_id}: source-use cap reached before covering narration.")
+                raise RuntimeError(
+                    f"{section_id}: no globally unique, visually approved source remains. "
+                    "Do not repeat a stock asset; use the corresponding Three.js scene instead."
+                )
             available.sort(key=lambda clip: (uses[clip], clip == previous, clip.name))
             source = available[0]
             used_before = uses[source]
@@ -375,6 +421,8 @@ def main():
             relative = source.relative_to(ROOT).as_posix()
             record = manifest[relative]
             unique_sources.add(relative)
+            used_source_urls.add(record["source_url"])
+            used_source_hashes.add(clip_hashes[source])
             source_uses[relative] = uses[source]
 
             source_duration = clip_durations[source]
@@ -464,7 +512,11 @@ def main():
         raise RuntimeError("Original vector thumbnail was not created.")
 
     final = OUT / "Underneath_Everything_EP002_Kokoro_Broll_720p.mp4"
+    srt = OUT / "narration_echo_kokoro.srt"
+    if not srt.is_file() or srt.stat().st_size < 100:
+        raise RuntimeError("Kokoro SRT is missing or empty; subtitles cannot be approved.")
     filters = overlay_filters(chapter_rows)
+    filters.append(make_subtitle_filter(srt))
     filter_graph = ",".join(filters)
     run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
@@ -545,6 +597,8 @@ def main():
         "graphics_seconds": round(graphics_seconds, 3),
         "graphics_percent": graphics_percent,
         "max_source_clip_uses": max_uses,
+        "source_asset_unique_key": "source_url + SHA-256",
+        "source_asset_uses": len(used_source_urls),
         "source_clip_uses": source_uses,
         "original_3d_cutaways": list(CUTS.values()),
         "original_3d_cutaway_count": len(CUTS),
@@ -552,7 +606,7 @@ def main():
         "rights_manifest": "asset-manifest-broll.csv",
         "rights_records_count": len(manifest),
         "broll_contact_sheets_count": len(list((OUT / "broll_review").glob("*_contact_sheet.jpg"))),
-        "captions": "none",
+        "captions": "burned-in",
         "chapter_labels": True,
         "channel_bug": True,
         "subtitle_streams": "none",
