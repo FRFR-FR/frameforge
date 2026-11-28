@@ -968,6 +968,61 @@
           "items": {
             "$ref": "#/$defs/constraint3d"
           }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "gain": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4,
+              "default": 1
+            },
+            "pan": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1,
+              "default": 0
+            },
+            "fade_in_frames": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "fade_out_frames": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "muted": {
+              "type": "boolean",
+              "default": false
+            },
+            "automation": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "frame",
+                  "gain"
+                ],
+                "properties": {
+                  "frame": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "gain": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 4
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "allOf": [
@@ -1096,6 +1151,28 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/clip"
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "gain": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4,
+              "default": 1
+            },
+            "pan": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1,
+              "default": 0
+            },
+            "solo": {
+              "type": "boolean",
+              "default": false
+            }
           }
         }
       }
