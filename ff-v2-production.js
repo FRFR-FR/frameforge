@@ -401,7 +401,7 @@
       license_url: item.license_url || '',
       attribution_text: text(item.attribution || '', 1000),
       rights_status: 'pending',
-      source_type: license.toLowerCase().includes('cc0') ? 'public_domain' : (license ? 'open_license' : 'unknown')
+      source_type: sourceTypeForLicense(license)
     };
   }
 
