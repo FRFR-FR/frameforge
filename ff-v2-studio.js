@@ -16,6 +16,8 @@
     project: null,
     assetRecords: [],
     objectUrls: new Map(),
+    renderSources: new Map(),
+    previewRenderId: 0,
     selectedAssetId: null,
     selectedClipId: null,
     playhead: 0,
@@ -488,6 +490,7 @@
     $('ffv2PlayheadLabel').textContent = 'Frame ' + state.playhead + ' · ' + (state.playhead / seq.fps).toFixed(2) + ' s';
     if (state.selectedClipId) renderClipInspector();
     renderPlayheadLine();
+    renderPreview();
   }
 
   function timelinePixelWidth() {
@@ -660,6 +663,345 @@
     $('ffv2DuplicateClip').disabled = found.track.locked;
     $('ffv2DeleteClip').disabled = found.track.locked;
     $('ffv2ApplyClipTiming').disabled = found.track.locked;
+  }
+
+  function renderClipInspector() {
+    const panel = $('ffv2ClipEditor');
+    const found = selectedClipInfo();
+    if (!found) {
+      panel.classList.add('hidden');
+      return;
+    }
+    panel.classList.remove('hidden');
+    const asset = state.project.assets.find(item => item.id === found.clip.asset_id);
+    const clip = found.clip;
+    const transform = Core.evaluateClipTransform(clip, state.playhead);
+    $('ffv2SelectedClipName').textContent = asset?.label || clip.generator?.parameters?.text || clip.generator?.type || clip.id;
+    $('ffv2ClipStart').value = String(clip.start_frame);
+    $('ffv2ClipDuration').value = String(clip.duration_frames);
+    $('ffv2ClipTrack').textContent = found.track.name + (found.track.locked ? ' · locked' : '');
+    const splitEnabled = !found.track.locked &&
+      state.playhead > clip.start_frame &&
+      state.playhead < clip.start_frame + clip.duration_frames;
+    $('ffv2SplitClip').disabled = !splitEnabled;
+    $('ffv2DuplicateClip').disabled = found.track.locked;
+    $('ffv2DeleteClip').disabled = found.track.locked;
+    $('ffv2ApplyClipTiming').disabled = found.track.locked;
+
+    $('ffv2TransformX').value = String(transform.position[0]);
+    $('ffv2TransformY').value = String(transform.position[1]);
+    $('ffv2TransformScaleX').value = String(transform.scale[0]);
+    $('ffv2TransformScaleY').value = String(transform.scale[1]);
+    $('ffv2TransformRotation').value = String(transform.rotation_degrees);
+    $('ffv2TransformOpacity').value = String(transform.opacity);
+    $('ffv2TransformAnchorX').value = String(transform.anchor[0]);
+    $('ffv2TransformAnchorY').value = String(transform.anchor[1]);
+    $('ffv2TransformFit').value = transform.fit || 'contain';
+    $('ffv2CropEnabled').checked = Boolean(transform.crop);
+    $('ffv2CropX').value = String(transform.crop?.x ?? 0);
+    $('ffv2CropY').value = String(transform.crop?.y ?? 0);
+    $('ffv2CropW').value = String(transform.crop?.width ?? 1);
+    $('ffv2CropH').value = String(transform.crop?.height ?? 1);
+    $('ffv2BlendMode').value = clip.blend_mode || 'normal';
+
+    const parentSelect = $('ffv2ParentClip');
+    const currentParent = clip.parent_clip_id || '';
+    parentSelect.replaceChildren();
+    const noParent = document.createElement('option');
+    noParent.value = '';
+    noParent.textContent = 'No parent';
+    parentSelect.append(noParent);
+    for (const track of currentSequence().tracks) {
+      if (['audio','music','sfx','voiceover'].includes(track.type)) continue;
+      for (const candidate of track.clips) {
+        if (candidate.id === clip.id) continue;
+        const option = document.createElement('option');
+        option.value = candidate.id;
+        option.textContent = (candidate.generator?.parameters?.text || candidate.generator?.type || candidate.id.slice(0, 14)) + ' · ' + track.name;
+        parentSelect.append(option);
+      }
+    }
+    parentSelect.value = currentParent;
+
+    const property = $('ffv2KeyframeProperty').value || 'position.x';
+    const currentTransform = Core.evaluateClipTransform(clip, state.playhead);
+    const keyValue = property === 'rotation_degrees' || property === 'opacity'
+      ? currentTransform[property]
+      : currentTransform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
+    $('ffv2KeyframeValue').value = String(keyValue);
+    const localFrame = state.playhead - clip.start_frame;
+    const sameFrameKeys = (clip.keyframes || []).filter(key => key.frame === localFrame);
+    $('ffv2KeyframeInfo').textContent = (clip.keyframes || []).length + ' keyframe(s) · local frame ' + Math.max(0, localFrame) +
+      (sameFrameKeys.length ? ' · current-frame key: ' + sameFrameKeys.map(key => key.property).join(', ') : '');
+
+    const mask = clip.mask || {};
+    $('ffv2MaskType').value = mask.type || 'none';
+    $('ffv2MaskShape').value = mask.shape || 'rect';
+    $('ffv2MaskFeather').value = String(mask.feather || 0);
+    $('ffv2MaskInvert').checked = Boolean(mask.invert);
+    $('ffv2MaskX').value = String(mask.bounds?.x ?? 0.1);
+    $('ffv2MaskY').value = String(mask.bounds?.y ?? 0.1);
+    $('ffv2MaskW').value = String(mask.bounds?.width ?? 0.8);
+    $('ffv2MaskH').value = String(mask.bounds?.height ?? 0.8);
+    const matteSelect = $('ffv2MaskAsset');
+    const selectedMatte = mask.asset_id || '';
+    matteSelect.replaceChildren();
+    const noMatte = document.createElement('option');
+    noMatte.value = '';
+    noMatte.textContent = 'Choose matte asset';
+    matteSelect.append(noMatte);
+    for (const item of state.project.assets) {
+      if (!['image','graphic'].includes(item.media_type)) continue;
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.label || item.id;
+      matteSelect.append(option);
+    }
+    matteSelect.value = selectedMatte;
+
+    const isText = clip.generator?.type === 'text';
+    const isShape = clip.generator?.type === 'shape';
+    const isSvg = clip.generator?.type === 'svg';
+    $('ffv2GraphicTextFields').classList.toggle('hidden', !isText);
+    $('ffv2GraphicShapeFields').classList.toggle('hidden', !isShape);
+    $('ffv2GraphicSvgFields').classList.toggle('hidden', !isSvg);
+    const params = clip.generator?.parameters || {};
+    $('ffv2GraphicText').value = params.text || '';
+    $('ffv2GraphicFont').value = params.font_family || 'Arial, sans-serif';
+    $('ffv2GraphicFontSize').value = String(params.font_size || 72);
+    $('ffv2GraphicColor').value = /^#[0-9a-f]{6}$/i.test(params.color || '') ? params.color : '#ffffff';
+    $('ffv2GraphicBackground').value = params.background || '';
+    $('ffv2GraphicShape').value = params.shape || 'rect';
+    $('ffv2GraphicFill').value = /^#[0-9a-f]{6}$/i.test(params.fill || '') ? params.fill : '#287fbd';
+    $('ffv2GraphicStroke').value = /^#[0-9a-f]{6}$/i.test(params.stroke || '') ? params.stroke : '#ffffff';
+    $('ffv2GraphicSvg').value = params.svg || '';
+  }
+
+  function applyClipTransform() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      const crop = $('ffv2CropEnabled').checked ? {
+        x: Number($('ffv2CropX').value), y: Number($('ffv2CropY').value),
+        width: Number($('ffv2CropW').value), height: Number($('ffv2CropH').value)
+      } : null;
+      Core.setClipTransform(state.project, found.clip.id, {
+        position: [Number($('ffv2TransformX').value), Number($('ffv2TransformY').value)],
+        scale: [Number($('ffv2TransformScaleX').value), Number($('ffv2TransformScaleY').value)],
+        rotation_degrees: Number($('ffv2TransformRotation').value),
+        opacity: Number($('ffv2TransformOpacity').value),
+        anchor: [Number($('ffv2TransformAnchorX').value), Number($('ffv2TransformAnchorY').value)],
+        fit: $('ffv2TransformFit').value,
+        crop
+      });
+      scheduleSave();
+      renderPreview();
+      setStatus('Layer transform and crop updated.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  function applyClipParent() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      Core.setClipParent(state.project, found.clip.id, $('ffv2ParentClip').value);
+      scheduleSave();
+      renderPreview();
+      setStatus('Parent relationship updated.', 'success');
+    } catch (error) {
+      renderClipInspector();
+      setStatus(error.message, 'warning');
+    }
+  }
+
+  function applyBlendMode() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    found.clip.blend_mode = $('ffv2BlendMode').value;
+    scheduleSave();
+    renderPreview();
+    setStatus('Blend mode updated.', 'success');
+  }
+
+  function applyClipMask() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      const type = $('ffv2MaskType').value;
+      const mask = type === 'none' ? null : {
+        type, shape: $('ffv2MaskShape').value, feather: Number($('ffv2MaskFeather').value),
+        invert: $('ffv2MaskInvert').checked,
+        bounds: { x:Number($('ffv2MaskX').value), y:Number($('ffv2MaskY').value),
+          width:Number($('ffv2MaskW').value), height:Number($('ffv2MaskH').value) },
+        asset_id: $('ffv2MaskAsset').value
+      };
+      Core.setClipMask(state.project, found.clip.id, mask);
+      scheduleSave();
+      renderPreview();
+      setStatus(type === 'none' ? 'Layer mask removed.' : 'Mask or matte applied.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  function setSelectedKeyframe() {
+    const found = selectedClipInfo();
+    if (!found) return;
+    try {
+      const property = $('ffv2KeyframeProperty').value;
+      const value = Number($('ffv2KeyframeValue').value);
+      Core.setKeyframe(state.project, found.clip.id, property, state.playhead, value, $('ffv2KeyframeInterpolation').value);
+      scheduleSave();
+      renderClipInspector();
+      renderPreview();
+      setStatus('Keyframe stored at local frame ' + (state.playhead - found.clip.start_frame) + '.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  function applyGeneratedGraphic() {
+    const found = selectedClipInfo();
+    if (!found || !found.clip.generator) return;
+    const clip = found.clip;
+    const params = Core.clone(clip.generator.parameters || {});
+    try {
+      if (clip.generator.type === 'text') {
+        params.text = $('ffv2GraphicText').value;
+        params.font_family = $('ffv2GraphicFont').value;
+        params.font_size = Math.max(1, Number($('ffv2GraphicFontSize').value) || 72);
+        params.color = $('ffv2GraphicColor').value;
+        params.background = $('ffv2GraphicBackground').value.trim();
+      } else if (clip.generator.type === 'shape') {
+        params.shape = $('ffv2GraphicShape').value;
+        params.fill = $('ffv2GraphicFill').value;
+        params.stroke = $('ffv2GraphicStroke').value;
+      } else if (clip.generator.type === 'svg') {
+        params.svg = $('ffv2GraphicSvg').value;
+        Core.validateSvgText(params.svg);
+      }
+      clip.generator.parameters = params;
+      scheduleSave();
+      renderPreview();
+      setStatus('Graphic style updated.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
+  }
+
+  async function resolveRenderAsset(assetRef, clip, mediaTime) {
+    const asset = state.assetRecords.find(item => item.id === assetRef.id);
+    if (!asset || !asset.blob) throw new Error('This media asset is not stored in this browser.');
+    let pending = state.renderSources.get(asset.id);
+    if (!pending) {
+      const url = getObjectUrl(asset);
+      if (!url) throw new Error('Could not create a local asset URL.');
+      if (asset.media_type === 'video') {
+        const video = document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        pending = new Promise((resolve, reject) => {
+          video.onloadedmetadata = () => resolve(video);
+          video.onerror = () => reject(new Error('Browser could not decode this video asset.'));
+          video.src = url;
+          video.load();
+        });
+      } else {
+        const image = new Image();
+        pending = new Promise((resolve, reject) => {
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error('Browser could not decode this image asset.'));
+          image.src = url;
+          if (typeof image.decode === 'function') image.decode().then(() => resolve(image)).catch(() => {});
+        });
+      }
+      state.renderSources.set(asset.id, pending);
+    }
+    const source = await pending;
+    if (source instanceof HTMLVideoElement) {
+      const target = Math.max(0, Math.min(Math.max(0, source.duration - 0.04), Number(mediaTime) || 0));
+      source.pause();
+      if (Math.abs(source.currentTime - target) > 0.025) {
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('Timed out seeking video frame for preview.')), 8000);
+          const done = () => { clearTimeout(timer); source.removeEventListener('seeked', done); resolve(); };
+          source.addEventListener('seeked', done, { once: true });
+          source.currentTime = target;
+        });
+      }
+    }
+    return source;
+  }
+
+  async function renderPreview() {
+    if (!state.project || !window.FFV2Renderer || !$('ffv2CompositorCanvas')) return;
+    const renderId = ++state.previewRenderId;
+    const canvas = $('ffv2CompositorCanvas');
+    const frame = state.playhead;
+    const button = $('ffv2RenderFrame');
+    if (button) button.disabled = true;
+    try {
+      const result = await window.FFV2Renderer.composeFrame({
+        project: state.project,
+        frame,
+        canvas,
+        resolveAsset: resolveRenderAsset
+      });
+      if (renderId !== state.previewRenderId) return;
+      const notice = $('ffv2CompositorStatus');
+      if (result.warnings.length) {
+        notice.textContent = result.drawn + ' layer(s) rendered · ' + result.warnings[0].message;
+        notice.dataset.kind = 'warning';
+      } else {
+        notice.textContent = 'Frame ' + frame + ' · ' + result.drawn + ' visual layer(s) · transparent alpha preserved';
+        notice.dataset.kind = 'success';
+      }
+    } catch (error) {
+      if (renderId === state.previewRenderId) {
+        $('ffv2CompositorStatus').textContent = 'Preview failed: ' + error.message;
+        $('ffv2CompositorStatus').dataset.kind = 'error';
+      }
+    } finally {
+      if (renderId === state.previewRenderId && button) button.disabled = false;
+    }
+  }
+
+  function downloadCompositorFrame() {
+    const canvas = $('ffv2CompositorCanvas');
+    if (!canvas) return;
+    canvas.toBlob(blob => {
+      if (!blob) { setStatus('PNG frame could not be encoded by this browser.', 'warning'); return; }
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'frameforge-v2-frame-' + state.playhead + '.png';
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      setStatus('Current V2 compositor frame exported as PNG.', 'success');
+    }, 'image/png');
+  }
+
+  function addGeneratedGraphic(kind) {
+    try {
+      const sequence = currentSequence();
+      const requestedTrackId = $('ffv2TargetTrack').value;
+      const trackType = kind === 'text' || kind === 'svg' ? 'title' : 'graphic';
+      let track = requestedTrackId ? sequence.tracks.find(item => item.id === requestedTrackId) : null;
+      if (!track || !['graphic','title'].includes(track.type)) track = sequence.tracks.find(item => item.type === trackType);
+      if (!track) track = Core.addTrack(state.project, trackType, trackType === 'title' ? 'Titles' : 'Graphics');
+      const params = kind === 'lower-third'
+        ? { text: 'Name / description', font_family: 'Arial, sans-serif', font_size: 42, font_weight: 700, color: '#ffffff', align: 'left', box_width: 760, box_height: 120, background: 'rgba(8, 18, 30, 0.88)' }
+        : kind === 'text'
+          ? { text: 'Your title', font_family: 'Arial, sans-serif', font_size: 72, font_weight: 700, color: '#ffffff', align: 'center', box_width: 900, box_height: 180, background: '' }
+          : kind === 'shape'
+            ? { shape: 'rect', width: 420, height: 220, fill: '#287fbd', stroke: '#ffffff', stroke_width: 0, radius: 18 }
+            : { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#287fbd"/></svg>' };
+      const clip = Core.addGraphicClip(state.project, track.id, kind === 'lower-third' ? 'text' : kind, params, state.playhead, Math.round(sequence.fps * 3));
+      if (kind === 'lower-third') Core.setClipTransform(state.project, clip.id, { position: [-sequence.width * 0.08, sequence.height * 0.32] });
+      state.selectedClipId = clip.id;
+      scheduleSave();
+      renderTracks();
+      renderClipInspector();
+      renderPreview();
+      setStatus('Generated ' + (kind === 'lower-third' ? 'lower third' : kind) + ' added to the timeline.', 'success');
+    } catch (error) { setStatus(error.message, 'warning'); }
   }
 
   function applyClipTiming() {
@@ -973,6 +1315,19 @@
     $('ffv2ZoomIn').addEventListener('click', () => setZoom(0.2));
     $('ffv2ZoomOut').addEventListener('click', () => setZoom(-0.2));
     $('ffv2ApplyClipTiming').addEventListener('click', applyClipTiming);
+    $('ffv2ApplyTransform').addEventListener('click', applyClipTransform);
+    $('ffv2ApplyParent').addEventListener('click', applyClipParent);
+    $('ffv2BlendMode').addEventListener('change', applyBlendMode);
+    $('ffv2ApplyMask').addEventListener('click', applyClipMask);
+    $('ffv2SetKeyframe').addEventListener('click', setSelectedKeyframe);
+    $('ffv2KeyframeProperty').addEventListener('change', renderClipInspector);
+    $('ffv2ApplyGraphic').addEventListener('click', applyGeneratedGraphic);
+    $('ffv2AddTitle').addEventListener('click', () => addGeneratedGraphic('text'));
+    $('ffv2AddLowerThird').addEventListener('click', () => addGeneratedGraphic('lower-third'));
+    $('ffv2AddShape').addEventListener('click', () => addGeneratedGraphic('shape'));
+    $('ffv2AddSvg').addEventListener('click', () => addGeneratedGraphic('svg'));
+    $('ffv2RenderFrame').addEventListener('click', renderPreview);
+    $('ffv2DownloadFrame').addEventListener('click', downloadCompositorFrame);
     $('ffv2SplitClip').addEventListener('click', splitSelectedClip);
     $('ffv2DuplicateClip').addEventListener('click', duplicateSelectedClip);
     $('ffv2DeleteClip').addEventListener('click', deleteSelectedClip);
