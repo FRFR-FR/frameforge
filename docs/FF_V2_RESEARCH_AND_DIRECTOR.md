@@ -51,7 +51,7 @@ The current director is deliberately a deterministic, rule-assisted first draft.
 
 ## Step 35 — Evidence and rights review
 
-Research claims are classified as factual, comparative, interpretation, opinion or illustrative. A claim also stores source IDs, confidence, verification status, evidence requirement and uncertainty/caveat notes.
+Research claims are classified as factual, comparative, interpretation, opinion or illustrative. A claim also stores source IDs, confidence, verification status, evidence requirement and uncertainty/caveat notes. Optional pinpoint evidence locations can be stored per source with a page/section/timecode locator, page reference, excerpt, notes and numeric start/end seconds for media clips. Each location must belong to a source ID already cited by that claim, and the end time cannot precede the start time. The claim editor accepts one locator per line in the form `SOURCE_ID | page 12, paragraph 2` or `SOURCE_ID | 00:01:23–00:01:41`; the latter is retained as an easy-to-review locator label, while numeric start/end values are available in the project data for precise media offsets.
 
 A shot may be marked as illustration, reconstruction, opinion or demonstration without claiming that the image itself proves a fact. Shots marked factual/comparative evidence must link to at least one claim. The claim must be classified factual/comparative, marked verified by the reviewer and supported by a source marked publicly accessible.
 
@@ -82,7 +82,7 @@ Existing V2 projects are normalised in memory when the director opens; existing 
 
 ## Example and verification
 
-The schema example [frameforge-research-director.example.json](../examples/frameforge-research-director.example.json) demonstrates a sourced firewall definition from NIST SP 800-41 Rev. 1, a reference-only format entry, a cybersecurity visual profile, an evidence-linked shot and a documented rights review for original procedural artwork.
+The schema example [frameforge-research-director.example.json](../examples/frameforge-research-director.example.json) demonstrates a sourced firewall definition from NIST SP 800-41 Rev. 1, an optional pinpoint source locator, a reference-only format entry, a cybersecurity visual profile, an evidence-linked shot and a documented rights review for original procedural artwork.
 
 Run the local checks with:
 
@@ -92,4 +92,4 @@ python -m unittest tests.test_ff_v2_foundations -v
 python tools/validate_project.py examples/frameforge-research-director.example.json
 ```
 
-The browser acceptance test is [ff-v2-director-browser-smoke.js](../tests/ff-v2-director-browser-smoke.js). It exercises brief intake, source/reference records, profile editing, timed shot generation, evidence linking, asset rights review and persistence after reload.
+The browser acceptance test is [ff-v2-director-browser-smoke.js](../tests/ff-v2-director-browser-smoke.js). It exercises brief intake, source/reference records, pinpoint source-location entry, profile editing, timed shot generation, evidence linking, asset rights review and persistence after reload.
