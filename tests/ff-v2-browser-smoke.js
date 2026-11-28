@@ -126,9 +126,11 @@ async function main() {
     await videoTrack.locator('button[title="Mute track"]').click();
     assert.equal(await videoTrack.locator('button[title="Unmute track"]').count(), 1);
     await page.locator('#ffv2ProjectName').fill('FrameForge V2 Browser Test');
+    page.once('dialog', dialog => dialog.accept());
     await page.locator('#ffv2SaveProject').click();
     await page.waitForFunction(() => document.getElementById('ffv2SaveStatus').textContent.includes('Saved locally'));
     await page.locator('#ffv2ProjectName').fill('FrameForge V2 Recovery Test');
+    page.once('dialog', dialog => dialog.accept());
     await page.locator('#ffv2SaveProject').click();
     await page.waitForFunction(() => document.getElementById('ffv2RecoveryButton').disabled === false);
     page.once('dialog', dialog => dialog.accept());
