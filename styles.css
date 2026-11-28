@@ -282,3 +282,84 @@ button { color: inherit; cursor: pointer; }
 .ffv2-storage-info { margin: 6px 0 9px; color: #8197ad; font-size: 8px; line-height: 1.5; overflow-wrap: anywhere; }
 
 .ffv2-dependency-warning { color: #f0ca86 !important; border-left: 2px solid #b98739; padding-left: 5px; }
+
+
+/* FrameForge V2 compositor, transforms and motion graphics */
+.ffv2-editor-subpanel {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 7px;
+  padding: 10px;
+  border: 1px solid #2a4057;
+  border-radius: 8px;
+  background: #0d1723;
+}
+.ffv2-editor-subpanel > strong { color: #cfe3f7; font-size: 10px; }
+.ffv2-control-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  gap: 7px;
+}
+.ffv2-control-grid.compact { grid-template-columns: repeat(3, minmax(100px, 1fr)); }
+.ffv2-control-grid label, .ffv2-editor-subpanel > label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: #91a8be;
+  font-size: 8px;
+}
+.ffv2-control-grid input, .ffv2-control-grid select,
+.ffv2-editor-subpanel input[type="number"], .ffv2-editor-subpanel input[type="text"],
+.ffv2-editor-subpanel select, .ffv2-editor-subpanel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid #344a61;
+  border-radius: 5px;
+  background: #09131e;
+  color: #e0ebf6;
+  font: 10px ui-monospace, monospace;
+}
+.ffv2-control-grid input[type="color"] { min-height: 28px; padding: 2px; }
+.ffv2-editor-subpanel textarea { resize: vertical; min-height: 88px; font-size: 9px; }
+.ffv2-inline-check { display: flex !important; align-items: center; gap: 7px !important; }
+.ffv2-inline-check input { accent-color: var(--accent); }
+.ffv2-info-text { color: #7f96ad; font-size: 8px; line-height: 1.5; overflow-wrap: anywhere; }
+.ffv2-compositor-panel {
+  margin-top: 13px;
+  padding: 11px;
+  border: 1px solid #2a4057;
+  border-radius: 9px;
+  background: #111d2b;
+}
+.ffv2-compositor-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 9px; margin-bottom: 9px; }
+.ffv2-compositor-header > div:first-child { display: grid; gap: 3px; }
+.ffv2-compositor-header strong { color: #dceafa; font-size: 11px; }
+.ffv2-compositor-header small { color: #859bb2; font-size: 8px; }
+.ffv2-compositor-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+.ffv2-compositor-actions .button { padding: 6px 8px; font-size: 8px; }
+.ffv2-compositor-stage {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  min-height: 150px;
+  border: 1px solid #2e4359;
+  border-radius: 6px;
+  background-color: #162333;
+  background-image: linear-gradient(45deg,#1c2a3a 25%,transparent 25%),linear-gradient(-45deg,#1c2a3a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1c2a3a 75%),linear-gradient(-45deg,transparent 75%,#1c2a3a 75%);
+  background-size: 22px 22px;
+  background-position: 0 0,0 11px,11px -11px,-11px 0;
+}
+#ffv2CompositorCanvas { display: block; width: min(100%, 1280px); height: auto; aspect-ratio: 16 / 9; object-fit: contain; }
+#ffv2CompositorStatus { margin-top: 8px; }
+#ffv2CompositorStatus[data-kind="error"] { color: #ffaaaa; border-color: #713b3b; }
+#ffv2CompositorStatus[data-kind="warning"] { color: #f0ca86; border-color: #6c5430; }
+@media (max-width: 760px) {
+  .ffv2-control-grid, .ffv2-control-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ffv2-compositor-actions { width: 100%; }
+  .ffv2-compositor-actions .button { flex: 1 1 auto; }
+  .ffv2-compositor-panel { padding: 8px; }
+}
