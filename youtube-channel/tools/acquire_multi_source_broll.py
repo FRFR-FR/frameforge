@@ -354,7 +354,7 @@ def main():
     for section in plan:
         if not {"id", "title", "query", "count", "match_groups"}.issubset(section) or len(section["match_groups"]) < 2:
             raise SystemExit(f"Invalid topic-specific B-roll section: {section.get('id')}")
-        section["queries"] = list(dict.fromkeys([section["query"], *section.get("queries", [])]))
+        section["queries"] = list(dict.fromkeys([section["query"], *section.get("queries", [])]))[:3]
     keys = {name: os.environ.get(name, "").strip()
             for name in ("PIXABAY_API_KEY", "COVERR_API_KEY", "PEXELS_API_KEY", "DVIDS_API_KEY")}
     searchers = [
@@ -398,7 +398,7 @@ def main():
             seconds = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "csv=p=0", str(root / audio_file)], text=True).strip())
         shots = max(1, int((max(0, seconds - 12) + SHOT - .001) // SHOT) + 1)
-        minimum = max(6, (shots + 1) // 2)
+        minimum = max(6, shots)
         target = max(int(section["count"]), minimum)
         targets[sid] = target
         candidates = {}
@@ -427,6 +427,9 @@ def main():
                                  "relevance_groups_total": len(section["match_groups"])})
                     if aid not in candidates or item["score"] > candidates[aid]["score"]:
                         candidates[aid] = item
+                if len(candidates) >= target + 4:
+                    print(f"[{sid}] enough candidates collected ({len(candidates)}/{target}); skipping extra fallback queries.", flush=True)
+                    break
         groups = {}
         for item in candidates.values():
             groups.setdefault(item["provider"], []).append(item)
