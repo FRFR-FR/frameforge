@@ -317,6 +317,13 @@ function makeTinScene(T,detailed){
   var preHead=laserHead("PRE-PULSE LASER",[-2.9,-0.48,0.63],-0.025);
   var mainHead=laserHead("MAIN PULSE LASER",[-2.9,0.20,-0.62],-0.025);
   preHead.base.scale.setScalar(0.76);mainHead.base.scale.setScalar(0.92);
+  // Separate expanding optical pulses are animated to contact the moving tin target.
+  // The first, lower-energy pulse reshapes the droplet; the stronger second pulse drives plasma formation.
+  var laserCore=mat(T,0xFFF2DC,0.08,0.12,0xFF873F);
+  var prePulseOuter=addPulseBeam(T,g,"PRE-PULSE LASER BEAM",[-1.86,-0.48,0.63],[0,-0.36,0],0.050,redGlow);
+  var prePulseCore=addPulseBeam(T,g,"PRE-PULSE LASER HOT CORE",[-1.86,-0.48,0.63],[0,-0.36,0],0.018,laserCore);
+  var mainPulseOuter=addPulseBeam(T,g,"MAIN HIGH-ENERGY LASER BEAM",[-1.86,0.20,-0.62],[0,-0.64,0],0.078,redGlow);
+  var mainPulseCore=addPulseBeam(T,g,"MAIN HIGH-ENERGY LASER HOT CORE",[-1.86,0.20,-0.62],[0,-0.64,0],0.027,laserCore);
   addBox(T,g,"laser head alignment rail",[-2.92,-1.20,0],[1.1,0.18,2.2],titanium,true);
   addBox(T,g,"laser service manifold",[-3.42,-0.20,0],[0.18,1.55,2.1],steel,true);
   for(var h=0;h<5;h++)addBeam(T,g,"laser coolant line",[-3.38,-0.65+h*0.18,-0.92],[-2.85,-0.65+h*0.18,-0.92],0.035,h%2?gold:titanium);
@@ -363,6 +370,8 @@ function makeTinScene(T,detailed){
       var main=T.MathUtils.smoothstep(p,0.40,0.50)*(1-T.MathUtils.smoothstep(p,0.52,0.60));
       var post=T.MathUtils.smoothstep(p,0.51,0.78);
       preHead.pitch.set(-0.025+0.012*Math.sin(p*4));mainHead.pitch.set(-0.025+0.012*Math.sin(p*4+0.7));
+      prePulseOuter.setProgress(pre);prePulseCore.setProgress(pre);
+      mainPulseOuter.setProgress(main);mainPulseCore.setProgress(main);
       if(pre>0.02)droplet.scale.set(1+0.55*pre,1-0.68*pre,1+0.28*pre);
       else if(main>0.02)droplet.scale.set(1+0.75*main,1-0.55*main,1+0.45*main);
       else if(post>0.01)droplet.scale.setScalar(Math.max(0.015,1-post));
