@@ -453,6 +453,18 @@ The V2 timeline still has a single-frame Canvas 2D/Three.js compositor for inter
 - The 250 MB per-file import ceiling may exceed the available browser storage quota on some devices.
 - The legacy V1 drawing editor and existing Blender/FF3D production workflows remain available and were not replaced by this batch.
 
+
+## Post-roadmap VFX extension — anger rise, peak burst and fire
+
+Added the reusable **anger-rise** clip effect to the V2 compositor without changing the project schema version. It is designed for a transparent PNG cut-out: keyframe intensity from 0 to 1 as the joke escalates, and the warm red tint rises from the feet toward the head. At the configured peak threshold it plays a short radial explosion/flash/shock-ring burst; procedural flames and ember particles animate along the lower edge while anger remains high. Tint strength, flame height and burst threshold are adjustable. The source alpha is retained by the tint pass, while the isolated subject remains recognisable at maximum tint.
+
+Implementation: [clip effect registry](../ff-v2-core.js), [Canvas renderer](../ff-v2-renderer.js), [V2 editor controls](../ff-v2-studio.js), [browser test](../tests/ff-v2-browser-smoke.js), and [VFX guide](FF_V2_VFX_AND_TRANSITIONS.md). Use a clean transparent PNG with documented reuse permission; importing an online image does not grant rights.
+
+Latest verification commit: `2e183a028b2227543e8bb17cbbe7a3f65c4a9336`.
+- [Foundation Validation run 46150580593](https://github.com/FRFR-FR/frameforge/actions/runs/46150580593) — 77/77 JavaScript tests and 52/52 Python tests passed.
+- [Browser Smoke run 46150580603](https://github.com/FRFR-FR/frameforge/actions/runs/46150580603) — editor, audio, director, production, render queue and mobile smoke markers all passed. The Chromium test exercises the actual cut-out VFX and checks the bottom-up tint, preserved alpha, lower-edge flames and peak burst frame.
+- [GitHub Pages deployment run 46150580658](https://github.com/FRFR-FR/frameforge/actions/runs/46150580658) — successful.
+
 ## Release state
 
 Steps 46–49 are implemented and verified. Step 50's stabilization, release notes, handover and manual tag publisher are prepared and checked into `main`. The actual GitHub `v2.0.0` tag/Release has **not** been created because the publisher requires an explicit manual workflow dispatch from the repository's Actions page. No automatic or background publishing is configured.

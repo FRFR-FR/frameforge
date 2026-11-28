@@ -22,6 +22,10 @@
 - Android/mobile quick navigation and documentation.
 - Cost-capped, manually dispatched GitHub Actions for small validation, merge/export and QA/package operations.
 
+### Anger-rise cut-out VFX
+
+A new keyframable `anger-rise` clip effect supports transparent PNG cut-outs. Animate intensity from 0 to 1 for a warm red tint that rises bottom-to-top; the final threshold triggers a short explosion/flash/shock-ring burst, with procedural flames and embers along the bottom edge. Tint strength, flame height and trigger threshold are configurable. The tint pass preserves the cut-out alpha. Use media with documented reuse permission.
+
 ### Two completed pilot builds
 - **Entertainment / power scaling:** Solar Sentinel vs Rift Warden. Original procedural character art, animated comparison graphics, illustrative (not canon) profile values, and scenario-dependent conclusion.
 - **Cybersecurity:** Pause, Check, Verify, Report. Original fictional inbox/UI, safe independent-verification flow, and source-linked defensive awareness advice.
@@ -41,8 +45,10 @@ Both demo MP4s were built as 1280×720, 24 FPS, 12-second H.264/AAC files on a s
 
 ## Verification
 
-- Foundation Validation: [run 46146137686](https://github.com/FRFR-FR/frameforge/actions/runs/46146137686) — 74 JavaScript tests and 52 Python tests passed.
-- Browser Smoke: [run 46144474819](https://github.com/FRFR-FR/frameforge/actions/runs/46144474819) — all editor, audio, director, production, render-queue and mobile smoke checks passed.
+- Latest Foundation Validation: [run 46150580593](https://github.com/FRFR-FR/frameforge/actions/runs/46150580593) — 77 JavaScript tests and 52 Python tests passed.
+- Latest Browser Smoke: [run 46150580603](https://github.com/FRFR-FR/frameforge/actions/runs/46150580603) — editor, audio, director, production, render-queue and mobile smoke tests passed, including the new anger-rise VFX.
+- Latest Pages deployment: [run 46150580658](https://github.com/FRFR-FR/frameforge/actions/runs/46150580658) — successful.
+- Pilot Builds and QA: [run 46146137635](https://github.com/FRFR-FR/frameforge/actions/runs/46146137635) — both 720p MP4s passed full decode and technical QA without black/frozen segments or QA/rights warnings. The two video files are 1.52 MB and 1.36 MB; the combined artifact is 6.46 MB and expires on 2026-12-01 at 12:46 UTC.
 - Pilot Builds and QA: [run 46146137635](https://github.com/FRFR-FR/frameforge/actions/runs/46146137635) — both 720p MP4s passed full decode and technical QA without black/frozen segments or QA/rights warnings. The two video files are 1.52 MB and 1.36 MB; the combined artifact is 6.46 MB and expires on 2026-12-01 at 12:46 UTC.
 
 The manual release workflow blocks publication unless the latest Foundation Validation, Pilot Builds/QA and Browser Smoke runs on `main` succeeded. It then re-runs the Python and JavaScript core suites on the release commit and validates both pilot projects before creating the annotated tag and GitHub Release. The release publisher is ready but has not been dispatched, so no `v2.0.0` tag or GitHub Release exists yet.
