@@ -96,7 +96,9 @@ async function waitForServer(child) {
     if (child.exitCode !== null) throw new Error('Static test server exited unexpectedly.');
     try {
       const response = await fetch(BASE_URL);
-      if (response.ok) return;
+      const ready = response.ok;
+      await response.arrayBuffer();
+      if (ready) return;
     } catch (_) { /* server is still starting */ }
     await new Promise(resolve => setTimeout(resolve, 200));
   }
