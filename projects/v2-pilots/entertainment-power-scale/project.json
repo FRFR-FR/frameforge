@@ -1,0 +1,293 @@
+{
+  "format": "frameforge-project",
+  "schema_version": 2,
+  "project": {
+    "id": "ffv2-power-scale-pilot",
+    "name": "Solar Sentinel vs Rift Warden — Power-Scaling Pilot",
+    "description": "12-second original-character matchup.",
+    "author": "FrameForge V2",
+    "created_at": "2026-11-28T00:00:00Z",
+    "updated_at": "2026-11-28T00:00:00Z"
+  },
+  "settings": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "color_space": "srgb",
+    "pixel_aspect_ratio": 1,
+    "sample_rate": 48000,
+    "audio_channels": 2
+  },
+  "assets": [
+    {
+      "id": "asset-arena",
+      "uri": "assets/arena-background.svg",
+      "media_type": "graphic",
+      "label": "Original orbital arena",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    },
+    {
+      "id": "asset-sentinel",
+      "uri": "assets/solar-sentinel.svg",
+      "media_type": "graphic",
+      "label": "Solar Sentinel character cut-out",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    },
+    {
+      "id": "asset-warden",
+      "uri": "assets/rift-warden.svg",
+      "media_type": "graphic",
+      "label": "Rift Warden character cut-out",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    },
+    {
+      "id": "asset-matchup",
+      "uri": "assets/comparison-plate.svg",
+      "media_type": "graphic",
+      "label": "Comparison graphic",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    }
+  ],
+  "sequences": [
+    {
+      "id": "sequence-main",
+      "name": "Power matchup",
+      "width": 1280,
+      "height": 720,
+      "fps": 24,
+      "duration_frames": 288,
+      "tracks": [
+        {
+          "id": "track-arena",
+          "name": "Arena",
+          "type": "graphic",
+          "order": 0,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-arena",
+              "kind": "asset",
+              "asset_id": "asset-arena",
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true,
+              "notes": "Original procedural orbital arena."
+            }
+          ]
+        },
+        {
+          "id": "track-sentinel",
+          "name": "Solar Sentinel",
+          "type": "image",
+          "order": 1,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-sentinel",
+              "kind": "asset",
+              "asset_id": "asset-sentinel",
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true,
+              "notes": "Original stylised character cut-out."
+            }
+          ]
+        },
+        {
+          "id": "track-warden",
+          "name": "Rift Warden",
+          "type": "image",
+          "order": 2,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-warden",
+              "kind": "asset",
+              "asset_id": "asset-warden",
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true,
+              "notes": "Original stylised character cut-out."
+            }
+          ]
+        },
+        {
+          "id": "track-stats",
+          "name": "Comparison titles",
+          "type": "title",
+          "order": 3,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-stats",
+              "kind": "asset",
+              "asset_id": "asset-matchup",
+              "start_frame": 60,
+              "duration_frames": 228,
+              "enabled": true,
+              "notes": "Illustrative values; not canon or science."
+            }
+          ]
+        },
+        {
+          "id": "track-particles",
+          "name": "Energy particles",
+          "type": "effect",
+          "order": 4,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-particles",
+              "kind": "generated",
+              "generator": {
+                "type": "seeded_particles",
+                "parameters": {
+                  "count": 45,
+                  "seed": 1701
+                }
+              },
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "track-sfx",
+          "name": "Original SFX",
+          "type": "sfx",
+          "order": 5,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-sfx",
+              "kind": "generated",
+              "generator": {
+                "type": "procedural_sfx",
+                "parameters": {
+                  "cue_frames": [
+                    24,
+                    75,
+                    130,
+                    214,
+                    247
+                  ],
+                  "sample_rate": 48000,
+                  "channels": 2
+                }
+              },
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true,
+              "audio": {
+                "gain": 0.7,
+                "pan": 0,
+                "fade_in_frames": 0,
+                "fade_out_frames": 18,
+                "muted": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "creative_brief": {
+    "topic": "How to compare two fictional characters fairly",
+    "niche": "entertainment_power_scaling",
+    "audience": "Character matchup viewers",
+    "platform": "youtube_longform",
+    "target_duration_seconds": 12,
+    "tone": "Energetic and analytical",
+    "visual_direction": "Original character cut-outs, energy fields, particles, side-by-side attribute bars and scenario analysis.",
+    "constraints": [
+      "Original characters only; no franchise artwork or likenesses.",
+      "All values are illustrative demo values, not canon or scientific measurements.",
+      "State matchup assumptions and support factual claims."
+    ],
+    "narration_script": "Two original characters. One matchup. Compare the same categories, but do not confuse illustrative profile values with canon. Define the arena, distance, goal and win conditions. Change the scenario and the result may change."
+  },
+  "research": {
+    "sources": [],
+    "claims": [],
+    "visual_style_observations": [
+      "Character reveals, comparison panels, animated profile bars, particles and scenario-analysis finish.",
+      "All character, background, label and sound assets are procedural."
+    ],
+    "researched_at": "2026-11-28T00:00:00Z"
+  }
+}

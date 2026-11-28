@@ -1,0 +1,109 @@
+{
+  "manifest_format": "frameforge-media-manifest",
+  "schema_version": 1,
+  "project_id": "ffv2-power-scale-pilot",
+  "generated_at": "2026-11-28T00:00:00Z",
+  "notes": "All visuals are original procedural SVG. No third-party media.",
+  "assets": [
+    {
+      "id": "asset-arena",
+      "uri": "assets/arena-background.svg",
+      "media_type": "graphic",
+      "role": "Original editable pilot artwork",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ],
+      "intended_use": "Editable FrameForge V2 pilot."
+    },
+    {
+      "id": "asset-sentinel",
+      "uri": "assets/solar-sentinel.svg",
+      "media_type": "graphic",
+      "role": "Original editable pilot artwork",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ],
+      "intended_use": "Editable FrameForge V2 pilot."
+    },
+    {
+      "id": "asset-warden",
+      "uri": "assets/rift-warden.svg",
+      "media_type": "graphic",
+      "role": "Original editable pilot artwork",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ],
+      "intended_use": "Editable FrameForge V2 pilot."
+    },
+    {
+      "id": "asset-matchup",
+      "uri": "assets/comparison-plate.svg",
+      "media_type": "graphic",
+      "role": "Original editable pilot artwork",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ],
+      "intended_use": "Editable FrameForge V2 pilot."
+    }
+  ]
+}

@@ -1,0 +1,339 @@
+{
+  "format": "frameforge-project",
+  "schema_version": 2,
+  "project": {
+    "id": "ffv2-cyber-phishing-pilot",
+    "name": "Pause, Check, Verify, Report — Cybersecurity Pilot",
+    "description": "12-second defensive phishing awareness animation with original UI diagrams.",
+    "author": "FrameForge V2",
+    "created_at": "2026-11-28T00:00:00Z",
+    "updated_at": "2026-11-28T00:00:00Z"
+  },
+  "settings": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "color_space": "srgb",
+    "pixel_aspect_ratio": 1,
+    "sample_rate": 48000,
+    "audio_channels": 2
+  },
+  "assets": [
+    {
+      "id": "asset-inbox",
+      "uri": "assets/mock-inbox.svg",
+      "media_type": "graphic",
+      "label": "Fictional email preview",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    },
+    {
+      "id": "asset-sender",
+      "uri": "assets/sender-check.svg",
+      "media_type": "graphic",
+      "label": "Sender inspection callout",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    },
+    {
+      "id": "asset-route",
+      "uri": "assets/trusted-route.svg",
+      "media_type": "graphic",
+      "label": "Independent verification route",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    },
+    {
+      "id": "asset-actions",
+      "uri": "assets/report-delete.svg",
+      "media_type": "graphic",
+      "label": "Report/delete action card",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 pilot",
+        "notes": "Original editable SVG."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural artwork created for this FrameForge pilot; no third-party media.",
+        "reviewed_by": "FrameForge V2 pilot maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "original",
+        "pilot"
+      ]
+    }
+  ],
+  "sequences": [
+    {
+      "id": "sequence-main",
+      "name": "Defensive message check",
+      "width": 1280,
+      "height": 720,
+      "fps": 24,
+      "duration_frames": 288,
+      "tracks": [
+        {
+          "id": "track-inbox",
+          "name": "Inbox UI",
+          "type": "graphic",
+          "order": 0,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-inbox",
+              "kind": "asset",
+              "asset_id": "asset-inbox",
+              "start_frame": 0,
+              "duration_frames": 156,
+              "enabled": true,
+              "notes": "Fictional message; reserved .example domain."
+            }
+          ]
+        },
+        {
+          "id": "track-sender",
+          "name": "Sender inspection",
+          "type": "title",
+          "order": 1,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-sender",
+              "kind": "asset",
+              "asset_id": "asset-sender",
+              "start_frame": 48,
+              "duration_frames": 84,
+              "enabled": true,
+              "notes": "Check sender domain and display name."
+            }
+          ]
+        },
+        {
+          "id": "track-route",
+          "name": "Independent verification",
+          "type": "graphic",
+          "order": 2,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-route",
+              "kind": "asset",
+              "asset_id": "asset-route",
+              "start_frame": 132,
+              "duration_frames": 84,
+              "enabled": true,
+              "notes": "Verify by a contact route already trusted."
+            }
+          ]
+        },
+        {
+          "id": "track-actions",
+          "name": "Report and delete",
+          "type": "title",
+          "order": 3,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-actions",
+              "kind": "asset",
+              "asset_id": "asset-actions",
+              "start_frame": 204,
+              "duration_frames": 84,
+              "enabled": true,
+              "notes": "Follow the organisation's reporting process."
+            }
+          ]
+        },
+        {
+          "id": "track-callouts",
+          "name": "Animated callouts",
+          "type": "effect",
+          "order": 4,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-callouts",
+              "kind": "generated",
+              "generator": {
+                "type": "security_callout_motion",
+                "parameters": {
+                  "steps": [
+                    "pause",
+                    "inspect",
+                    "verify",
+                    "report"
+                  ]
+                }
+              },
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "track-sfx",
+          "name": "Original SFX",
+          "type": "sfx",
+          "order": 5,
+          "enabled": true,
+          "muted": false,
+          "clips": [
+            {
+              "id": "clip-cyber-sfx",
+              "kind": "generated",
+              "generator": {
+                "type": "procedural_sfx",
+                "parameters": {
+                  "cue_frames": [
+                    29,
+                    91,
+                    146,
+                    209,
+                    245
+                  ],
+                  "sample_rate": 48000,
+                  "channels": 2
+                }
+              },
+              "start_frame": 0,
+              "duration_frames": 288,
+              "enabled": true,
+              "audio": {
+                "gain": 0.6,
+                "pan": 0,
+                "fade_in_frames": 0,
+                "fade_out_frames": 18,
+                "muted": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "creative_brief": {
+    "topic": "Recognise and safely report suspicious messages",
+    "niche": "cybersecurity",
+    "audience": "General users and students",
+    "platform": "youtube_longform",
+    "target_duration_seconds": 12,
+    "tone": "Clear and calm",
+    "visual_direction": "Technical inbox UI, sender inspection, trusted-route flow and report/delete checklist.",
+    "constraints": [
+      "Defensive awareness only; no live links or credentials.",
+      "Fictional message uses a reserved .example domain.",
+      "Follow current organisational reporting processes."
+    ],
+    "research_questions": [
+      "What signs can indicate a suspicious message?",
+      "How should a recipient verify a request safely?",
+      "How should suspicious messages be reported?"
+    ],
+    "narration_script": "A message can look familiar and still be suspicious. Pause before opening unexpected links or files. Check the sender address, unusual urgency and mismatched details. Verify the request through a known official website or contact route, not information inside the message. Then report it using your organisation's process and delete it."
+  },
+  "research": {
+    "sources": [
+      {
+        "id": "source-nist-phishing",
+        "url": "https://www.nist.gov/itl/smallbusinesscyber/guidance-topic/phishing",
+        "title": "Phishing guidance",
+        "publisher": "National Institute of Standards and Technology",
+        "retrieved_at": "2026-11-28T00:00:00Z",
+        "notes": "Guidance to recognise phishing, verify through trusted details and report suspicious messages.",
+        "source_type": "official_documentation",
+        "access_status": "public",
+        "confidence": "high"
+      },
+      {
+        "id": "source-cisa-phishing",
+        "url": "https://www.cisa.gov/sites/default/files/2024-09/Secure-Our-World-Phishing-Tip-Sheet.pdf",
+        "title": "Secure Our World: Phishing Tip Sheet",
+        "publisher": "Cybersecurity and Infrastructure Security Agency",
+        "retrieved_at": "2026-11-28T00:00:00Z",
+        "notes": "Sender mismatches, shortened URLs, urgency and unexpected attachments can be warning signs.",
+        "source_type": "official_documentation",
+        "access_status": "public",
+        "confidence": "high"
+      }
+    ],
+    "claims": [
+      {
+        "id": "claim-message-warning-signs",
+        "text": "Unexpected urgency, sender-address mismatches, shortened or unexpected links and unexpected attachments can be warning signs; verify requests via a trusted route and report suspicious messages.",
+        "source_ids": [
+          "source-nist-phishing",
+          "source-cisa-phishing"
+        ],
+        "confidence": "high",
+        "verification_status": "verified",
+        "classification": "factual",
+        "evidence_required": true,
+        "uncertainty_notes": "Warning signs are indicators rather than proof that every message is malicious."
+      }
+    ],
+    "visual_style_observations": [
+      "Clean technical UI panels and a cyan/red warning palette.",
+      "The mock message uses a reserved example domain and no live URL."
+    ],
+    "researched_at": "2026-11-28T00:00:00Z"
+  }
+}
