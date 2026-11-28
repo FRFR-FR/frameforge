@@ -161,10 +161,12 @@ def main():
     fire = IMPORTS / "pixabay-fire-simulation.mp4"
     video = OUT / "frameforge-vfx-russia-president-10s-imported.mp4"
     if not portrait.exists(): download(PORTRAIT_URL, portrait)
-    vfx = import_pixabay_vfx(fire)
+    # Complete and persist the transparent subject isolation before any external VFX request.
     cutout_info = make_cutout(portrait, cutout)
     make_red_cutout(cutout, red)
     checker_preview(cutout, OUT / "putin-cutout-checker-preview.jpg")
+    # The external VFX source must be licensed and imported; no procedural fallback is substituted.
+    vfx = import_pixabay_vfx(fire)
     compose(portrait, red, fire, video)
     probe = json.loads(run([
         "ffprobe", "-v", "error", "-select_streams", "v:0",
