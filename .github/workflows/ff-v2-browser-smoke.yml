@@ -13,6 +13,7 @@ on:
       - "ff-v2-director.js"
       - "ff-v2-production.js"
       - "ff-v2-production-ui.js"
+      - "ff-v2-render-queue.js"
       - "ff-v2-studio.js"
       - "ff-v2-renderer.js"
       - "ff-v2-3d-studio.js"
@@ -23,6 +24,7 @@ on:
       - "tests/ff-v2-audio-browser-smoke.js"
       - "tests/ff-v2-director-browser-smoke.js"
       - "tests/ff-v2-production-browser-smoke.js"
+      - "tests/ff-v2-render-queue-browser-smoke.js"
       - "tests/ff-v2-renderer.test.js"
       - ".github/workflows/ff-v2-browser-smoke.yml"
   workflow_dispatch:
@@ -59,3 +61,4 @@ jobs:
           node tests/ff-v2-audio-browser-smoke.js
           node tests/ff-v2-director-browser-smoke.js
           node tests/ff-v2-production-browser-smoke.js
+          node tests/ff-v2-render-queue-browser-smoke.js
