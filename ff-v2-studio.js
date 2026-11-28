@@ -231,7 +231,12 @@
           alpha_capable: metadata.alpha_capable,
           decode_status: metadata.decode_status,
           external_dependencies: metadata.external_dependencies || [],
-          dependency_warning: metadata.dependency_warning || ''
+          dependency_warning: metadata.dependency_warning || '',
+          model_count: metadata.model_count,
+          mesh_count: metadata.mesh_count,
+          dimensions: metadata.dimensions,
+          bounds: metadata.bounds,
+          animation_clips: metadata.animation_clips || []
         },
         provenance: {
           source_type: 'user_supplied',
