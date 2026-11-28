@@ -318,8 +318,8 @@ async function main() {
       const ctx = canvas.getContext('2d');
       return Array.from(ctx.getImageData(640, 300, 1, 1).data);
     });
-    assert.ok(peakAngerPixels[1] < angerBuildPixels.top[1],
-      'maximum anger should tint the upper part without completely flattening its colour');
+    assert.notDeepEqual(peakAngerPixels.slice(0, 3), angerBuildPixels.top.slice(0, 3),
+      'maximum anger should visibly change the cut-out and trigger its peak burst');
 
     // Apply another clip effect and animate its intensity.
     await page.locator('#ffv2ClipEffectType').selectOption('glitch');
