@@ -1267,6 +1267,7 @@
             "blur",
             "glow",
             "light-rays",
+            "depth-of-field",
             "chromatic-aberration",
             "glitch",
             "ripple",
