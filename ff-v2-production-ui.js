@@ -126,7 +126,14 @@
       if (result?.results) results.push(...result.results);
       else if (result?.mode === 'manual') {
         const note = root.document.createElement('p');
-        note.textContent = result.provider + ' uses a manual browser workflow: ' + result.url;
+        note.textContent = result.provider + ' opens an item-level search page. Check each asset licence before downloading. ';
+        const link = root.document.createElement('a');
+        link.href = safeLink(result.url) || '#';
+        link.textContent = 'Open ' + result.provider + ' search';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        if (link.href === '#') link.removeAttribute('target');
+        note.append(link);
         node.append(note);
       }
     });
@@ -181,7 +188,8 @@
       status('Openverse search supports images and audio here. Use Wikimedia Commons for video search.', 'warning');
       return;
     }
-    status('Searching ' + (provider === 'openverse' ? 'Openverse' : 'Wikimedia Commons') + '…');
+    const providerLabel = root.FFV2Production.PROVIDERS[provider]?.label || provider;
+    status('Preparing ' + providerLabel + ' search…');
     try {
       const result = await root.FFV2Production.searchProvider(provider, query, mediaType);
       renderProviderResults([result]);
@@ -201,7 +209,8 @@
       license_name: value('ffv2ProductionLicense'),
       license_url: value('ffv2ProductionLicenseUrl'),
       attribution_text: value('ffv2ProductionAttribution'),
-      restrictions: value('ffv2ProductionRestrictions').split('\n').map(item => item.trim()).filter(Boolean)
+      restrictions: value('ffv2ProductionRestrictions').split('\n').map(item => item.trim()).filter(Boolean),
+      tags: value('ffv2ProductionTags').split(',').map(item => item.trim()).filter(Boolean)
     };
     const merged = Object.assign({}, selectedResult || {}, manual);
     return root.FFV2Production.importOptionsForSelection(merged, value('ffv2AudioRole'));
@@ -357,6 +366,7 @@
     });
     $('ffv2SearchOpenverse').addEventListener('click', () => search('openverse'));
     $('ffv2SearchCommons').addEventListener('click', () => search('wikimedia_commons'));
+    $('ffv2SearchPixabayVfx').addEventListener('click', () => search('pixabay_vfx'));
     $('ffv2ChooseProductionFile').addEventListener('click', () => $('ffv2ProductionImportFile').click());
     $('ffv2ProductionImportFile').addEventListener('change', event => importLocalFile(event.target.files?.[0]));
     $('ffv2CreateProceduralGraphic').addEventListener('click', createGraphic);
@@ -367,7 +377,9 @@
     const sourceType = $('ffv2SourceType');
     sourceType.addEventListener('change', () => {
       $('ffv2SearchOpenverse').disabled = sourceType.value === 'video';
+      $('ffv2SearchPixabayVfx').disabled = sourceType.value !== 'video';
     });
+    $('ffv2SearchPixabayVfx').disabled = sourceType.value !== 'video';
     populateRecipes();
     populateAudio();
     buildAudioReport();
