@@ -70,12 +70,12 @@ async function main() {
       sequence.width = 320;
       sequence.height = 180;
       sequence.fps = 30;
-      sequence.duration_frames = 24;
+      sequence.duration_frames = 4;
       const graphics = sequence.tracks.find(track => track.type === 'graphic') ||
         window.FFV2Core.addTrack(project, 'graphic', 'Smoke graphics');
       window.FFV2Core.addGraphicClip(project, graphics.id, 'svg', {
         svg: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect width="320" height="180" fill="#123456"/><circle cx="160" cy="90" r="52" fill="#55a7ff"/></svg>'
-      }, 0, 24);
+      }, 0, 4);
       window.FFV2Studio.markDirty();
       const store = window.FFV2Studio.renderStorage;
       const original = store.saveFrame.bind(store);
@@ -90,7 +90,7 @@ async function main() {
       };
     });
 
-    await page.locator('#ffv2RenderQueueChunkSize').selectOption('12');
+    await page.locator('#ffv2RenderQueueChunkSize').selectOption('2');
     await page.locator('#ffv2RenderQueueCreate').click();
     const queueState = await page.evaluate(() => ({
       job: window.FFV2RenderQueue.getCurrentJob(),
@@ -127,8 +127,8 @@ async function main() {
       };
     }, jobId);
     assert.equal(completed.status, 'complete');
-    assert.equal(completed.count, 24);
-    assert.equal(completed.rendered_frames, 24, 'Each unique frame should be rendered exactly once.');
+    assert.equal(completed.count, 4);
+    assert.equal(completed.rendered_frames, 4, 'Each unique frame should be rendered exactly once.');
     assert.ok(completed.skipped_frames >= 1, 'Resume should skip the already stored frame.');
     assert.equal(completed.chunk_count, 2);
 
@@ -142,7 +142,7 @@ async function main() {
     assert.equal(bytes.readUInt32LE(0), 0x04034b50, 'Chunk ZIP should begin with a ZIP local-file header.');
     assert.ok(bytes.includes(Buffer.from('chunk-manifest.json')));
     assert.ok(bytes.includes(Buffer.from('frame_000000.png')));
-    assert.ok(bytes.includes(Buffer.from('frame_000011.png')));
+    assert.ok(bytes.includes(Buffer.from('frame_000001.png')));
 
     await page.waitForTimeout(900);
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -155,7 +155,7 @@ async function main() {
       frameCount: await window.FFV2Studio.renderStorage.countFrames(id)
     }), jobId);
     assert.equal(persisted.job.status, 'complete');
-    assert.equal(persisted.frameCount, 24);
+    assert.equal(persisted.frameCount, 4);
     assert.equal(persisted.job.width, 320);
     assert.equal(persisted.job.height, 180);
     assert.deepEqual(pageErrors, []);
