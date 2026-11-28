@@ -112,8 +112,22 @@ async function main() {
       return count >= 1 && job?.status === 'paused';
     }, jobId, { timeout: 30000 });
 
-    const pausedCount = await page.evaluate(id => window.FFV2Studio.renderStorage.countFrames(id), jobId);
-    assert.equal(pausedCount, 1, 'Expected pause immediately after the first durable frame.');
+    const pausedState = await page.evaluate(async id => ({
+      count: await window.FFV2Studio.renderStorage.countFrames(id),
+      job: await window.FFV2Studio.renderStorage.getJob(id),
+      frameZero: await window.FFV2Studio.renderStorage.getFrame(id, 0),
+      statusText: document.getElementById('ffv2RenderQueueStatus')?.textContent
+    }), jobId);
+    console.log('RENDER_QUEUE_PAUSED_STATE', JSON.stringify({
+      count: pausedState.count,
+      jobStatus: pausedState.job?.status,
+      completedFrames: pausedState.job?.completed_frames,
+      renderedFrames: pausedState.job?.rendered_frames,
+      skippedFrames: pausedState.job?.skipped_frames,
+      hasFrameZero: Boolean(pausedState.frameZero?.blob?.size),
+      statusText: pausedState.statusText
+    }));
+    assert.equal(pausedState.count, 1, 'Expected pause immediately after the first durable frame.');
     await page.locator('#ffv2RenderQueueStart').click();
     await page.waitForFunction(async id => {
       const job = await window.FFV2Studio.renderStorage.getJob(id);
