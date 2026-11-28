@@ -1,0 +1,294 @@
+{
+  "format": "frameforge-project",
+  "schema_version": 2,
+  "project": {
+    "id": "ffv2-example-project",
+    "name": "FrameForge V2 Research and Director Example",
+    "description": "A schema example demonstrating a sourced claim, reference-only video, niche style profile, timed shot and documented asset-rights review.",
+    "author": "FrameForge",
+    "created_at": "2026-11-28T00:00:00Z",
+    "updated_at": "2026-11-28T00:00:00Z"
+  },
+  "settings": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "color_space": "srgb",
+    "pixel_aspect_ratio": 1,
+    "sample_rate": 48000,
+    "audio_channels": 2
+  },
+  "assets": [
+    {
+      "id": "asset-opening-grid",
+      "uri": "assets/opening-grid.svg",
+      "media_type": "graphic",
+      "label": "Procedural opening grid",
+      "provenance": {
+        "source_type": "procedural",
+        "creator": "FrameForge V2 example",
+        "notes": "Original SVG authored as part of this example."
+      },
+      "rights": {
+        "status": "approved",
+        "attribution_required": false,
+        "review_basis": "Original procedural vector artwork authored for this example; no third-party media is included.",
+        "reviewed_by": "FrameForge example maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": []
+      },
+      "tags": [
+        "procedural",
+        "graphic",
+        "background"
+      ]
+    }
+  ],
+  "sequences": [
+    {
+      "id": "sequence-main",
+      "name": "Main",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "duration_frames": 120,
+      "tracks": [
+        {
+          "id": "track-graphics",
+          "name": "Graphics",
+          "type": "graphic",
+          "order": 0,
+          "enabled": true,
+          "muted": false,
+          "locked": false,
+          "clips": [
+            {
+              "id": "clip-opening-grid",
+              "kind": "asset",
+              "asset_id": "asset-opening-grid",
+              "start_frame": 0,
+              "duration_frames": 120,
+              "enabled": true,
+              "transform": {
+                "position": [
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1
+                ],
+                "rotation_degrees": 0,
+                "opacity": 1,
+                "anchor": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "keyframes": [
+                {
+                  "property": "transform.opacity",
+                  "frame": 0,
+                  "interpolation": "linear",
+                  "value": 0
+                },
+                {
+                  "property": "transform.opacity",
+                  "frame": 20,
+                  "interpolation": "ease_out",
+                  "value": 1
+                }
+              ],
+              "effects": [
+                {
+                  "id": "effect-soft-glow",
+                  "type": "glow",
+                  "enabled": true,
+                  "parameters": {
+                    "strength": 0.25
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "track-voiceover",
+          "name": "Voiceover",
+          "type": "voiceover",
+          "order": 1,
+          "enabled": true,
+          "muted": false,
+          "locked": false,
+          "clips": []
+        }
+      ]
+    }
+  ],
+  "creative_brief": {
+    "topic": "How layered motion graphics are represented in FrameForge",
+    "niche": "software education",
+    "audience": "Creators learning a visual production workflow",
+    "platform": "youtube_longform",
+    "target_duration_seconds": 4,
+    "tone": "Clear and explanatory",
+    "visual_direction": "Use original vector graphics and restrained camera movement.",
+    "constraints": [
+      "No paid services",
+      "No unlicensed external media"
+    ],
+    "narration_script": "A firewall compares network traffic with configured rules. It permits or blocks traffic according to the rule set.",
+    "desired_style": "Technical explainer with crisp procedural diagrams and restrained 3D.",
+    "research_questions": [
+      "Which official source defines the firewall's filtering behaviour?"
+    ],
+    "ambiguities_to_resolve": [
+      "The term firewall may refer to network, host-based or application-layer filtering; name the system being described."
+    ],
+    "restrictions": [
+      "Do not present simulated dashboards as real evidence.",
+      "Do not use unrelated stock footage."
+    ]
+  },
+  "research": {
+    "sources": [
+      {
+        "id": "source-firewall-guide",
+        "url": "https://example.org/firewall-guide",
+        "title": "Firewall technical guide",
+        "publisher": "Example Technical Institute",
+        "published_at": "2026-10-01T00:00:00Z",
+        "retrieved_at": "2026-11-28T00:00:00Z",
+        "source_type": "official_documentation",
+        "access_status": "public",
+        "confidence": "high",
+        "notes": "Illustrative source entry for schema validation; replace with a real reviewed source in production."
+      }
+    ],
+    "claims": [
+      {
+        "id": "claim-firewall-rules",
+        "text": "A firewall compares network traffic with a configured rule set.",
+        "source_ids": [
+          "source-firewall-guide"
+        ],
+        "confidence": "high",
+        "verification_status": "verified",
+        "classification": "factual",
+        "evidence_required": true,
+        "uncertainty_notes": "Specific filtering behaviour depends on the firewall type and configuration."
+      }
+    ],
+    "visual_style_observations": [
+      "Reference network diagrams are best used to explain topology, not to imply a real captured network."
+    ],
+    "researched_at": "2026-11-28T00:00:00Z",
+    "reference_videos": [
+      {
+        "id": "reference-network-explainer",
+        "url": "https://www.youtube.com/watch?v=example-reference",
+        "title": "Network explainer format reference",
+        "creator": "Example Channel",
+        "platform": "YouTube",
+        "published_at": "2026-09-12T00:00:00Z",
+        "retrieved_at": "2026-11-28T00:00:00Z",
+        "access_status": "public",
+        "notes": "Reference only: study the pacing and diagram structure; do not reuse protected footage or audio.",
+        "observed_format": [
+          "Animated diagram reveals the network path",
+          "Labels explain each decision point"
+        ],
+        "reference_only": true
+      }
+    ],
+    "research_questions": [
+      "Which official source defines the firewall's filtering behaviour?"
+    ],
+    "confidence_notes": [
+      "The example's source and video URLs are placeholders used to demonstrate the data structure."
+    ]
+  },
+  "visual_style_profile": {
+    "id": "style-cybersecurity-example",
+    "niche": "cybersecurity",
+    "label": "Cybersecurity technical explainer",
+    "visual_language": "Use labelled network topology, packet-flow diagrams and clearly identified interface simulations.",
+    "preferred_media": [
+      "procedural_2d",
+      "three_d",
+      "diagram",
+      "screenshots",
+      "typography"
+    ],
+    "pacing": "brisk",
+    "camera_language": "Push in to a device, track the packet path and hold on the rule decision.",
+    "sound_language": "Subtle clicks and digital pulses synced to visible interface events; keep narration dominant.",
+    "avoid": [
+      "Unrelated B-roll",
+      "Simulated screens shown as authentic evidence",
+      "Unverified dashboards"
+    ]
+  },
+  "shot_plan": {
+    "id": "shotplan-firewall-example",
+    "method": "assistant_directed",
+    "status": "approved",
+    "fps": 30,
+    "generated_at": "2026-11-28T00:00:00Z",
+    "total_frames": 120,
+    "director_notes": "Sourced factual claim is visually supported by a labelled explanatory diagram. The diagram is not represented as actual network capture.",
+    "beats": [
+      {
+        "id": "shot-firewall-rules",
+        "start_frame": 0,
+        "end_frame": 120,
+        "narration": "A firewall compares network traffic with configured rules.",
+        "visual_purpose": "Show the packet path entering a firewall and the allow/block decision point.",
+        "media_mix": [
+          "diagram",
+          "procedural_2d"
+        ],
+        "visual_role": "factual_evidence",
+        "evidence_requirement": "source_document",
+        "asset_ids": [],
+        "camera_movement": "Track along the network path, then hold on the rule decision.",
+        "visual_actions": [
+          "Animate one packet travelling toward the firewall",
+          "Highlight the configured rule check",
+          "Label allow and block outcomes"
+        ],
+        "effect_notes": "Use a restrained path highlight and short status pulse; do not add decorative glitch effects.",
+        "asset_requirements": [
+          "Original labelled network topology diagram"
+        ],
+        "transition_in": "Clean cut from the hook",
+        "transition_out": "Match cut to the outcome diagram",
+        "audio_cues": [
+          "Quiet interface click when the rule is evaluated"
+        ],
+        "evidence_claim_ids": [
+          "claim-firewall-rules"
+        ],
+        "notes": "The diagram is an explanatory visual, not footage of a real packet capture."
+      }
+    ]
+  },
+  "rights_review": {
+    "status": "approved",
+    "reviewer": "Example project maintainer",
+    "reviewed_at": "2026-11-28T00:00:00Z",
+    "notes": "Only original procedural artwork is in the example project.",
+    "asset_reviews": [
+      {
+        "asset_id": "asset-opening-grid",
+        "decision": "approved",
+        "basis": "Original procedural vector asset authored by the project maintainer for this example.",
+        "intended_use": "Background grid and diagram framing only.",
+        "reviewer": "Example project maintainer",
+        "reviewed_at": "2026-11-28T00:00:00Z",
+        "restrictions": [],
+        "attribution_text": ""
+      }
+    ]
+  }
+}
