@@ -791,6 +791,112 @@
   }
 
 
+
+  function zipCrc32(bytes) {
+    let crc=0xffffffff;
+    for(const byte of bytes){
+      crc^=byte;
+      for(let bit=0;bit<8;bit++) crc=(crc>>>1)^(0xedb88320&-(crc&1));
+    }
+    return (crc^0xffffffff)>>>0;
+  }
+
+  function put16(view,offset,value){view.setUint16(offset,value,true);}
+  function put32(view,offset,value){view.setUint32(offset,value>>>0,true);}
+
+  async function buildStoredZip(files) {
+    const encoder=new TextEncoder(), local=[], central=[];
+    let offset=0;
+    for(const file of files){
+      const name=encoder.encode(file.name);
+      const data=file.data instanceof Blob?new Uint8Array(await file.data.arrayBuffer()):
+        (file.data instanceof Uint8Array?file.data:encoder.encode(String(file.data)));
+      if(data.byteLength>0xffffffff) throw new Error('A single bridge ZIP file exceeds the 4 GB ZIP limit.');
+      const crc=zipCrc32(data);
+      const localHeader=new Uint8Array(30+name.length), lv=new DataView(localHeader.buffer);
+      put32(lv,0,0x04034b50);put16(lv,4,20);put16(lv,6,0x0800);put16(lv,8,0);
+      put16(lv,10,0);put16(lv,12,0);put32(lv,14,crc);put32(lv,18,data.length);put32(lv,22,data.length);
+      put16(lv,26,name.length);put16(lv,28,0);localHeader.set(name,30);
+      local.push(localHeader,data);
+      const centralHeader=new Uint8Array(46+name.length), cv=new DataView(centralHeader.buffer);
+      put32(cv,0,0x02014b50);put16(cv,4,20);put16(cv,6,20);put16(cv,8,0x0800);put16(cv,10,0);
+      put16(cv,12,0);put16(cv,14,0);put32(cv,16,crc);put32(cv,20,data.length);put32(cv,24,data.length);
+      put16(cv,28,name.length);put16(cv,30,0);put16(cv,32,0);put16(cv,34,0);put16(cv,36,0);
+      put32(cv,38,0);put32(cv,42,offset);centralHeader.set(name,46);
+      central.push(centralHeader);
+      offset+=localHeader.length+data.length;
+      if(offset>0xffffffff) throw new Error('The Blender bridge ZIP would exceed the classic ZIP 4 GB limit.');
+    }
+    const centralSize=central.reduce((sum,item)=>sum+item.length,0);
+    const end=new Uint8Array(22), ev=new DataView(end.buffer);
+    put32(ev,0,0x06054b50);put16(ev,4,0);put16(ev,6,0);
+    put16(ev,8,files.length);put16(ev,10,files.length);put32(ev,12,centralSize);put32(ev,16,offset);put16(ev,20,0);
+    return new Blob([...local,...central,end],{type:'application/zip'});
+  }
+
+  async function exportBlenderBridgePackage() {
+    try {
+      setStatus('Packaging Blender scene and local 3D assets…');
+      const sequence=currentSequence();
+      const modelClips=sequence.tracks.flatMap(track=>(track.clips||[]).map(clip=>({track,clip})))
+        .filter(item=>{
+          const ref=state.project.assets.find(asset=>asset.id===item.clip.asset_id);
+          return ref?.media_type==='model3d';
+        });
+      const files=[],models=[],included=new Set();
+      for(const item of modelClips){
+        const ref=state.project.assets.find(asset=>asset.id===item.clip.asset_id);
+        const asset=state.assetRecords.find(record=>record.id===ref.id);
+        if(!asset?.blob) throw new Error('Missing local model file: '+(ref.label||ref.id)+'. Re-import it before exporting.');
+        const folder='assets/'+asset.id+'/';
+        const relativeName=makeSafeName(asset.file_name||asset.label||'model.glb');
+        const assetPath=folder+relativeName;
+        if(!included.has(assetPath)){files.push({name:assetPath,data:asset.blob});included.add(assetPath);}
+        for(const uri of asset.metadata?.external_dependencies||[]){
+          const normalized=String(uri).replace(/\\\\/g,'/');
+          if(normalized.startsWith('/')||normalized.split('/').includes('..')) throw new Error('Unsafe external glTF dependency path: '+uri);
+          const basename=decodeURIComponent(normalized.split('/').pop()||'');
+          const dependency=state.assetRecords.find(record=>record.blob&&(record.file_name||'').toLowerCase()===basename.toLowerCase());
+          if(!dependency) throw new Error('Missing glTF dependency "'+uri+'". Import every referenced .bin/texture asset first.');
+          const dependencyPath=folder+normalized;
+          if(!included.has(dependencyPath)){files.push({name:dependencyPath,data:dependency.blob});included.add(dependencyPath);}
+        }
+        models.push({
+          asset_id:asset.id,name:asset.label||asset.file_name,asset_path:assetPath,
+          start_frame:item.clip.start_frame,duration_frames:item.clip.duration_frames,
+          transform:Core.clone(item.clip.transform3d||{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}),
+          animation:Core.clone(item.clip.animation||{enabled:true,clip_name:'',time_scale:1,loop:true,start_frame:item.clip.start_frame}),
+          constraints:Core.clone(item.clip.constraints||[])
+        });
+      }
+      const manifest={
+        format:'frameforge-blender-scene',schema_version:1,
+        project:Core.clone(state.project.project),
+        settings:{
+          width:sequence.width,height:sequence.height,fps:sequence.fps,
+          start_frame:1,end_frame:Math.max(1,sequence.duration_frames),
+          resolution_percentage:100,render_engine:'BLENDER_EEVEE_NEXT',samples:32
+        },
+        scene:Core.clone(sequence.scene3d||Core.default3DSceneSettings()),
+        models,objects:[],ground:{name:'FrameForge Ground',size:40,position:[0,0,-0.05],material:{color:'#182638',roughness:0.9}}
+      };
+      const scriptResponse=await fetch(new URL('tools/frameforge_blender_bridge.py',document.baseURI));
+      if(!scriptResponse.ok) throw new Error('Could not load the versioned Blender bridge script from this FrameForge build.');
+      const script=await scriptResponse.text();
+      files.push({name:'frameforge_blender_scene.json',data:JSON.stringify(manifest,null,2)});
+      files.push({name:'tools/frameforge_blender_bridge.py',data:script});
+      files.push({name:'README_BLENDER_BRIDGE.txt',data:
+        'FrameForge V2 Blender Bridge\\n\\n1. Extract this ZIP.\\n2. Install Blender 4.x or later.\\n3. Open a terminal in this folder and run:\\n   blender --background --python tools/frameforge_blender_bridge.py -- --project frameforge_blender_scene.json --output-dir output --mode build\\n4. Render a frame:\\n   blender --background --python tools/frameforge_blender_bridge.py -- --project frameforge_blender_scene.json --output-dir output --mode render --frame 1\\n5. Import the resulting FrameForge_V2_Render.png into the V2 asset library to composite it back into the timeline.\\n\\nThe bridge applies imported glTF clips, camera, lights, timing, animation selection and explicitly configured ground/AABB approximations. AABB contact is not a full physics simulation. Keep the original FrameForge project and source assets backed up.\\n'});
+      const zip=await buildStoredZip(files);
+      const url=URL.createObjectURL(zip),anchor=document.createElement('a');
+      anchor.href=url;anchor.download=makeSafeName(state.project.project.name)+'-blender-bridge.zip';
+      document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+      setStatus('Blender bridge ZIP exported · '+bytesMB(zip.size)+' · '+models.length+' model instance(s).','success');
+    } catch(error) {
+      setStatus('Blender bridge export failed: '+error.message,'warning');
+    }
+  }
+
   function render3DSceneSettings() {
     const scene=currentSequence().scene3d || Core.default3DSceneSettings();
     const camera=scene.camera||{};
@@ -1656,6 +1762,7 @@
     $('ffv2AddPostPass').addEventListener('click', () => addPostPass($('ffv2PostType').value));
     $('ffv2AddCustomShader').addEventListener('click', addCustomShaderPass);
     $('ffv2Apply3DScene').addEventListener('click', apply3DSceneSettings);
+    $('ffv2ExportBlender').addEventListener('click', exportBlenderBridgePackage);
     $('ffv2Apply3DClip').addEventListener('click', apply3DClipControls);
     $('ffv2RenderFrame').addEventListener('click', renderPreview);
     $('ffv2DownloadFrame').addEventListener('click', downloadCompositorFrame);
