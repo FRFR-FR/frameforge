@@ -344,6 +344,7 @@ async function main() {
     await page.locator('#ffv2KeyframeProperty').selectOption('position3d.x');
     await page.locator('#ffv2KeyframeValue').fill('1.25');
     await page.locator('#ffv2SetKeyframe').click();
+    assert.match(await page.locator('#ffv2SaveStatus').textContent(),/Keyframe stored at local frame/);
     assert.match(await page.locator('#ffv2KeyframeInfo').textContent(),/1 keyframe/);
 
     // Camera/lighting values are serializable, and the scene renderer reports its backend.
