@@ -10,7 +10,7 @@
 |---:|---|---|---|
 | 1 | Baseline repository/application/workflow audit | Complete | Reviewed source entry points and all 25 workflow YAML files; audit report committed |
 | 2 | V2 architecture and zero-cost/media-rights policy | Complete | Architecture, cost and rights policy documents committed |
-| 3 | Automated foundation validation | Complete | GitHub Actions run 46107639884 succeeded; all 12 unit tests passed |
+| 3 | Automated foundation validation | Complete | GitHub Actions run 46107773272 succeeded; all 14 unit tests passed, plus JavaScript/Python syntax checks |
 | 4 | Versioned project format | Complete | Draft 2020-12 project schema validated; example project passes schema and semantic checks |
 | 5 | Media provenance/rights manifest | Complete | Draft 2020-12 manifest schema validated; sample manifest passes; duplicate IDs and incomplete approvals are rejected |
 
@@ -33,9 +33,9 @@ Created:
 - [tests/test_ff_v2_foundations.py](../tests/test_ff_v2_foundations.py)
 - [ff-v2-foundation-tests.yml](../.github/workflows/ff-v2-foundation-tests.yml)
 
-GitHub Actions run: [46107639884 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46107639884).
+GitHub Actions run: [46107773272 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46107773272).
 
-Result from the workflow log: **12 tests passed**. Both example validators also passed. The workflow uses read-only repository permissions, is path-scoped and does not invoke any video-render workflow.
+Result from the final workflow log: **14 tests passed**. Both example validators also passed. The workflow also completed `node --check app.js`, `node --check frameforge-3d.js` and Python `compileall` for the existing source folders. It uses read-only repository permissions, is path-scoped and does not invoke any video-render workflow.
 
 The run emitted an upstream maintenance warning that checkout/setup-python actions currently target a deprecated Node 20 runtime and were forced to Node 24 by the runner. The test job itself completed successfully; action-version maintenance should be reviewed as part of a later maintenance step.
 
