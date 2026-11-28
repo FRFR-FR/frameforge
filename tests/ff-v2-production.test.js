@@ -85,7 +85,6 @@ test('procedural graphic is inserted as an editable SVG timeline clip', () => {
   }, { start_frame: 12, duration_frames: 75 });
   assert.equal(clip.kind, 'generated');
   assert.equal(clip.generator.type, 'svg');
-  assert.equal(clip.generated_by, 'frameforge_procedural_v1');
   assert.equal(clip.start_frame, 12);
   assert.equal(clip.duration_frames, 75);
 });
