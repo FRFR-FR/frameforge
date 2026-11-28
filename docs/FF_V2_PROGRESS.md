@@ -1,7 +1,7 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–15  
+**Current completed batch:** Steps 1–20  
 **Last updated:** 2026-11-28
 
 ## Batch 1–5 status
@@ -149,26 +149,45 @@ Added generated title, lower-third, shape and inline-SVG clips on the Graphics/T
 - [Foundation validation run 46109813955 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46109813955): JavaScript syntax checks passed; **23 Node tests passed**; **14 Python regression tests passed**; the V2 schema and both example validators passed.
 - [Chromium browser smoke run 46109813917 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46109813917): verified local asset import and timeline persistence, 1280 × 720 compositing, semitransparent PNG alpha retention, untouched transparent canvas pixels, generated vector artwork, transform controls, keyframe creation, feathered shape mask and inverted-mask pixel output.
 
-## Current V2 boundary after steps 11–15
 
-The V2 timeline is now connected to a **single-frame Canvas 2D compositor**, with transparent PNG-frame export. It is not yet a full-sequence renderer and does not yet export the V2 timeline as an MP4. Final video rendering, resumable chunks and FFmpeg export profiles are later roadmap steps. Audio tracks remain editing data only; there is no V2 audio mixer or real-time audio playback yet. 3D model/scene tracks are not rendered by this 2D compositor.
+## Batch 16–20 status
 
-The browser compositor uses device-supported Canvas 2D features and browser media decoders. Video seeking/codec support, fonts, Canvas filters, memory and local storage vary by browser/device. V2 project JSON still does not package imported binary files; keep separate backups of source assets. The V1 drawing editor and its existing workflows remain available.
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 16 | Seeded particle and procedural effect system | Complete | Node tests verify stable seeded random sequences and saved particle presets; Chromium smoke renders the same particle frame twice and compares pixel hashes |
+| 17 | Optional GPU post-processing and shader framework | Complete with implementation adaptation | Local WebGL 1 shader pipeline with capability detection, ordered passes, custom GLSL and Canvas 2D fallback; browser smoke exercises the custom-shader path without a page error |
+| 18 | Lighting, glow and atmospheric effects | Complete | Five named looks and built-in glow, light rays, vignette, blur, colour adjustment and depth-of-field passes; Canvas fallback path is browser-tested |
+| 19 | Distortion, stylised effects and speed ramps | Complete | Node tests cover effect parameter keyframes and per-frame source-time integration; browser smoke adds and keyframes a glitch effect and playback rate |
+| 20 | Editable clip-edge transition library | Complete | Node tests validate transition setup, direction and timing; Chromium smoke sets incoming wipe and outgoing fade and checks the saved clip controls |
 
-## Remaining limits / not yet done
+**Step 17 design note:** the roadmap named Three.js EffectComposer. This implementation uses a browser-native WebGL 1 shader pipeline instead, with a Canvas 2D fallback. That avoids a remote/CDN or bundled third-party runtime dependency in the static editor while meeting the operational acceptance target (ordered/enabled passes, custom shader interface, explicit backend setting and graceful fallback). It is not a Three.js integration and is recorded as an implementation adaptation rather than claiming that Three.js was installed.
 
-- The V2 compositor currently renders only the selected playhead frame and exports a PNG. Full-sequence rendering and final MP4 export are later roadmap steps (41–43).
-- Audio tracks are still timeline data/clip types only; a playable audio mixer, SFX event engine and final audio mux are later steps 26–30.
-- The 2D Canvas compositor does not yet render 3D model/scene tracks. Three.js and Blender production integration are steps 21–25.
-- Keyframe evaluation currently covers layer transforms and opacity; arbitrary effect/audio parameter automation is not yet implemented.
-- Alpha/luma matte modes are implemented but not yet covered by dedicated pixel-level Chromium fixtures. Shape masks and their inversion are pixel-tested.
-- Imported media metadata validation relies partly on browser codecs; metadata validation is not a full decode of every video frame or audio sample.
-- Project JSON does not package imported binary files. Blobs remain local to the original browser's IndexedDB; keep source media separately backed up.
-- Local browser storage is quota-limited and can be evicted. Persistent-storage requests are best-effort, not guaranteed.
-- The rights validator checks metadata completeness; it does not determine legal rights or provide legal advice.
-- The 250 MB per-file import ceiling may exceed available browser storage quota on some devices.
-- V2 changes do not replace or invoke existing Blender production workflows.
+## Step 16 — Particle and procedural effects
 
-## Next batch
+Generated particle clips are stored as editable timeline clips. Presets are sparks, dust, embers, magic and confetti. The renderer uses seeded procedural randomness and stores the seed and particle parameters in the project so a fixed project/frame renders repeatably. Particle count is clamped to 500 to protect browser memory and processing time.
 
-The next five-step batch is **16–20**. Do not start it until the user requests it.
+## Step 17 — GPU post-processing and shader framework
+
+Created [ff-v2-shaders.js](../ff-v2-shaders.js). It probes WebGL availability and precision, compiles local GLSL programs, runs enabled post-processing passes in their saved order, and preserves source alpha in built-in fragment passes. The user can select automatic, WebGL-preferred or Canvas 2D-only mode. A custom GLSL editor stores the shader source in project settings; compilation failures and unavailable WebGL are reported and built-in effects fall back to Canvas 2D. Custom GLSL is skipped explicitly when only Canvas 2D is available.
+
+## Step 18 — Lighting, glow and atmosphere
+
+Added ordered passes for brightness/contrast, saturation, vignette, blur, glow/bloom, light rays and depth of field. Named presets are Cinematic, Soft glow, Noir, Documentary and Dream haze. Clip-level versions of the lighting/atmosphere effects can be placed on individual visual layers. The compositor status reports which backend was used for the frame.
+
+## Step 19 — Distortion and stylised effects
+
+Clip effects include glitch, chromatic aberration, ripple/warp, camera shake, motion blur, blur, glow, vignette, brightness/contrast, saturation, light rays and depth of field. Effect intensity is keyframable in local clip time. The existing playback-rate property now supports keyframes for speed ramps; the renderer integrates the prior frame rates to calculate the media source time for the current frame.
+
+## Step 20 — Transition library
+
+Transitions are attached to clip-in or clip-out edges with duration in frames, direction and intensity. Types are fade, crossfade, directional wipe, zoom, whip pan, radial, hypnosis wheel, swirl/warp and glitch. Transitions are computed deterministically from the current clip edge and frame. A crossfade is opacity-based, so it requires overlapping clips/layers to show the second shot underneath the first.
+
+## Verification for batch 16–20
+
+- [Foundation validation run 46117366648 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46117366648): JavaScript syntax checks passed; **31 Node tests passed**; **14 Python regression tests passed**; project/media schema and example validation passed.
+- [Chromium browser smoke run 46117366641 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46117366641): the expanded browser test passed with no page errors. It verifies multi-track project persistence, 720p compositor alpha, deterministic repeated particle frames, clip-effect keyframes, incoming/outgoing transitions, playback-rate keyframes, ordered Canvas 2D atmosphere passes and the optional WebGL/custom-shader fallback control path.
+
+## Current V2 boundary after steps 1–20
+
+The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions and transparent PNG-frame export. It still does **not** render a full timeline to MP4. Final video rendering, resumable chunks, FFmpeg export and technical QA remain later roadmap steps. Audio tracks are timeline data only, and the 2D compositor does not render 3D model/scene tracks. The legacy V1 editor and its existing production workflows remain available.
+
