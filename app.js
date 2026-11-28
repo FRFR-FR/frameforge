@@ -82,12 +82,18 @@
     if (state.dbPromise) return state.dbPromise;
     state.dbPromise = new Promise((resolve) => {
       if (!('indexedDB' in window)) return resolve(null);
-      const request = indexedDB.open('FrameForgeDB', 1);
+      const request = indexedDB.open('FrameForgeDB', 2);
       request.onupgradeneeded = () => {
         const database = request.result;
         if (!database.objectStoreNames.contains('projects')) database.createObjectStore('projects', { keyPath: 'id' });
+        if (!database.objectStoreNames.contains('assets')) database.createObjectStore('assets', { keyPath: 'id' });
+        if (!database.objectStoreNames.contains('v2projects')) database.createObjectStore('v2projects', { keyPath: 'id' });
+        if (!database.objectStoreNames.contains('recovery')) database.createObjectStore('recovery', { keyPath: 'id' });
       };
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        request.result.onversionchange = () => request.result.close();
+        resolve(request.result);
+      };
       request.onerror = () => resolve(null);
     });
     return state.dbPromise;
