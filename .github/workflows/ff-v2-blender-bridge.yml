@@ -34,7 +34,7 @@ jobs:
           blender --version
       - name: Validate bridge manifest and Python helpers
         run: |
-          python -m unittest tests/test_frameforge_blender_bridge.py -v
+          python -m unittest discover -s tests -p 'test_frameforge_blender_bridge.py' -v
           python -m compileall -q tools/frameforge_blender_bridge.py
       - name: Build editable Blender scene and glTF interchange
         run: |
