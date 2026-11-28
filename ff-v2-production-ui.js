@@ -110,7 +110,7 @@
       const title = root.document.createElement('strong');
       title.textContent = item.label + ' · ' + item.role;
       const detail = root.document.createElement('small');
-      detail.textContent = item.license_name + ' · ' + item.status + (item.attribution_required ? ' · attribution required' : '');
+      detail.textContent = item.license_name + ' · ' + item.status + (item.attribution_required ? ' · attribution required' : '') + (item.restrictions.length ? ' · ' + item.restrictions.length + ' usage limit(s)' : '');
       info.append(title, detail);
       row.append(info);
       catalogue.append(row);
@@ -307,6 +307,8 @@
       (report.blockers.length ? report.blockers.join('\n') : 'No audio metadata blockers detected.') +
       '\n' + report.note;
     if (credits) credits.value = report.credits;
+    const limits = $('ffv2AudioUsageLimits');
+    if (limits) limits.value = report.usage_limits.map(item => item.label + ':\\n' + item.restrictions.join('\\n')).join('\\n\\n');
   }
 
   function assemble() {
