@@ -148,6 +148,34 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 8
+        },
+        "post_processing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "renderer": {
+              "type": "string",
+              "enum": [
+                "auto",
+                "webgl",
+                "canvas2d"
+              ],
+              "default": "auto"
+            },
+            "fallback": {
+              "type": "string",
+              "enum": [
+                "canvas2d"
+              ],
+              "default": "canvas2d"
+            },
+            "passes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/postProcessPass"
+              }
+            }
+          }
         }
       }
     },
@@ -597,6 +625,12 @@
         "duration_frames": {
           "type": "integer",
           "minimum": 1
+        },
+        "keyframes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keyframe"
+          }
         }
       }
     },
@@ -642,7 +676,21 @@
         },
         "parameters": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": true,
+          "properties": {
+            "intensity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2,
+              "default": 1
+            },
+            "segments": {
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 64,
+              "default": 12
+            }
+          }
         }
       }
     },
@@ -1194,6 +1242,51 @@
         "researched_at": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "postProcessPass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "enabled",
+        "parameters"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "brightness-contrast",
+            "saturation",
+            "vignette",
+            "blur",
+            "glow",
+            "light-rays",
+            "chromatic-aberration",
+            "glitch",
+            "ripple",
+            "shake",
+            "motion-blur",
+            "custom"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "keyframes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keyframe"
+          }
         }
       }
     }
