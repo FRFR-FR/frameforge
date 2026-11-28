@@ -18,6 +18,7 @@
     objectUrls: new Map(),
     renderSources: new Map(),
     previewRenderId: 0,
+    previewPromise: Promise.resolve(),
     selectedAssetId: null,
     selectedClipId: null,
     playhead: 0,
@@ -935,30 +936,35 @@
     const frame = state.playhead;
     const button = $('ffv2RenderFrame');
     if (button) button.disabled = true;
-    try {
-      const result = await window.FFV2Renderer.composeFrame({
-        project: state.project,
-        frame,
-        canvas,
-        resolveAsset: resolveRenderAsset
-      });
+    const task = state.previewPromise.catch(() => {}).then(async () => {
       if (renderId !== state.previewRenderId) return;
-      const notice = $('ffv2CompositorStatus');
-      if (result.warnings.length) {
-        notice.textContent = result.drawn + ' layer(s) rendered · ' + result.warnings[0].message;
-        notice.dataset.kind = 'warning';
-      } else {
-        notice.textContent = 'Frame ' + frame + ' · ' + result.drawn + ' visual layer(s) · transparent alpha preserved';
-        notice.dataset.kind = 'success';
+      try {
+        const result = await window.FFV2Renderer.composeFrame({
+          project: state.project,
+          frame,
+          canvas,
+          resolveAsset: resolveRenderAsset
+        });
+        if (renderId !== state.previewRenderId) return;
+        const notice = $('ffv2CompositorStatus');
+        if (result.warnings.length) {
+          notice.textContent = result.drawn + ' layer(s) rendered · ' + result.warnings[0].message;
+          notice.dataset.kind = 'warning';
+        } else {
+          notice.textContent = 'Frame ' + frame + ' · ' + result.drawn + ' visual layer(s) · transparent alpha preserved';
+          notice.dataset.kind = 'success';
+        }
+      } catch (error) {
+        if (renderId === state.previewRenderId) {
+          $('ffv2CompositorStatus').textContent = 'Preview failed: ' + error.message;
+          $('ffv2CompositorStatus').dataset.kind = 'error';
+        }
+      } finally {
+        if (renderId === state.previewRenderId && button) button.disabled = false;
       }
-    } catch (error) {
-      if (renderId === state.previewRenderId) {
-        $('ffv2CompositorStatus').textContent = 'Preview failed: ' + error.message;
-        $('ffv2CompositorStatus').dataset.kind = 'error';
-      }
-    } finally {
-      if (renderId === state.previewRenderId && button) button.disabled = false;
-    }
+    });
+    state.previewPromise = task;
+    await task;
   }
 
   function downloadCompositorFrame() {
