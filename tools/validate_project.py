@@ -161,6 +161,13 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
         if isinstance(reference, dict) and reference.get("reference_only") is not True:
             errors.append("Reference video must be marked reference_only: " + str(reference.get("id")))
 
+    orchestration = data.get("extensions", {}).get("production_orchestration", {}) if isinstance(data.get("extensions"), dict) else {}
+    raw_unfilled = orchestration.get("unfilled_beats", []) if isinstance(orchestration, dict) else []
+    unfilled_production_beat_ids = {
+        item.get("beat_id") for item in raw_unfilled
+        if isinstance(item, dict) and isinstance(item.get("beat_id"), str)
+    }
+
     raw_plan = data.get("shot_plan")
     if raw_plan is not None:
         if not isinstance(raw_plan, dict) or not isinstance(raw_plan.get("beats"), list):
@@ -217,16 +224,18 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
                     next((asset for asset in assets if isinstance(asset, dict) and asset.get("id") == asset_id), None)
                     for asset_id in beat.get("asset_ids", [])
                 ]
+                beat_id = beat.get("id")
+                explicitly_unfilled = beat_id in unfilled_production_beat_ids
                 if requirement == "actual_footage":
                     if "source_footage" not in media_mix:
-                        errors.append("Shot beat " + str(beat.get("id")) + " requires source_footage media.")
-                    if not any(asset and asset.get("media_type") == "video" for asset in linked_assets):
-                        errors.append("Shot beat " + str(beat.get("id")) + " requires a linked video asset for actual footage.")
+                        errors.append("Shot beat " + str(beat_id) + " requires source_footage media.")
+                    if not any(asset and asset.get("media_type") == "video" for asset in linked_assets) and not explicitly_unfilled:
+                        errors.append("Shot beat " + str(beat_id) + " requires a linked video asset or an explicit unfilled-production record.")
                 if requirement == "official_screenshot":
                     if "screenshots" not in media_mix:
-                        errors.append("Shot beat " + str(beat.get("id")) + " requires screenshots media.")
-                    if not any(asset and asset.get("media_type") == "image" for asset in linked_assets):
-                        errors.append("Shot beat " + str(beat.get("id")) + " requires a linked image asset for an official screenshot.")
+                        errors.append("Shot beat " + str(beat_id) + " requires screenshots media.")
+                    if not any(asset and asset.get("media_type") == "image" for asset in linked_assets) and not explicitly_unfilled:
+                        errors.append("Shot beat " + str(beat_id) + " requires a linked image asset or an explicit unfilled-production record.")
 
     raw_rights_review = data.get("rights_review")
     if isinstance(raw_rights_review, dict):
