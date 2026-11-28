@@ -141,7 +141,7 @@ def import_model(bpy, manifest_path, model):
     root_obj.scale = xyz(transform.get("scale"), (1.0, 1.0, 1.0))
     animation_name = (model.get("animation") or {}).get("clip_name", "")
     time_scale = max(0.001, float((model.get("animation") or {}).get("time_scale", 1.0)))
-    if animation_name:
+    if animation_name and (model.get("animation") or {}).get("enabled", True):
         action = bpy.data.actions.get(animation_name)
         if action:
             for obj in created:
@@ -150,6 +150,40 @@ def import_model(bpy, manifest_path, model):
                     track = obj.animation_data.nla_tracks.new()
                     strip = track.strips.new(action.name, int(model.get("start_frame", 0)) + 1, action)
                     strip.scale = 1.0 / time_scale
+                    if (model.get("animation") or {}).get("loop", True) is False:
+                        strip.repeat = 1.0
+    # V2 3D transform keys are clip-local and component-based.
+    clip_start = int(model.get("start_frame", 0)) + 1
+    field_map = {
+        "position3d": ("location", False),
+        "rotation3d": ("rotation_euler", True),
+        "scale3d": ("scale", False)
+    }
+    interpolation_map = {
+        "linear": "LINEAR", "step": "CONSTANT",
+        "ease_in": "BEZIER", "ease_out": "BEZIER",
+        "ease_in_out": "BEZIER", "bezier": "BEZIER"
+    }
+    for key in model.get("keyframes", []):
+        property_name = str(key.get("property", ""))
+        parts = property_name.split(".")
+        if len(parts) != 2 or parts[0] not in field_map or parts[1] not in ("x", "y", "z"):
+            continue
+        data_path, radians = field_map[parts[0]]
+        index = ("x", "y", "z").index(parts[1])
+        value = float(key.get("value", 0.0))
+        if radians:
+            value = math.radians(value)
+        frame = clip_start + int(key.get("frame", 0))
+        root_obj.path_resolve(data_path)[index] = value
+        root_obj.keyframe_insert(data_path=data_path, index=index, frame=frame)
+        action_data = root_obj.animation_data.action if root_obj.animation_data else None
+        if action_data:
+            for curve in action_data.fcurves:
+                if curve.data_path == data_path and curve.array_index == index:
+                    for point in curve.keyframe_points:
+                        if abs(point.co.x - frame) < 0.01:
+                            point.interpolation = interpolation_map.get(key.get("interpolation", "ease_in_out"), "BEZIER")
     return root_obj, created
 
 
