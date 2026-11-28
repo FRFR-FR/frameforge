@@ -103,12 +103,39 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
         if not isinstance(claim, dict):
             continue
         raw_source_ids = claim.get("source_ids", [])
-        for source_id in raw_source_ids if isinstance(raw_source_ids, list) else []:
+        cited_source_ids = raw_source_ids if isinstance(raw_source_ids, list) else []
+        for source_id in cited_source_ids:
             if source_id not in source_ids:
                 errors.append(
                     "Research claim " + str(claim.get("id")) +
                     " references missing research source: " + str(source_id)
                 )
+        locations = claim.get("evidence_locations", [])
+        for location in locations if isinstance(locations, list) else []:
+            if not isinstance(location, dict):
+                errors.append("Research claim " + str(claim.get("id")) + " has an invalid evidence location.")
+                continue
+            source_id = location.get("source_id")
+            if source_id not in source_ids:
+                errors.append(
+                    "Research claim " + str(claim.get("id")) +
+                    " evidence location references missing source: " + str(source_id)
+                )
+            if source_id not in cited_source_ids:
+                errors.append(
+                    "Research claim " + str(claim.get("id")) +
+                    " evidence location source is not linked to the claim: " + str(source_id)
+                )
+            if not isinstance(location.get("locator"), str) or not location.get("locator", "").strip():
+                errors.append("Research claim " + str(claim.get("id")) + " evidence location is missing its page/section/timecode locator.")
+            start = location.get("start_time_seconds")
+            end = location.get("end_time_seconds")
+            if start is not None and (not isinstance(start, (int, float)) or start < 0):
+                errors.append("Research claim " + str(claim.get("id")) + " has an invalid evidence start timestamp.")
+            if end is not None and (not isinstance(end, (int, float)) or end < 0):
+                errors.append("Research claim " + str(claim.get("id")) + " has an invalid evidence end timestamp.")
+            if isinstance(start, (int, float)) and isinstance(end, (int, float)) and end < start:
+                errors.append("Research claim " + str(claim.get("id")) + " evidence end timestamp precedes its start timestamp.")
     for sequence in sequences:
         if not isinstance(sequence, dict):
             continue
