@@ -362,7 +362,11 @@
       const needsEvidence = claim.evidence_required !== false || ['factual','comparative'].includes(claim.classification);
       if (needsEvidence && !claim.source_ids?.length) blockers.push('Claim "'+claim.text+'" has no cited research source.');
       if (needsEvidence && claim.verification_status !== 'verified') blockers.push('Claim "'+claim.text+'" is not marked verified.');
-      for (const id of claim.source_ids || []) if (!sources.has(id)) blockers.push('Claim "'+claim.text+'" cites missing source '+id+'.');
+      for (const id of claim.source_ids || []) {
+        const source = sources.get(id);
+        if (!source) blockers.push('Claim "'+claim.text+'" cites missing source '+id+'.');
+        else if (source.access_status !== 'public') blockers.push('Claim "'+claim.text+'" relies on a source that is not marked publicly accessible: '+id+'.');
+      }
       if (claim.confidence === 'low' || claim.confidence === 'unassessed') warnings.push('Claim "'+claim.text+'" has '+claim.confidence+' confidence.');
       if (claim.verification_status === 'disputed') warnings.push('Claim "'+claim.text+'" is disputed and should not be presented as established fact.');
     }
@@ -386,8 +390,15 @@
           !['factual_evidence','comparative_evidence'].includes(beat.visual_role)) {
         blockers.push('Shot '+beat.id+' requires sourced evidence but is still marked as illustration or a non-evidence role.');
       }
-      if (evidenceRequirement === 'actual_footage' && !beat.media_mix.includes('source_footage')) blockers.push('Shot '+beat.id+' needs actual source footage but its media mix does not include source_footage.');
-      if (evidenceRequirement === 'official_screenshot' && !beat.media_mix.includes('screenshots')) blockers.push('Shot '+beat.id+' needs an official screenshot but its media mix does not include screenshots.');
+      const linkedAssets = (beat.asset_ids || []).map(id => project.assets.find(asset => asset.id === id)).filter(Boolean);
+      if (evidenceRequirement === 'actual_footage') {
+        if (!beat.media_mix.includes('source_footage')) blockers.push('Shot '+beat.id+' needs actual source footage but its media mix does not include source_footage.');
+        if (!linkedAssets.some(asset => asset.media_type === 'video')) blockers.push('Shot '+beat.id+' needs an imported, rights-reviewed video asset to substantiate actual footage.');
+      }
+      if (evidenceRequirement === 'official_screenshot') {
+        if (!beat.media_mix.includes('screenshots')) blockers.push('Shot '+beat.id+' needs an official screenshot but its media mix does not include screenshots.');
+        if (!linkedAssets.some(asset => asset.media_type === 'image')) blockers.push('Shot '+beat.id+' needs a linked imported image asset for the official screenshot.');
+      }
       if (evidenceRequirement === 'sourced_data' && !beat.media_mix.includes('diagram')) warnings.push('Shot '+beat.id+' requires sourced data but its media mix does not include a diagram or chart.');
     }
     for (const asset of project.assets) {
