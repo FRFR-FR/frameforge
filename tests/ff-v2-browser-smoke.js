@@ -266,6 +266,7 @@ async function main() {
 
     // Add a custom GLSL pass and confirm the browser either runs WebGL or reports fallback.
     await page.locator('#ffv2PostRenderer').selectOption('webgl');
+    await page.locator('.ffv2-custom-shader summary').click();
     const beforeShaderRender = Number(await page.locator('#ffv2CompositorStatus').getAttribute('data-render-id') || 0);
     await page.locator('#ffv2AddCustomShader').click();
     await waitForCompositorRevision(page,beforeShaderRender);
