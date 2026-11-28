@@ -9,6 +9,7 @@ on:
       - "app.js"
       - "frameforge-3d.js"
       - "ff-v2-core.js"
+      - "ff-v2-audio.js"
       - "ff-v2-studio.js"
       - "ff-v2-renderer.js"
       - "ff-v2-3d-studio.js"
@@ -47,4 +48,6 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run real browser workflow
-        run: node tests/ff-v2-browser-smoke.js
+        run: |
+          node tests/ff-v2-browser-smoke.js
+          node tests/ff-v2-audio-browser-smoke.js
