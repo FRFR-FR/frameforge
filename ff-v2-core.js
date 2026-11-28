@@ -462,8 +462,20 @@
       if (!isObject(claim) || typeof claim.id !== 'string') continue;
       if (claimIds.has(claim.id)) errors.push('Duplicate research claim id: ' + claim.id);
       claimIds.add(claim.id);
-      for (const sourceId of Array.isArray(claim.source_ids) ? claim.source_ids : []) {
+      const citedSources = Array.isArray(claim.source_ids) ? claim.source_ids : [];
+      for (const sourceId of citedSources) {
         if (!sourceIds.has(sourceId)) errors.push('Research claim ' + claim.id + ' references missing source: ' + sourceId);
+      }
+      for (const location of Array.isArray(claim.evidence_locations) ? claim.evidence_locations : []) {
+        if (!isObject(location)) { errors.push('Research claim ' + claim.id + ' has an invalid evidence location.'); continue; }
+        if (!sourceIds.has(location.source_id)) errors.push('Research claim ' + claim.id + ' evidence location references missing source: ' + location.source_id);
+        if (!citedSources.includes(location.source_id)) errors.push('Research claim ' + claim.id + ' evidence location source is not linked to the claim: ' + location.source_id);
+        if (typeof location.locator !== 'string' || !location.locator.trim()) errors.push('Research claim ' + claim.id + ' evidence location is missing its page/section/timecode locator.');
+        const start = location.start_time_seconds;
+        const end = location.end_time_seconds;
+        if (start !== undefined && (!Number.isFinite(start) || start < 0)) errors.push('Research claim ' + claim.id + ' has an invalid evidence start timestamp.');
+        if (end !== undefined && (!Number.isFinite(end) || end < 0)) errors.push('Research claim ' + claim.id + ' has an invalid evidence end timestamp.');
+        if (Number.isFinite(start) && Number.isFinite(end) && end < start) errors.push('Research claim ' + claim.id + ' evidence end timestamp precedes its start timestamp.');
       }
     }
     const referenceIds = new Set();
