@@ -246,7 +246,8 @@
         const sourcePosition = (voice.source_in_seconds + localTime * voice.playback_rate) * voice.buffer.sampleRate;
         let localEnergy = 0;
         for (const fraction of [0.2, 0.4, 0.6, 0.8]) {
-          const position = sourcePosition + fraction * sampleRate * voice.buffer.sampleRate / sampleRate * 0.02 * voice.playback_rate;
+          const offsetSeconds = (fraction - 0.5) * 0.02;
+          const position = (voice.source_in_seconds + (localTime + offsetSeconds) * voice.playback_rate) * voice.buffer.sampleRate;
           const left = sampleAt(voice.buffer, position, 0);
           const right = sampleAt(voice.buffer, position, 1);
           localEnergy += (left * left + right * right) * 0.5;
@@ -375,7 +376,8 @@
       blob,
       metrics: {
         duration_seconds: totalSeconds, sample_rate: sampleRate, channels,
-        peak_dbfs: db(peak), rms_dbfs: db(rms),
+        peak_dbfs: db(peak * normalizationGain), rms_dbfs: db(rms * normalizationGain),
+        pre_normalization_peak_dbfs: db(peak),
         normalization_gain: normalizationGain,
         clips_mixed: prepared.descriptors.length,
         ducking_enabled: Boolean(ducking.enabled && duckEnvelope)
@@ -665,7 +667,7 @@
       if (!player || player.paused) { stopSync(); return; }
       const sequence = root.FFV2Core.getMainSequence(project());
       studio()?.setPlayhead?.(Math.round(player.currentTime * sequence.fps), { noPreview: true });
-    }, 100);
+    }, 30);
   }
 
   function stopSync() {
