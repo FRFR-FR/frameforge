@@ -203,6 +203,54 @@ ctx.stroke();</pre>
           <div id="ffv2PlayheadLine" class="ffv2-playhead-line"></div>
         </div>
       </div>
+      <section class="ffv2-audio-panel" aria-label="Audio production">
+        <div class="ffv2-audio-heading">
+          <div><strong>Audio production</strong><small>Voiceover · dialogue · music · ambience · SFX</small></div>
+          <span class="ffv2-audio-format">48 kHz · Stereo</span>
+        </div>
+        <div class="ffv2-audio-track-controls">
+          <label>Audio track <select id="ffv2AudioTrack" aria-label="Audio track"></select></label>
+          <label>Track gain <input id="ffv2AudioTrackGain" type="range" min="0" max="2" step="0.01" value="1"></label>
+          <label>Track pan <input id="ffv2AudioTrackPan" type="range" min="-1" max="1" step="0.01" value="0"></label>
+          <label class="ffv2-inline-check"><input id="ffv2AudioTrackSolo" type="checkbox"> Solo</label>
+          <button id="ffv2AudioApplyTrack" class="button small">Apply track mix</button>
+        </div>
+        <div id="ffv2AudioClipControls" class="ffv2-audio-clip-controls hidden">
+          <div class="ffv2-audio-subheading"><strong>Selected audio clip</strong><small id="ffv2AudioSelectedClip">Select an audio clip in the timeline.</small></div>
+          <canvas id="ffv2AudioWaveform" class="ffv2-audio-waveform" width="900" height="120" role="img" aria-label="Audio waveform; tap to seek"></canvas>
+          <div class="ffv2-audio-clip-controls-grid">
+            <label>Clip gain <input id="ffv2AudioClipGain" type="range" min="0" max="2" step="0.01" value="1"></label>
+            <label>Clip pan <input id="ffv2AudioClipPan" type="range" min="-1" max="1" step="0.01" value="0"></label>
+            <label>Fade in (frames) <input id="ffv2AudioFadeIn" type="number" min="0" step="1" value="0"></label>
+            <label>Fade out (frames) <input id="ffv2AudioFadeOut" type="number" min="0" step="1" value="0"></label>
+            <label class="ffv2-inline-check"><input id="ffv2AudioClipMuted" type="checkbox"> Mute clip</label>
+            <button id="ffv2AudioApplyClip" class="button small">Apply clip mix</button>
+          </div>
+          <div class="ffv2-audio-automation-row">
+            <span id="ffv2AudioAutomationInfo">0 gain keyframe(s)</span>
+            <button id="ffv2AudioAddGainKeyframe" class="button small">＋ Gain keyframe at playhead</button>
+          </div>
+        </div>
+        <div class="ffv2-audio-event-row">
+          <strong>SFX event cues</strong>
+          <label>Sound <select id="ffv2AudioCueAsset" aria-label="Sound effect asset"></select></label>
+          <label>Trigger <select id="ffv2AudioCueType"><option value="playhead">Timeline marker / playhead</option><option value="clip_start">Selected visual clip starts</option><option value="clip_end">Selected visual clip ends</option></select></label>
+          <button id="ffv2AudioAddCue" class="button small">＋ Add cue</button>
+        </div>
+        <div id="ffv2AudioCueList" class="ffv2-audio-cue-list"></div>
+        <div class="ffv2-audio-master-row">
+          <label class="ffv2-inline-check"><input id="ffv2AudioDucking" type="checkbox"> Duck music under voiceover</label>
+          <label>Duck amount <input id="ffv2AudioDuckingAmount" type="number" min="-36" max="0" step="1" value="-12"> dB</label>
+          <button id="ffv2AudioApplyDucking" class="button small">Apply ducking</button>
+          <button id="ffv2AudioPlayMix" class="button small">▶ Preview mix</button>
+          <button id="ffv2AudioStop" class="button small quiet">Stop</button>
+          <button id="ffv2AudioRender" class="button small primary">Render WAV master</button>
+        </div>
+        <audio id="ffv2AudioPlayer" class="ffv2-audio-player hidden" controls preload="metadata"></audio>
+        <div id="ffv2AudioMetrics" class="ffv2-audio-metrics">No audio master rendered.</div>
+        <div id="ffv2AudioStatus" class="ffv2-save-status" role="status" aria-live="polite">Audio engine ready.</div>
+      </section>
+
       <div id="ffv2ClipEditor" class="ffv2-clip-editor hidden">
         <div class="ffv2-clip-editor-title"><strong id="ffv2SelectedClipName">Selected clip</strong><small id="ffv2ClipTrack"></small></div>
         <label>Start frame <input id="ffv2ClipStart" type="number" min="0" step="1" /></label>
@@ -462,6 +510,7 @@ void main() {
   <script src="ff-v2-shaders.js"></script>
   <script src="ff-v2-renderer.js"></script>
   <script src="ff-v2-studio.js"></script>
+  <script src="ff-v2-audio.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
