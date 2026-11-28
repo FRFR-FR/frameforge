@@ -55,6 +55,7 @@ jobs:
             echo "VENDORED_THREE_RUNTIME_UNCHANGED"
           else
             git commit -m "Vendor offline Three.js runtime r164.1"
+            git pull --rebase origin main
             git push
           fi
       - uses: actions/upload-artifact@v4
