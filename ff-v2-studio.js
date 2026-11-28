@@ -713,10 +713,13 @@
     const property = $('ffv2KeyframeProperty').value || 'position.x';
     const currentTransform = Core.evaluateClipTransform(clip, state.playhead);
     const modelTransform = Core.evaluate3DClipState(clip,state.playhead);
+    const propertyParts = property.split('.');
+    const modelField = propertyParts[0].replace(/3d$/,'');
+    const modelAxis = propertyParts[1] === 'x' ? 0 : propertyParts[1] === 'y' ? 1 : 2;
     const keyValue = property === 'playback_rate'
       ? Core.evaluateClipPlaybackRate(clip,state.playhead)
-      : property.includes('3d.')
-        ? modelTransform[property.replace(/3d\./,'').split('.')[0]][property.endsWith('.x')?0:property.endsWith('.y')?1:2]
+      : propertyParts[0].endsWith('3d')
+        ? modelTransform[modelField][modelAxis]
         : property === 'rotation_degrees' || property === 'opacity'
           ? currentTransform[property]
           : currentTransform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
