@@ -142,7 +142,8 @@
       ['track-music', 'Music', 'music'],
       ['track-sfx', 'Sound effects', 'sfx']
     ].map(([id, label, type], order) => ({
-      id, name: label, type, order, enabled: true, muted: false, locked: false, clips: []
+      id, name: label, type, order, enabled: true, muted: false, locked: false, clips: [],
+      ...(['audio','voiceover','music','sfx'].includes(type) ? { audio: { gain: 1, pan: 0, solo: false } } : {})
     }));
     return {
       format: FORMAT,
@@ -195,7 +196,8 @@
     const sequence = getMainSequence(project);
     const track = {
       id: makeId('track'), name: String(name || type).slice(0, 200),
-      type, order: sequence.tracks.length, enabled: true, muted: false, locked: false, clips: []
+      type, order: sequence.tracks.length, enabled: true, muted: false, locked: false, clips: [],
+      ...(['audio','voiceover','music','sfx'].includes(type) ? { audio: { gain: 1, pan: 0, solo: false } } : {})
     };
     sequence.tracks.push(track);
     return track;
@@ -248,6 +250,9 @@
       transform: { position: [0, 0], scale: [1, 1], rotation_degrees: 0, opacity: 1, anchor: [0.5, 0.5], fit: 'contain' },
       blend_mode: 'normal',
       keyframes: [], effects: [],
+      ...(['audio','voiceover','music','sfx'].includes(track.type) ? {
+        audio: { gain: 1, pan: 0, fade_in_frames: 0, fade_out_frames: 0, muted: false, automation: [] }
+      } : {}),
       ...(track.type === 'scene3d' || asset.media_type === 'model3d' ? {
         transform3d: { position:[0,0,0], rotation:[0,0,0], scale:[1,1,1] },
         animation: { enabled:true, clip_name:'', time_scale:1, loop:true, start_frame:start },
