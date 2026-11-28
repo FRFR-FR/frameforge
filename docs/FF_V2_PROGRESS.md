@@ -1,7 +1,7 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–20  
+**Current completed batch:** Steps 1–25  
 **Last updated:** 2026-11-28
 
 ## Batch 1–5 status
@@ -160,7 +160,7 @@ Added generated title, lower-third, shape and inline-SVG clips on the Graphics/T
 | 19 | Distortion, stylised effects and speed ramps | Complete | Node tests cover effect parameter keyframes and per-frame source-time integration; browser smoke adds and keyframes a glitch effect and playback rate |
 | 20 | Editable clip-edge transition library | Complete | Node tests validate transition setup, direction and timing; Chromium smoke sets incoming wipe and outgoing fade and checks the saved clip controls |
 
-**Step 17 design note:** the roadmap named Three.js EffectComposer. This implementation uses a browser-native WebGL 1 shader pipeline instead, with a Canvas 2D fallback. That avoids a remote/CDN or bundled third-party runtime dependency in the static editor while meeting the operational acceptance target (ordered/enabled passes, custom shader interface, explicit backend setting and graceful fallback). It is not a Three.js integration and is recorded as an implementation adaptation rather than claiming that Three.js was installed.
+**Step 17 design note:** the roadmap named Three.js EffectComposer. This implementation uses a browser-native WebGL 1 shader pipeline instead, with a Canvas 2D fallback. That keeps the 2D post-processing stack independent of Three.js EffectComposer. The separately vendored Three.js r164.1 runtime in step 21 is used for 3D scene/model rendering, not as the post-processing framework.
 
 ## Step 16 — Particle and procedural effects
 
@@ -187,9 +187,52 @@ Transitions are attached to clip-in or clip-out edges with duration in frames, d
 - [Foundation validation run 46117366648 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46117366648): JavaScript syntax checks passed; **31 Node tests passed**; **14 Python regression tests passed**; project/media schema and example validation passed.
 - [Chromium browser smoke run 46117366641 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46117366641): the expanded browser test passed with no page errors. It verifies multi-track project persistence, 720p compositor alpha, deterministic repeated particle frames, clip-effect keyframes, incoming/outgoing transitions, playback-rate keyframes, ordered Canvas 2D atmosphere passes and the optional WebGL/custom-shader fallback control path.
 
-## Current V2 boundary after steps 1–20
+## Batch 21–25 status
 
-The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions and transparent PNG-frame export. It still does **not** render a full timeline to MP4. Final video rendering, resumable chunks, FFmpeg export and technical QA remain later roadmap steps. Audio tracks are timeline data only, and the 2D compositor does not render 3D model/scene tracks. The legacy V1 editor and its existing production workflows remain available.
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 21 | Offline, pinned Three.js runtime | Complete | Three.js r164.1 + GLTFLoader + SkeletonUtils bundle is committed in `vendor/three/0.164.1/`; MIT licence and SHA-256 manifest are included; no CDN runtime dependency |
+| 22 | GLB/glTF model/material import | Complete | Chromium smoke imports an actual animated GLB, decodes mesh/bounds/animation metadata and adds it to a Scene 3D track; external glTF dependencies can be resolved from local assets |
+| 23 | Scene camera, lighting and environment | Complete | Serializable perspective/orthographic camera, lights, background/alpha and render settings are controlled from the V2 scene panel; browser smoke updates camera and lighting |
+| 24 | Model transform, animation and contacts | Complete with documented approximations | AnimationMixer playback, transform keyframes, parent/look-at and ground/AABB constraints; Node and Chromium tests exercise 3D transforms and animation selection |
+| 25 | Blender scene interchange and render bridge | Complete | Portable ZIP exporter includes model files and dependencies, manifest and Python bridge; Blender CI imports an embedded animated glTF, builds `.blend`/`.glb`, renders PNG using CPU Cycles and uploads output |
+
+## Step 21 — Controlled offline Three.js runtime
+
+The previous temporary Three.js build workflow was replaced with a versioned vendor build. Three.js **r164.1** is bundled locally with GLTFLoader and SkeletonUtils.clone. The committed minified runtime is 712,826 bytes (about 696 KiB), with its MIT licence and `runtime-manifest.json` SHA-256 checksum beside it. The browser loads it from `vendor/three/0.164.1/`; no runtime CDN request is required.
+
+Build workflow: [offline Three.js bundle build 46119591590 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46119591590).
+
+The older dependency-free `frameforge-3d.js` remains available. V2 feature-detects WebGL for the imported glTF scene renderer. If WebGL cannot be created, 2D editing/compositing remains available and 3D model frames report a warning.
+
+## Step 22 — GLB/glTF models and materials
+
+The V2 asset inspector uses the local GLTFLoader to decode GLB and glTF 2.0. The asset library records model/mesh count, bounds, dimensions and animation clip names/durations. Embedded GLB buffers/textures are handled by the file loader. A `.gltf` document with external `.bin` or image resources resolves those resources against already imported local asset records; import the referenced dependency files before importing the `.gltf`. Dependency paths are saved as metadata and reproduced in the Blender ZIP.
+
+## Step 23 — 3D scene, cameras and lighting
+
+Every default V2 sequence now has a serializable `scene3d` settings block. The editor exposes perspective/orthographic camera, position/target/FOV, scene colour/transparency, ambient/key light intensity and tone mapping. The schema also permits additional point/spot lights, light colour/positions/directions, orthographic size, clipping planes, exposure and shadow settings.
+
+The Three renderer draws the GLTF scene to its own WebGL canvas; the V2 compositor places that scene output into the selected sequence-resolution frame.
+
+## Step 24 — 3D animation and contact constraints
+
+GLTF animation clips play through Three.js AnimationMixer. The V2 clip inspector exposes clip selection, playback rate, enabled state and looping, plus XYZ position/rotation/scale. Those transform axes are supported by the V2 keyframe editor. SkeletonUtils.clone is used for independent model instances.
+
+Model constraints are stored in the project and include parent-to-model, look-at, ground contact and approximate AABB contact. Ground/AABB are deterministic convenience approximations, not a complete physics solver. The Three.js path uses Y-up coordinates; the Blender bridge converts camera, light and imported model transforms into Blender's Z-up coordinate system. Per-axis Euler keyframes are mapped to the corresponding Blender axes; complex multi-axis Euler combinations may not be numerically identical after conversion. Advanced rig authoring, retargeting and simulation remain Blender tasks.
+
+## Step 25 — Blender bridge and interchange
+
+The **Export Blender bridge ZIP** action packages the current sequence settings, camera/lights/environment, model clip timing/transform/animation/keyframes/constraints, local GLB/glTF source files and referenced external resources, plus `tools/frameforge_blender_bridge.py` and a usage README. It rejects missing dependencies instead of exporting a broken package.
+
+The bridge has `build` mode (save editable `.blend` and export `.glb`) and `render` mode (render an RGBA PNG at a specified frame). The PNG is imported back into V2 through the normal local asset import workflow; a whole Blender video sequence is not automatically merged into the V2 timeline.
+
+- [Browser smoke run 46120528036 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46120528036): imports the bundled runtime's animated GLB, verifies mesh/animation metadata and UI controls, stores a 3D transform keyframe, edits scene camera/lighting and validates the downloaded Blender ZIP header/content.
+- [Blender bridge run 46120333524 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46120333524): bridge Python tests passed; Blender 4.0.2 built an editable scene and GLB, rendered a PNG frame with CPU Cycles and uploaded the outputs as an Actions artifact.
+- The coordinate conversion and clip identity refinements are being rechecked by the current Blender and browser workflows; their final run links will replace these initial successful integration-run links if newer runs complete successfully.
+## Current V2 boundary after steps 1–25
+
+The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions, and a WebGL Three.js r164.1 scene renderer for imported GLB/glTF models. It can export transparent PNG frames and package 3D scenes for Blender. It still does **not** render a full V2 timeline to MP4. Final video rendering, resumable chunks, FFmpeg export and technical QA remain later roadmap steps. Audio tracks are timeline data only. The legacy V1 editor and existing Blender production workflows remain available.
 
 
 ## Remaining limits / not yet done
@@ -209,4 +252,4 @@ The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optiona
 
 ## Next batch
 
-The next five-step batch is **21–25**. Do not start it until the user requests it.
+The next five-step batch is **26–30** (audio production). Do not start it until the user requests it.
