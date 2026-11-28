@@ -1,0 +1,7 @@
+{
+  "three": "0.164.1",
+  "esbuild": "0.24.2",
+  "entrypoints": ["THREE", "GLTFLoader", "SkeletonUtils.clone"],
+  "format": "browser IIFE",
+  "sha256": "185a95c90874a2bff252b142b4225bf03fa805ac34d7a28d2e13798fe68ae7f7"
+}
