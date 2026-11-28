@@ -69,6 +69,7 @@ jobs:
           node --check app.js
           node --check frameforge-3d.js
           node --check ff-v2-core.js
+          node --check ff-v2-audio.js
           node --check ff-v2-studio.js
           node --check ff-v2-renderer.js
           node --check ff-v2-3d-studio.js
