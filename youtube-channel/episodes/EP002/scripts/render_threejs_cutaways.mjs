@@ -83,6 +83,34 @@ try{
   const collisionBefore=await page.evaluate(()=>window.__PLAYER.collisionReport?window.__PLAYER.collisionReport():null);
   if(!collisionBefore||collisionBefore.length!==10)throw new Error("The ten-section rig/collision report is missing.");
 
+  // Verify the WebGL drawing buffer contains actual scene pixels before encoding.
+  // Chromium may otherwise clear the WebGL canvas before VideoFrame captures it.
+  const visualPreflight=await page.evaluate(async()=>{
+    const canvas=document.querySelector("#stage canvas");
+    const gl=canvas&&(canvas.getContext("webgl2")||canvas.getContext("webgl"));
+    if(!canvas||!gl)return {ok:false,reason:"WebGL canvas/context unavailable"};
+    window.__PLAYER.seek(6);
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const pixels=new Uint8Array(canvas.width*canvas.height*4);
+    gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+    let visible=0,bright=0,alpha=0;
+    for(let i=0;i<pixels.length;i+=4){
+      const y=0.2126*pixels[i]+0.7152*pixels[i+1]+0.0722*pixels[i+2];
+      if(y>28)visible++;
+      if(y>56)bright++;
+      if(pixels[i+3]>0)alpha++;
+    }
+    const total=canvas.width*canvas.height;
+    return {
+      ok:visible/total>0.025&&bright/total>0.004,
+      visible_fraction:visible/total,
+      bright_fraction:bright/total,
+      alpha_fraction:alpha/total,
+      preserve_drawing_buffer:gl.getContextAttributes()?.preserveDrawingBuffer===true
+    };
+  });
+  console.log("THREEJS_VISUAL_PREFLIGHT",JSON.stringify(visualPreflight));
+  if(!visualPreflight.ok)throw new Error("Three.js visual preflight failed: canvas is empty or black; refusing to encode.");
   const h264Supported=await page.evaluate(async()=>{
     if(!window.VideoEncoder||!window.VideoFrame)return false;
     try{
