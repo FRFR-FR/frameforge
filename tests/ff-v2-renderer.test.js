@@ -166,3 +166,13 @@ test('depth-of-field and swirl-warp are supported fallback effects', () => {
   const state=Renderer.transitionValues(clip,5,p.sequences[0],{position:[0,0],scale:[1,1],rotation_degrees:0,opacity:1,anchor:[0.5,0.5]});
   assert.equal(state.distortions[0].type,'swirl-warp');
 });
+
+
+test('speed-ramp source time integrates each prior frame rate', () => {
+  const clip={start_frame:0,duration_frames:100,playback_rate:1,keyframes:[
+    {property:'playback_rate',frame:0,value:1,interpolation:'linear'},
+    {property:'playback_rate',frame:60,value:2,interpolation:'linear'}
+  ]};
+  const sourceFrames=Renderer.sourceFramesAtClipFrame(clip,60);
+  assert.ok(sourceFrames>80 && sourceFrames<85,'Gradual 1× to 2× ramp should integrate the prior per-frame rates');
+});
