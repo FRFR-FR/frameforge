@@ -1,0 +1,19 @@
+WOMBAT CUBES - NARRATION SCRIPT (30 seconds)
+One steady, deadpan male voice. Start each line at its time. Pace is about 3.3 words per second.
+
+0:00.0  This animal poops perfect cubes. Yes, really.
+
+0:02.6  Meet the wombat. Up to a hundred cubes, every single night.
+
+0:06.8  And nobody knew how... until scientists studied its guts.
+
+0:10.0  Quick favour: hit like and subscribe. The wombat is watching. It knows where you live.
+        (ding on "like" at 10.0 and "subscribe" at 10.95; cube thuds at 13.9, so pause after "live"; wink at 14.3)
+
+0:15.0  Its gut is stiff in some parts, stretchy in others, so drying poo gets squeezed into corners.
+
+0:20.8  Then it stacks them on rocks, so every wombat can smell: this is my turf.
+
+0:26.0  Would you stack them? Tell me in the comments.
+
+0:28.6  (silence until 0:30; the video loops straight back into the opening cube drop)
