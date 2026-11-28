@@ -755,10 +755,11 @@
   }
 
   async function loadActiveProject() {
-    const transaction = state.db.transaction(['projects', 'v2projects'], 'readonly');
-    const pointerRecord = await requestResult(transaction.objectStore('projects').get('ffv2-active'));
+    const pointerTransaction = state.db.transaction('projects', 'readonly');
+    const pointerRecord = await requestResult(pointerTransaction.objectStore('projects').get('ffv2-active'));
     if (pointerRecord?.project_id) {
-      const record = await requestResult(transaction.objectStore('v2projects').get(pointerRecord.project_id));
+      const projectTransaction = state.db.transaction('v2projects', 'readonly');
+      const record = await requestResult(projectTransaction.objectStore('v2projects').get(pointerRecord.project_id));
       if (record?.project && Core.validateProject(record.project).length === 0) {
         state.project = record.project;
         return true;
@@ -770,18 +771,13 @@
 
   async function loadProjectAssets() {
     const transaction = state.db.transaction('assets', 'readonly');
-    const store = transaction.objectStore('assets');
-    const records = [];
-    for (const ref of state.project.assets) {
-      const record = await requestResult(store.get(ref.id));
-      if (record) records.push(record);
-      else records.push({
-        id: ref.id, label: ref.label || 'Missing local asset', file_name: ref.label || '',
-        media_type: ref.media_type, metadata: ref.metadata || {}, tags: ref.tags || [],
-        rights: ref.rights || { status: 'pending' }, missing: true
-      });
-    }
-    state.assetRecords = records;
+    const allRecords = await requestResult(transaction.objectStore('assets').getAll());
+    const byId = new Map(allRecords.map(asset => [asset.id, asset]));
+    state.assetRecords = state.project.assets.map(ref => byId.get(ref.id) || ({
+      id: ref.id, label: ref.label || 'Missing local asset', file_name: ref.label || '',
+      media_type: ref.media_type, metadata: ref.metadata || {}, tags: ref.tags || [],
+      rights: ref.rights || { status: 'pending' }, missing: true
+    }));
   }
 
   async function showRecoveryCount() {
