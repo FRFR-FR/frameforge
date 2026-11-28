@@ -34,6 +34,7 @@ jobs:
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
       COVERR_API_KEY: ${{ secrets.COVERR_API_KEY }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      DVIDS_API_KEY: ${{ secrets.DVIDS_API_KEY }}
       HF_HOME: ~/.cache/huggingface
       LIBGL_ALWAYS_SOFTWARE: "1"
       MESA_LOADER_DRIVER_OVERRIDE: llvmpipe
