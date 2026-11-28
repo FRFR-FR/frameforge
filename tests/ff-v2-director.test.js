@@ -100,6 +100,30 @@ test('claims cannot cite unknown sources and retain separate evidence classifica
   assert.equal(Core.validateProject(project).length,0);
 });
 
+test('factual claims can record pinpoint page and media timecode locations',()=>{
+  const project=makeProject();
+  const source=Director.addResearchSource(project,{url:'https://example.org/source',source_type:'primary',access_status:'public'});
+  const claim=Director.addResearchClaim(project,{
+    text:'A sourced video statement.',classification:'factual',verification_status:'verified',
+    confidence:'high',source_ids:[source.id],
+    evidence_locations:[
+      {source_id:source.id,locator:'PDF p. 12, paragraph 2',page_reference:'12',excerpt:'A short cited excerpt.'},
+      {source_id:source.id,locator:'00:01:23–00:01:41',start_time_seconds:83,end_time_seconds:101}
+    ]
+  });
+  assert.equal(claim.evidence_locations.length,2);
+  assert.equal(claim.evidence_locations[0].page_reference,'12');
+  assert.equal(claim.evidence_locations[1].end_time_seconds,101);
+  assert.equal(Core.validateProject(project).length,0);
+  assert.throws(()=>Director.addResearchClaim(project,{
+    text:'An unlinked evidence locator.',classification:'factual',source_ids:[source.id],
+    evidence_locations:[{source_id:'missing-source',locator:'page 4'}]
+  }),/unknown source ID/);
+  const malformed=Core.clone(project);
+  malformed.research.claims[0].evidence_locations[1].end_time_seconds=80;
+  assert.ok(Core.validateProject(malformed).some(error=>error.includes('end timestamp precedes')));
+});
+
 test('narration is split into timed visual beats with profile-aware media and required fields',()=>{
   const project=makeProject();
   Director.updateBrief(project,{
