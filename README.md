@@ -81,7 +81,7 @@ Each frame stores its rendered code layer independently. Code layers sit above t
 
 ## Security note for frame scripts
 
-The frame-code feature executes JavaScript written into the editor. Only run code you wrote or trust. Do not paste unknown scripts into it. The app makes no network requests and loads no third-party libraries.
+The frame-code feature executes JavaScript written into the editor. Only run code you wrote or trust. Do not paste unknown scripts into it. The 3D scene editor loads its pinned Three.js bundle from the repository's `vendor/` directory (no runtime CDN); the Blender ZIP action reads the bridge script from the same FrameForge site origin. It does not call a paid cloud renderer or external media-generation service.
 
 ## License
 
@@ -252,4 +252,4 @@ python tools/validate_media_manifest.py examples/media-asset-manifest.example.js
 
 The checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) workflow. The real-browser integration check runs separately in [FrameForge V2 Browser Smoke](.github/workflows/ff-v2-browser-smoke.yml). Both use read-only repository permissions and do not start any Blender or media-render job.
 
-**Current V2 boundary:** steps 6–20 add validated local media import, an editable multi-track timeline, local recovery, a Canvas 2D layer compositor, transform/crop/anchor controls, transform/effect keyframes and parenting, masks/mattes/blend modes, generated title/SVG/shape/particle graphics, optional WebGL shader passes, lighting/atmosphere, stylised distortion effects, speed ramps and clip-edge transitions. The compositor renders the current frame and can export a transparent PNG; it is not yet a full-sequence or final MP4 renderer. V2 project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB.
+**Current V2 boundary:** steps 6–25 add validated local media import, an editable multi-track timeline, local recovery, a Canvas 2D layer compositor, transform/effect keyframes, masks/mattes/blend modes, generated graphics/particles, optional WebGL post-processing, stylised effects and transitions, a locally vendored Three.js r164.1 GLB/glTF scene renderer, 3D camera/light/environment controls, model animation and constraints, and a portable Blender bridge. The compositor renders the current frame and exports PNG; it is not yet a full-sequence or final MP4 renderer. 3D model pixels require WebGL. Project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB.
