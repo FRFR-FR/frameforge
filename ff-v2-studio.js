@@ -875,6 +875,7 @@
           start_frame:item.clip.start_frame,duration_frames:item.clip.duration_frames,
           transform:Core.clone(item.clip.transform3d||{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}),
           animation:Core.clone(item.clip.animation||{enabled:true,clip_name:'',time_scale:1,loop:true,start_frame:item.clip.start_frame}),
+          keyframes:Core.clone(item.clip.keyframes||[]),
           constraints:Core.clone(item.clip.constraints||[])
         });
       }
