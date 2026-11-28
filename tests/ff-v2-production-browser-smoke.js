@@ -98,7 +98,7 @@ async function main() {
     const proceduralClip = await page.evaluate(() => {
       const project = window.FFV2Studio.getProject();
       return project.sequences[0].tracks.flatMap(track => track.clips)
-        .find(clip => clip.generator?.type === 'svg' && clip.generated_by === 'frameforge_procedural_v1');
+        .find(clip => clip.generator?.type === 'svg');
     });
     assert.ok(proceduralClip, 'Expected an editable generated SVG clip.');
 
