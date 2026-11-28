@@ -607,6 +607,97 @@ void main() {
         </div>
       </details>
     </section>
+    <section class="ffv2-production-panel" aria-label="FrameForge production workflows">
+      <details open>
+        <summary class="ffv2-director-title">
+          <span><strong>Production workflows · Steps 36–40</strong><small>Recipes → open media → procedural artwork → audio credits → editable assembly</small></span>
+          <span id="ffv2ProductionSummary">Production tools ready</span>
+        </summary>
+        <div class="ffv2-production-body">
+          <section class="ffv2-production-step">
+            <h3>36 · Reusable shot recipes</h3>
+            <p>Apply an editable composition and camera/action treatment to an existing narration beat. Recipes do not overwrite the underlying narration timing.</p>
+            <div class="ffv2-production-grid">
+              <label>Shot beat <select id="ffv2RecipeBeat" class="ffv2-production-input"></select></label>
+              <label>Recipe <select id="ffv2RecipeChoice" class="ffv2-production-input"></select></label>
+              <label>Duration scale <input id="ffv2RecipeDuration" class="ffv2-production-input" type="number" min="0.5" max="2.5" step="0.05" value="1"></label>
+              <label>Transition frames <input id="ffv2RecipeTransitionFrames" class="ffv2-production-input" type="number" min="1" max="240" step="1" value="10"></label>
+            </div>
+            <label class="ffv2-production-full">Composition override (optional) <input id="ffv2RecipeLayout" class="ffv2-production-input" maxlength="80" placeholder="Keep recipe default"></label>
+            <button id="ffv2ApplyRecipe" class="button small primary">Apply shot recipe</button>
+            <div id="ffv2RecipePreview" class="ffv2-production-note">Select a beat and recipe to inspect the treatment.</div>
+          </section>
+
+          <section class="ffv2-production-step">
+            <h3>37 · Free/open media sources</h3>
+            <p>Search public catalogues, inspect the source page and licence, then download and import the file. Imported catalogue assets remain pending until you review them in the Research & visual director.</p>
+            <div class="ffv2-production-grid">
+              <label>Search phrase <input id="ffv2SourceQuery" class="ffv2-production-input" maxlength="200" placeholder="e.g. vintage radio receiver"></label>
+              <label>Media type <select id="ffv2SourceType" class="ffv2-production-input"><option value="image">Images</option><option value="audio">Audio / SFX</option><option value="video">Video files</option></select></label>
+            </div>
+            <div class="ffv2-production-actions">
+              <button id="ffv2SearchOpenverse" class="button small">Search Openverse</button>
+              <button id="ffv2SearchCommons" class="button small">Search Wikimedia Commons</button>
+              <a class="button small quiet" href="https://polyhaven.com/" target="_blank" rel="noopener noreferrer">Browse Poly Haven ↗</a>
+              <a class="button small quiet" href="https://archive.org/" target="_blank" rel="noopener noreferrer">Browse Internet Archive ↗</a>
+            </div>
+            <div id="ffv2ProviderResults" class="ffv2-provider-results" aria-live="polite"><p>No search results yet. Manual local import is always available.</p></div>
+            <div class="ffv2-production-grid">
+              <label>Source / file page URL <input id="ffv2ProductionSourceUrl" class="ffv2-production-input" type="url" placeholder="https://…"></label>
+              <label>Provider <input id="ffv2ProductionProvider" class="ffv2-production-input" maxlength="200" placeholder="User supplied or catalogue name"></label>
+              <label>Title <input id="ffv2ProductionTitle" class="ffv2-production-input" maxlength="500" placeholder="Asset title"></label>
+              <label>Creator <input id="ffv2ProductionCreator" class="ffv2-production-input" maxlength="300" placeholder="Creator / author"></label>
+              <label>Licence <input id="ffv2ProductionLicense" class="ffv2-production-input" maxlength="300" placeholder="e.g. CC BY 4.0"></label>
+              <label>Licence URL <input id="ffv2ProductionLicenseUrl" class="ffv2-production-input" type="url" placeholder="https://…"></label>
+            </div>
+            <label class="ffv2-production-full">Attribution text <textarea id="ffv2ProductionAttribution" class="ffv2-production-input" rows="2" maxlength="1800" placeholder="Creator, title, source and licence credit"></textarea></label>
+            <input id="ffv2ProductionImportFile" type="file" hidden>
+            <button id="ffv2ChooseProductionFile" class="button small primary">Import selected / local file</button>
+            <p class="ffv2-production-note">Provider API limits and terms still apply. Poly Haven's assets are CC0, but use of its live API has separate integration conditions. Archive records and individual catalogue entries must be checked; a search result is not a licence.</p>
+          </section>
+
+          <section class="ffv2-production-step">
+            <h3>38 · Procedural asset and motion-graphics builder</h3>
+            <p>Create original SVG artwork directly from editable parameters. Illustrative/sample graphics are labelled and must not be presented as factual evidence.</p>
+            <div class="ffv2-production-grid">
+              <label>Graphic type <select id="ffv2GraphicType" class="ffv2-production-input">
+                <option value="background">Atmospheric background</option><option value="comparison">Comparison layout</option>
+                <option value="flowchart">Process / system diagram</option><option value="map">Schematic route map</option>
+                <option value="timeline">Chronology timeline</option><option value="evidence">Evidence callout frame</option>
+                <option value="bar_chart">Bar chart (sample values unless supplied)</option><option value="badge">Key-idea badge</option>
+              </select></label>
+              <label>Graphic title <input id="ffv2GraphicTitle" class="ffv2-production-input" maxlength="140" value="A closer look"></label>
+              <label>Subtitle / context <input id="ffv2GraphicSubtitle" class="ffv2-production-input" maxlength="180" placeholder="What should this visual explain?"></label>
+              <label>Start frame <input id="ffv2GraphicStart" class="ffv2-production-input" type="number" min="0" step="1" value="0"></label>
+              <label>Duration (frames) <input id="ffv2GraphicDuration" class="ffv2-production-input" type="number" min="1" step="1" value="90"></label>
+            </div>
+            <label class="ffv2-production-full">Labels (one per line) <textarea id="ffv2GraphicLabels" class="ffv2-production-input" rows="3" maxlength="800" placeholder="Input&#10;Process&#10;Output"></textarea></label>
+            <button id="ffv2CreateProceduralGraphic" class="button small primary">Create editable graphic clip</button>
+          </section>
+
+          <section class="ffv2-production-step">
+            <h3>39 · Audio catalogue and licensing</h3>
+            <p>Imported music, narration and sound effects are catalogued separately. The credit sheet excludes unapproved assets; any unverified or restricted audio blocks automatic publication packaging.</p>
+            <div class="ffv2-production-grid">
+              <label>Audio role <select id="ffv2AudioRole" class="ffv2-production-input"><option value="sfx">Sound effect</option><option value="music">Music</option><option value="voiceover">Voiceover / narration</option></select></label>
+              <label>Audio asset <select id="ffv2AudioAsset" class="ffv2-production-input"><option value="">Select imported audio</option></select></label>
+            </div>
+            <div id="ffv2AudioCatalogue" class="ffv2-audio-catalogue" aria-live="polite">No audio assets in this project yet.</div>
+            <button id="ffv2BuildAudioCredits" class="button small">Build rights / credit report</button>
+            <div id="ffv2AudioReport" class="ffv2-production-note">Unreviewed audio will be excluded from publication packaging.</div>
+            <textarea id="ffv2AudioCredits" class="ffv2-production-input" rows="3" readonly placeholder="Approved attribution credits appear here."></textarea>
+          </section>
+
+          <section class="ffv2-production-step">
+            <h3>40 · Shot assembly and production orchestrator</h3>
+            <p>Builds editable timeline clips from linked shot-plan assets, adds procedural graphics only where the shot plan requests them, and records missing media. It never fabricates source footage or clears rights checks.</p>
+            <button id="ffv2AssembleShotPlan" class="button small primary">Assemble editable draft timeline</button>
+            <div id="ffv2AssemblyReport" class="ffv2-production-note">Generate and review a shot plan, then assemble the draft.</div>
+          </section>
+          <div id="ffv2ProductionStatus" class="ffv2-save-status" role="status" aria-live="polite">Production workflow ready.</div>
+        </div>
+      </details>
+    </section>
     <div class="timeline-foot"><span>Tip: duplicate a frame, then make small changes for traditional frame-by-frame animation.</span><span>30 FPS default</span></div>
   </section>
 
@@ -633,6 +724,7 @@ void main() {
   <script src="ff-v2-studio.js"></script>
   <script src="ff-v2-audio.js"></script>
   <script src="ff-v2-director.js"></script>
+  <script src="ff-v2-production.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
