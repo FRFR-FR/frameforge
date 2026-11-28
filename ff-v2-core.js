@@ -163,7 +163,16 @@
       assets: [],
       sequences: [{
         id: makeId('sequence'), name: 'Main', width: 1280, height: 720,
-        fps: 30, duration_frames: 900, tracks
+        fps: 30, duration_frames: 900, tracks,
+        scene3d: {
+          camera: { projection:'perspective', position:[6,4,7], target:[0,0,0], up:[0,1,0], fov:45, orthographic_height:8, near:0.1, far:1000 },
+          lights: [
+            { id:'light-ambient', type:'ambient', color:'#ffffff', intensity:0.45 },
+            { id:'light-key', type:'directional', color:'#ffffff', intensity:1.1, direction:[-0.55,0.78,0.48] }
+          ],
+          environment: { background:'#101c2b', transparent:false },
+          render: { tone_mapping:'aces', exposure:1, shadows:true }
+        }
       }],
       creative_brief: {
         topic: 'Untitled video project', niche: 'unclassified', audience: '', platform: 'youtube_longform',
@@ -238,7 +247,12 @@
       playback_rate: 1, enabled: true,
       transform: { position: [0, 0], scale: [1, 1], rotation_degrees: 0, opacity: 1, anchor: [0.5, 0.5], fit: 'contain' },
       blend_mode: 'normal',
-      keyframes: [], effects: []
+      keyframes: [], effects: [],
+      ...(track.type === 'scene3d' || asset.media_type === 'model3d' ? {
+        transform3d: { position:[0,0,0], rotation:[0,0,0], scale:[1,1,1] },
+        animation: { enabled:true, clip_name:'', time_scale:1, loop:true, start_frame:start },
+        constraints: []
+      } : {})
     };
     track.clips.push(clip);
     sequence.duration_frames = Math.max(sequence.duration_frames, start + length);
@@ -806,6 +820,123 @@
   }
 
 
+
+  function default3DSceneSettings() {
+    return {
+      camera: { projection:'perspective', position:[6,4,7], target:[0,0,0], up:[0,1,0], fov:45, orthographic_height:8, near:0.1, far:1000 },
+      lights: [
+        { id:makeId('light'), type:'ambient', color:'#ffffff', intensity:0.45 },
+        { id:makeId('light'), type:'directional', color:'#ffffff', intensity:1.1, direction:[-0.55,0.78,0.48] }
+      ],
+      environment: { background:'#101c2b', transparent:false },
+      render: { tone_mapping:'aces', exposure:1, shadows:true }
+    };
+  }
+
+  function set3DSceneSettings(project, updates) {
+    const sequence=getMainSequence(project);
+    sequence.scene3d=sequence.scene3d||default3DSceneSettings();
+    const settings=sequence.scene3d;
+    const next=clone(settings);
+    if(updates.camera){
+      const camera=Object.assign({},next.camera,clone(updates.camera));
+      if(!['perspective','orthographic'].includes(camera.projection)) throw new Error('3D camera projection must be perspective or orthographic.');
+      for(const key of ['position','target','up']){
+        if(!Array.isArray(camera[key])||camera[key].length!==3||camera[key].some(n=>!Number.isFinite(Number(n)))) throw new Error('3D camera '+key+' must have three finite coordinates.');
+        camera[key]=camera[key].map(Number);
+      }
+      if(!Number.isFinite(Number(camera.fov))||camera.fov<10||camera.fov>120) throw new Error('3D camera FOV must be between 10 and 120 degrees.');
+      if(!Number.isFinite(Number(camera.orthographic_height))||camera.orthographic_height<=0) throw new Error('Orthographic camera height must be positive.');
+      if(!Number.isFinite(Number(camera.near))||!Number.isFinite(Number(camera.far))||camera.near<=0||camera.far<=camera.near) throw new Error('3D camera clipping planes are invalid.');
+      next.camera=camera;
+    }
+    if(updates.lights){
+      if(!Array.isArray(updates.lights)||updates.lights.length>32) throw new Error('A 3D scene supports up to 32 lights.');
+      next.lights=updates.lights.map(light=>{
+        if(!['ambient','directional','point','spot'].includes(light.type)) throw new Error('Unsupported 3D light type.');
+        const copy=Object.assign({id:makeId('light'),color:'#ffffff',intensity:1},clone(light));
+        copy.intensity=Math.max(0,Math.min(100,Number(copy.intensity)||0));
+        if(copy.position) copy.position=copy.position.map(Number);
+        if(copy.direction) copy.direction=copy.direction.map(Number);
+        return copy;
+      });
+    }
+    if(updates.environment){
+      const environment=Object.assign({},next.environment,clone(updates.environment));
+      if(environment.background!==undefined && environment.background!==null && typeof environment.background!=='string') throw new Error('3D background must be a colour or null.');
+      next.environment=environment;
+    }
+    if(updates.render){
+      const render=Object.assign({},next.render,clone(updates.render));
+      if(!['none','linear','aces'].includes(render.tone_mapping)) throw new Error('Unsupported 3D tone mapping.');
+      render.exposure=Math.max(0,Math.min(10,Number(render.exposure)||1));
+      next.render=render;
+    }
+    sequence.scene3d=next;
+    return next;
+  }
+
+  function set3DClipTransform(project, clipId, transform) {
+    const found=findClip(project,clipId);
+    if(found.track.locked) throw new Error('This track is locked.');
+    const current=Object.assign({position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]},clone(found.clip.transform3d||{}));
+    const next=Object.assign({},current);
+    for(const key of ['position','rotation','scale']){
+      if(transform[key]!==undefined){
+        const value=transform[key];
+        if(!Array.isArray(value)||value.length!==3||value.some(n=>!Number.isFinite(Number(n)))) throw new Error('3D '+key+' must contain three finite numbers.');
+        next[key]=value.map(Number);
+      }
+    }
+    if(next.scale.some(n=>Math.abs(n)<0.0001||Math.abs(n)>10000)) throw new Error('3D scale must be non-zero and below 10,000.');
+    found.clip.transform3d=next;
+    return next;
+  }
+
+  function set3DClipAnimation(project,clipId,animation) {
+    const found=findClip(project,clipId);
+    if(found.track.locked) throw new Error('This track is locked.');
+    const next=Object.assign({enabled:true,clip_name:'',time_scale:1,loop:true,start_frame:found.clip.start_frame},clone(found.clip.animation||{}),clone(animation||{}));
+    if(!Number.isFinite(Number(next.time_scale))||next.time_scale<0||next.time_scale>8) throw new Error('3D animation speed must be between 0 and 8.');
+    if(!Number.isInteger(Number(next.start_frame))||Number(next.start_frame)<0) throw new Error('3D animation start frame must be a non-negative integer.');
+    next.time_scale=Number(next.time_scale);next.start_frame=Number(next.start_frame);
+    found.clip.animation=next;
+    return next;
+  }
+
+  function set3DClipConstraints(project,clipId,constraints) {
+    const found=findClip(project,clipId);
+    if(found.track.locked) throw new Error('This track is locked.');
+    if(!Array.isArray(constraints)||constraints.length>16) throw new Error('A model can have up to 16 scene constraints.');
+    const accepted=new Set(['ground_contact','look_at','parent','aabb_collision']);
+    for(const constraint of constraints){
+      if(!accepted.has(constraint.type)) throw new Error('Unsupported 3D constraint.');
+      if(constraint.type==='ground_contact'&&!Number.isFinite(Number(constraint.ground_y??0))) throw new Error('Ground contact needs a finite ground height.');
+      if(constraint.type==='look_at'&&(!Array.isArray(constraint.target)||constraint.target.length!==3||constraint.target.some(n=>!Number.isFinite(Number(n))))) throw new Error('Look-at target needs three finite coordinates.');
+      if(constraint.type==='parent'&&constraint.target_clip_id===clipId) throw new Error('A model cannot parent itself.');
+      if(constraint.type==='parent') findClip(project,constraint.target_clip_id);
+    }
+    found.clip.constraints=clone(constraints);
+    return found.clip.constraints;
+  }
+
+  function evaluate3DClipState(clip,globalFrame) {
+    const base=Object.assign({position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]},clone(clip.transform3d||{}));
+    const frame=Math.max(0,Math.round(Number(globalFrame)||0));
+    const local=Math.max(0,frame-clip.start_frame);
+    const keys=(clip.keyframes||[]);
+    for(const [property,index,field] of [
+      ['position3d.x',0,'position'],['position3d.y',1,'position'],['position3d.z',2,'position'],
+      ['rotation3d.x',0,'rotation'],['rotation3d.y',1,'rotation'],['rotation3d.z',2,'rotation'],
+      ['scale3d.x',0,'scale'],['scale3d.y',1,'scale'],['scale3d.z',2,'scale']
+    ]){
+      const fallback=base[field][index];
+      base[field][index]=evaluateKeyframes({keyframes:keys},property,local,fallback);
+    }
+    return base;
+  }
+
+
   const api = {
     FORMAT, SCHEMA_VERSION, MAX_FILE_BYTES, HASH_LIMIT_BYTES, FORMATS, TRACK_TYPES,
     makeId, clone, extensionOf, classifyFile, verifySignature, validateSvgText,
@@ -814,6 +945,7 @@
     splitClip, duplicateClip, deleteClip, addGraphicClip, setClipTransform, setClipParent, setClipMask,
     BLEND_MODES, KEYFRAME_PROPERTIES, ANIMATABLE_PROPERTIES, PARTICLE_PRESETS, CLIP_EFFECT_TYPES, POST_PROCESS_TYPES, POST_PROCESS_PRESETS, TRANSITION_TYPES,
     setKeyframe, evaluateKeyframes, evaluateClipTransform, setClipPlaybackRate, evaluateClipPlaybackRate, getActiveVisualClips,
+    default3DSceneSettings, set3DSceneSettings, set3DClipTransform, set3DClipAnimation, set3DClipConstraints, evaluate3DClipState,
     addPostProcessPass, applyPostProcessPreset, removePostProcessPass, setPostProcessRenderer, setClipEffect, setEffectParameterKeyframe, evaluateEffectParameters, setClipTransition, validateProject
   };
   root.FFV2Core = api;
