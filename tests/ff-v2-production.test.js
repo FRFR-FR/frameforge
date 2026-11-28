@@ -9,7 +9,7 @@ function projectWithPlan() {
   project.creative_brief.topic = 'How a simple network works';
   project.creative_brief.niche = 'cybersecurity';
   project.creative_brief.target_duration_seconds = 3;
-  project.creative_brief.narration_script = 'A device sends a request.\\n\\nA network checks the request.\\n\\nA response returns.';
+  project.creative_brief.narration_script = 'A device sends a request.\n\nA network checks the request.\n\nA response returns.';
   Director.buildShotPlan(project, { duration_seconds: 3, fps: 30 });
   return project;
 }
