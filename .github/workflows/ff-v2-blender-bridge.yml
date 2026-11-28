@@ -1,0 +1,60 @@
+name: FrameForge V2 Blender Bridge Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/frameforge_blender_bridge.py"
+      - "examples/frameforge-3d-scene.example.json"
+      - ".github/workflows/ff-v2-blender-bridge.yml"
+  pull_request:
+    paths:
+      - "tools/frameforge_blender_bridge.py"
+      - "examples/frameforge-3d-scene.example.json"
+      - ".github/workflows/ff-v2-blender-bridge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ff-v2-blender-bridge-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  blender-bridge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender and Python validation dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender python3-numpy
+          blender --version
+      - name: Validate bridge manifest and Python helpers
+        run: |
+          python -m unittest tests/test_frameforge_blender_bridge.py -v
+          python -m compileall -q tools/frameforge_blender_bridge.py
+      - name: Build editable Blender scene and glTF interchange
+        run: |
+          mkdir -p output/frameforge_v2_bridge
+          blender --background --python-exit-code 1 \
+            --python tools/frameforge_blender_bridge.py -- \
+            --project examples/frameforge-3d-scene.example.json \
+            --output-dir output/frameforge_v2_bridge --mode build
+      - name: Render a frame and verify returned image
+        run: |
+          blender --background --python-exit-code 1 \
+            --python tools/frameforge_blender_bridge.py -- \
+            --project examples/frameforge-3d-scene.example.json \
+            --output-dir output/frameforge_v2_bridge --mode render --frame 24
+          test -s output/frameforge_v2_bridge/FrameForge_V2_Render.png
+          test -s output/frameforge_v2_bridge/FrameForge_V2_Scene.blend
+          test -s output/frameforge_v2_bridge/FrameForge_V2_Scene.glb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrameForge-V2-Blender-Bridge-Test
+          path: output/frameforge_v2_bridge/*
+          if-no-files-found: error
+          retention-days: 14
