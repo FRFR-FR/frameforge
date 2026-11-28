@@ -26,7 +26,7 @@ test('creates a valid version 2 default project', () => {
   assert.equal(project.format, 'frameforge-project');
   assert.equal(project.schema_version, 2);
   assert.equal(Core.validateProject(project).length, 0);
-  assert.equal(project.sequences[0].tracks.length, 6);
+  assert.equal(project.sequences[0].tracks.length, 7);
 });
 
 test('creates additional tracks with stable ordering and supported types', () => {
