@@ -9,6 +9,7 @@ on:
       - "tests/**"
       - "ff-v2-core.js"
       - "ff-v2-studio.js"
+      - "ff-v2-renderer.js"
       - "index.html"
       - "app.js"
       - "styles.css"
@@ -63,7 +64,8 @@ jobs:
           node --check frameforge-3d.js
           node --check ff-v2-core.js
           node --check ff-v2-studio.js
-          node --test tests/ff-v2-core.test.js
+          node --check ff-v2-renderer.js
+          node --test tests/ff-v2-core.test.js tests/ff-v2-renderer.test.js
           python -m compileall -q blender_pipeline brown_film minecraft_pipeline projects tools tests
 
       - name: Validate schemas, examples and semantic rules
