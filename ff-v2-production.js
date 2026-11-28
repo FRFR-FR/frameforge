@@ -351,7 +351,6 @@
       Math.max(0, Math.round(Number(opts.start_frame) || 0)),
       Math.max(1, Math.round(Number(opts.duration_frames) || sequence.fps * 3))
     );
-    clip.generated_by = 'frameforge_procedural_v1';
     return clip;
   }
 
@@ -370,7 +369,6 @@
       Math.max(0, Math.round(Number(opts.start_frame) || 0)),
       Math.max(1, Math.round(Number(opts.duration_frames) || sequence.fps * 3))
     );
-    clip.generated_by = 'frameforge_procedural_v1';
     return clip;
   }
 
