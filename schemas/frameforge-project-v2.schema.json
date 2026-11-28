@@ -1317,6 +1317,15 @@
             "minLength": 1,
             "maxLength": 1000
           }
+        },
+        "ambiguities_to_resolve": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
         }
       }
     },
@@ -2064,6 +2073,26 @@
         "effect_notes": {
           "type": "string",
           "maxLength": 2000
+        },
+        "evidence_requirement": {
+          "type": "string",
+          "enum": [
+            "none",
+            "source_document",
+            "actual_footage",
+            "official_screenshot",
+            "sourced_data",
+            "user_review"
+          ],
+          "default": "none"
+        },
+        "asset_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
         }
       }
     },
