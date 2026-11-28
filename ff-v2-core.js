@@ -177,9 +177,23 @@
       }],
       creative_brief: {
         topic: 'Untitled video project', niche: 'unclassified', audience: '', platform: 'youtube_longform',
-        target_duration_seconds: 30, tone: '', visual_direction: '', constraints: []
+        target_duration_seconds: 30, tone: '', visual_direction: '', desired_style: '',
+        narration_script: '', research_questions: [], restrictions: [], constraints: []
       },
-      research: { sources: [], claims: [], visual_style_observations: [], researched_at: stamp },
+      research: {
+        sources: [], claims: [], reference_videos: [], research_questions: [],
+        confidence_notes: [], visual_style_observations: [], researched_at: stamp
+      },
+      visual_style_profile: {
+        id: 'style-general', niche: 'unclassified', label: 'General / unclassified',
+        visual_language: 'Choose a topic-specific visual treatment after researching the subject.',
+        preferred_media: ['procedural_2d','three_d','typography'],
+        pacing: 'variable',
+        camera_language: 'Use motivated camera movement; avoid movement without a visual purpose.',
+        sound_language: 'Use restrained sound design that supports narration and visible events.',
+        avoid: ['Generic unrelated B-roll','Decorative overlays without an explanatory purpose']
+      },
+      rights_review: { status: 'not_started', asset_reviews: [] },
       extensions: { editor_version: '2.0-foundation' }
     };
   }
