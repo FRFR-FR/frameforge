@@ -99,8 +99,9 @@ async function main() {
     assert.equal(completed.chunk_count, 2);
 
     await page.locator('#ffv2RenderQueueChunk').selectOption('0');
+    const downloadPromise = page.waitForEvent('download');
     await page.locator('#ffv2RenderQueueExport').click();
-    const download = await page.waitForEvent('download');
+    const download = await downloadPromise;
     const archivePath = path.join(temporary, download.suggestedFilename());
     await download.saveAs(archivePath);
     const bytes = await fs.readFile(archivePath);
