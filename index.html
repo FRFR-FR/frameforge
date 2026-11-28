@@ -72,7 +72,7 @@
     </section>
 
     <aside class="inspector">
-      <div class="panel-tabs"><button class="panel-tab active" data-panel="scriptPanel">Frame code</button><button class="panel-tab" data-panel="projectPanel">Project</button></div>
+      <div class="panel-tabs"><button class="panel-tab active" data-panel="scriptPanel">Frame code</button><button class="panel-tab" data-panel="projectPanel">Project</button><button class="panel-tab" data-panel="ffv2AssetsPanel">V2 Assets</button></div>
       <section id="scriptPanel" class="panel-content active">
         <div class="panel-heading"><div><h2>Frame drawing script</h2><p>Use the Canvas 2D API to draw detailed artwork.</p></div><span class="code-pill">JS</span></div>
         <div class="script-note">Your code runs locally. Use FF3D for lightweight mesh previews and camera tests. For production scenes with armature rigs, IK constraints, object properties, tracked cameras, full animation and CPU Cycles rendering, use the Blender production pipeline linked below. No generated images are required.</div>
@@ -114,6 +114,42 @@ ctx.stroke();</pre>
         <div class="info-row"><span>External services</span><strong>None</strong></div>
         <div class="info-callout">This editor uses browser Canvas 2D for drawing and quick previews. The BROWN production pipeline uses native Blender Cycles on CPU; a static GitHub Pages site cannot launch Blender on your device.</div>
       </section>
+      <section id="ffv2AssetsPanel" class="panel-content">
+        <div class="panel-heading">
+          <div><h2>FrameForge V2 Asset Library</h2><p>Import, validate, tag and reuse project media.</p></div>
+          <span class="code-pill">V2</span>
+        </div>
+        <label class="field-label" for="ffv2ProjectName">V2 project name</label>
+        <input id="ffv2ProjectName" class="select-field" type="text" maxlength="200" value="Untitled V2 Project" />
+        <div class="ffv2-panel-actions">
+          <button id="ffv2SaveProject" class="button primary">Save V2</button>
+          <button id="ffv2ExportProject" class="button">Export JSON</button>
+        </div>
+        <div class="ffv2-panel-actions">
+          <button id="ffv2OpenProject" class="button">Open V2 JSON</button>
+          <button id="ffv2RecoveryButton" class="button" disabled>No recovery copy</button>
+          <input id="ffv2ProjectFile" type="file" accept="application/json,.json" hidden />
+        </div>
+        <div class="section-divider"></div>
+        <button id="ffv2ImportButton" class="button primary full-width">＋ Import media files</button>
+        <input id="ffv2FileInput" type="file" multiple accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif,image/svg+xml,video/mp4,video/quicktime,video/webm,video/ogg,audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/mp4,audio/aac,.glb,.gltf" hidden />
+        <div id="ffv2DropZone" class="ffv2-drop-zone">Drop images, video, audio, SVG or GLB files here</div>
+        <label class="field-label" for="ffv2AssetSearch">Search assets</label>
+        <input id="ffv2AssetSearch" class="select-field" type="search" placeholder="Search names or tags…" />
+        <label class="field-label" for="ffv2AssetFilter">Filter media type</label>
+        <select id="ffv2AssetFilter" class="select-field">
+          <option value="all">All media</option>
+          <option value="image">Images</option>
+          <option value="graphic">SVG / graphics</option>
+          <option value="video">Video</option>
+          <option value="audio">Audio</option>
+          <option value="model3d">3D models</option>
+        </select>
+        <div class="ffv2-asset-list-heading"><span>Project assets</span><small id="ffv2AssetCount">0 assets</small></div>
+        <div id="ffv2AssetList" class="ffv2-asset-list"></div>
+        <div class="info-callout">Imported files are stored in this browser's IndexedDB. Each external asset starts with rights status “pending”; importing does not establish permission to publish it. SHA-256 is calculated for files up to 32 MB. Browser codec support varies by device.</div>
+        <div id="ffv2SaveStatus" class="ffv2-save-status" role="status" aria-live="polite">Initialising V2 storage…</div>
+      </section>
     </aside>
   </main>
 
@@ -135,6 +171,43 @@ ctx.stroke();</pre>
     </div>
     <div class="timeline-scrubber-row"><input id="timelineScrubber" type="range" min="0" max="0" value="0" /><span id="timeReadout">00:00:00</span></div>
     <div id="frameStrip" class="frame-strip" aria-label="Animation frames"></div>
+
+    <div class="ffv2-timeline-section">
+      <div class="ffv2-timeline-header">
+        <div><strong>V2 Multi-track Timeline</strong><small id="ffv2TrackCount">6 tracks</small></div>
+        <div class="ffv2-track-add">
+          <select id="ffv2NewTrackType" aria-label="New track type">
+            <option value="video">Video</option><option value="image">Image</option><option value="graphic">Graphics</option><option value="title">Titles</option><option value="scene3d">3D scene</option><option value="voiceover">Voiceover</option><option value="music">Music</option><option value="sfx">Sound effects</option><option value="effect">Effects</option><option value="adjustment">Adjustment</option>
+          </select>
+          <button id="ffv2AddTrack" class="button small">＋ Track</button>
+        </div>
+      </div>
+      <div class="ffv2-timeline-toolbar">
+        <label><input id="ffv2SnapToggle" type="checkbox" checked /> Snap to seconds</label>
+        <div class="ffv2-zoom-controls"><button id="ffv2ZoomOut" class="icon-button" aria-label="Zoom out timeline">−</button><span id="ffv2ZoomLabel">115%</span><button id="ffv2ZoomIn" class="icon-button" aria-label="Zoom in timeline">＋</button></div>
+        <input id="ffv2TargetTrack" class="ffv2-target-track" aria-label="Target track for imported assets" />
+      </div>
+      <div class="ffv2-playhead-toolbar">
+        <input id="ffv2Playhead" type="range" min="0" max="900" value="0" />
+        <span id="ffv2PlayheadLabel">Frame 0 · 0.00 s</span>
+      </div>
+      <div id="ffv2TimelineScroll" class="ffv2-timeline-scroll">
+        <div class="ffv2-timeline-content">
+          <div class="ffv2-ruler-row"><div class="ffv2-ruler-label">Track</div><div id="ffv2TimelineRuler" class="ffv2-timeline-ruler"></div></div>
+          <div id="ffv2TrackRows" class="ffv2-track-rows"></div>
+          <div id="ffv2PlayheadLine" class="ffv2-playhead-line"></div>
+        </div>
+      </div>
+      <div id="ffv2ClipEditor" class="ffv2-clip-editor hidden">
+        <div class="ffv2-clip-editor-title"><strong id="ffv2SelectedClipName">Selected clip</strong><small id="ffv2ClipTrack"></small></div>
+        <label>Start frame <input id="ffv2ClipStart" type="number" min="0" step="1" /></label>
+        <label>Duration (frames) <input id="ffv2ClipDuration" type="number" min="1" step="1" /></label>
+        <button id="ffv2ApplyClipTiming" class="button small">Apply timing</button>
+        <button id="ffv2SplitClip" class="button small">Split at playhead</button>
+        <button id="ffv2DuplicateClip" class="button small">Duplicate</button>
+        <button id="ffv2DeleteClip" class="button small danger-text">Delete</button>
+      </div>
+    </div>
     <div class="timeline-foot"><span>Tip: duplicate a frame, then make small changes for traditional frame-by-frame animation.</span><span>30 FPS default</span></div>
   </section>
 
@@ -152,6 +225,9 @@ ctx.stroke();</pre>
   </div>
 
   <footer class="app-footer">FrameForge is a local drawing and animation tool. Your project stays in this browser unless you export or share the project file.</footer>
-  <script src="frameforge-3d.js"></script>\n  <script src="app.js"></script>
+  <script src="frameforge-3d.js"></script>
+  <script src="ff-v2-core.js"></script>
+  <script src="ff-v2-studio.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
