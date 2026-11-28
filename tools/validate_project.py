@@ -21,7 +21,11 @@ DEFAULT_SCHEMA = ROOT / "schemas" / "frameforge-project-v2.schema.json"
 
 def _unique_ids(items: list[dict[str, Any]], label: str, errors: list[str]) -> set[str]:
     seen: set[str] = set()
+    if not isinstance(items, list):
+        return seen
     for item in items:
+        if not isinstance(item, dict):
+            continue
         item_id = item.get("id")
         if not isinstance(item_id, str):
             continue
@@ -34,21 +38,31 @@ def _unique_ids(items: list[dict[str, Any]], label: str, errors: list[str]) -> s
 def semantic_errors(data: dict[str, Any]) -> list[str]:
     """Check references and timeline bounds that are awkward to express in JSON Schema."""
     errors: list[str] = []
-    assets = data.get("assets", [])
-    sequences = data.get("sequences", [])
+    raw_assets = data.get("assets", [])
+    raw_sequences = data.get("sequences", [])
+    assets = raw_assets if isinstance(raw_assets, list) else []
+    sequences = raw_sequences if isinstance(raw_sequences, list) else []
     asset_ids = _unique_ids(assets, "asset", errors)
     sequence_ids = _unique_ids(sequences, "sequence", errors)
 
     all_clip_ids: set[str] = set()
     for sequence in sequences:
+        if not isinstance(sequence, dict):
+            continue
         sequence_id = sequence.get("id", "(unknown sequence)")
         duration = sequence.get("duration_frames", 0)
-        tracks = sequence.get("tracks", [])
+        raw_tracks = sequence.get("tracks", [])
+        tracks = raw_tracks if isinstance(raw_tracks, list) else []
         _unique_ids(tracks, "track in " + str(sequence_id), errors)
         for track in tracks:
-            clips = track.get("clips", [])
+            if not isinstance(track, dict):
+                continue
+            raw_clips = track.get("clips", [])
+            clips = raw_clips if isinstance(raw_clips, list) else []
             _unique_ids(clips, "clip in " + str(sequence_id) + "/" + str(track.get("id", "?")), errors)
             for clip in clips:
+                if not isinstance(clip, dict):
+                    continue
                 clip_id = clip.get("id")
                 if isinstance(clip_id, str):
                     if clip_id in all_clip_ids:
@@ -75,20 +89,35 @@ def semantic_errors(data: dict[str, Any]) -> list[str]:
                         str(clip.get("sequence_id"))
                     )
 
-    research = data.get("research", {})
+    raw_research = data.get("research", {})
+    research = raw_research if isinstance(raw_research, dict) else {}
     source_ids = _unique_ids(research.get("sources", []), "research source", errors)
     claim_ids = _unique_ids(research.get("claims", []), "research claim", errors)
-    for claim in research.get("claims", []):
-        for source_id in claim.get("source_ids", []):
+    raw_claims = research.get("claims", [])
+    claims = raw_claims if isinstance(raw_claims, list) else []
+    for claim in claims:
+        if not isinstance(claim, dict):
+            continue
+        raw_source_ids = claim.get("source_ids", [])
+        for source_id in raw_source_ids if isinstance(raw_source_ids, list) else []:
             if source_id not in source_ids:
                 errors.append(
                     "Research claim " + str(claim.get("id")) +
                     " references missing research source: " + str(source_id)
                 )
     for sequence in sequences:
-        for track in sequence.get("tracks", []):
-            for clip in track.get("clips", []):
-                for claim_id in clip.get("evidence_claim_ids", []):
+        if not isinstance(sequence, dict):
+            continue
+        raw_tracks = sequence.get("tracks", [])
+        for track in raw_tracks if isinstance(raw_tracks, list) else []:
+            if not isinstance(track, dict):
+                continue
+            raw_clips = track.get("clips", [])
+            for clip in raw_clips if isinstance(raw_clips, list) else []:
+                if not isinstance(clip, dict):
+                    continue
+                raw_evidence_ids = clip.get("evidence_claim_ids", [])
+                for claim_id in raw_evidence_ids if isinstance(raw_evidence_ids, list) else []:
                     if claim_id not in claim_ids:
                         errors.append(
                             "Clip " + str(clip.get("id")) +
