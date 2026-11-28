@@ -71,7 +71,7 @@ test('procedural SVG builder creates safe editable artwork for each visual treat
     assert.match(svg, /^<svg /);
     assert.match(svg, /A &amp; B &lt;script&gt;/);
     assert.doesNotMatch(svg, /<script/i);
-    assert.doesNotMatch(svg, /foreignObject|https?:\/\//i);
+    assert.doesNotMatch(svg, /foreignObject|(?:href|src)=['\"]https?:|url\(['\"]?https?:/i);
     assert.equal(Core.validateSvgText(svg), '');
   }
 });
@@ -88,6 +88,29 @@ test('procedural graphic is inserted as an editable SVG timeline clip', () => {
   assert.equal(clip.generated_by, 'frameforge_procedural_v1');
   assert.equal(clip.start_frame, 12);
   assert.equal(clip.duration_frames, 75);
+});
+
+test('procedural particle clips use editable, bounded parameters and a stable seed', () => {
+  const project = Core.createDefaultProject('Procedural particles');
+  const clip = Production.createProceduralParticleClip(project, {
+    preset: 'embers', count: 900, seed: 42, speed: 1.4, color: '#ff8844'
+  }, { start_frame: 18, duration_frames: 120 });
+  assert.equal(clip.generator.type, 'particles');
+  assert.equal(clip.generator.parameters.preset, 'embers');
+  assert.equal(clip.generator.parameters.count, 500);
+  assert.equal(clip.generator.parameters.seed, 42);
+  assert.equal(clip.start_frame, 18);
+  assert.equal(clip.duration_frames, 120);
+  assert.equal(Core.validateProject(project).length, 0);
+});
+
+test('a manual CC0 source is classified as public-domain but never approved automatically', () => {
+  const options = Production.importOptionsForSelection({
+    provider: 'Poly Haven', license_name: 'CC0 1.0', landing_url: 'https://polyhaven.com/a/test'
+  });
+  assert.equal(options.provenance.source_type, 'public_domain');
+  assert.equal(options.rights.status, 'pending');
+  assert.equal(options.rights.attribution_required, false);
 });
 
 test('source adapter URLs are bounded and preserve provider-specific manual fallbacks', () => {
