@@ -135,8 +135,10 @@ The browser frame queue can render and save chunks on-device, but final FFmpeg e
 
 ## Verification
 
-CI includes:
-- Node syntax validation for the browser queue module.
-- Python regression coverage for idempotent chunk merging, conflicting-frame rejection, export profiles, FFmpeg output verification, black-frame/audio QA, contact sheet generation and delivery-package content.
-- Chromium smoke coverage that intentionally pauses after the first stored frame, resumes the same job, verifies the frame is not rendered twice, exports a valid chunk ZIP and reloads the browser to confirm queue/frame persistence.
+Verified on code commit `5fcca0a0109654eead76edc1c2d871df4cbb5a30`:
+
+- [Foundation Validation run 46141969613 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46141969613): **74 JavaScript tests passed** and **42 Python tests passed**, including real FFmpeg export, output probing, black-frame/audio QA, review artefacts and delivery packaging.
+- [Browser Smoke run 46141969605 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46141969605): all five V2, audio, director, production and render-queue Chromium smoke tests passed. The queue fixture persisted two PNG frames, paused, resumed without rendering those frames again, exported a ZIP chunk and survived a page reload.
+- [Latest GitHub Pages deployment — success](https://github.com/FRFR-FR/frameforge/actions/runs/46142236482): the updated 1–45 progress documentation was deployed.
+
 
