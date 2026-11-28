@@ -6,18 +6,28 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const http = require('node:http');
 
 const PORT = 4177;
 const BASE_URL = 'http://127.0.0.1:' + PORT;
+
+async function checkHttpServer() {
+  return new Promise(resolve => {
+    const request = http.get(BASE_URL, response => {
+      response.resume();
+      response.on('end', () => resolve(Boolean(response.statusCode && response.statusCode >= 200 && response.statusCode < 500)));
+      response.on('error', () => resolve(false));
+    });
+    request.setTimeout(1500, () => { request.destroy(); resolve(false); });
+    request.on('error', () => resolve(false));
+  });
+}
 
 async function waitForServer(server) {
   const started = Date.now();
   while (Date.now() - started < 15000) {
     if (server.exitCode !== null) throw new Error('Render queue smoke server exited.');
-    try {
-      const response = await fetch(BASE_URL);
-      if (response.ok) return;
-    } catch (_) { /* Wait for local server startup. */ }
+    if (await checkHttpServer()) return;
     await new Promise(resolve => setTimeout(resolve, 200));
   }
   throw new Error('Render queue smoke server did not start.');
