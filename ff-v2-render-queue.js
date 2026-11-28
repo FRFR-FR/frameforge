@@ -167,9 +167,13 @@
     currentJob = job;
     updateProgress(job);
     renderChunkChoices();
-    setStatus(job.status === 'complete'
-      ? 'This render job is complete. Export its chunks or review the result.'
-      : 'Loaded saved job. Completed frame files will be skipped when resumed.', 'success');
+    if (job.status === 'complete') {
+      setStatus('This render job is complete. Export its chunks or review the result.', 'success');
+    } else if (job.status === 'failed') {
+      setStatus('Render job failed: ' + (job.error || 'Unknown render error.'), 'error');
+    } else {
+      setStatus('Loaded saved job. Completed frame files will be skipped when resumed.', 'success');
+    }
   }
 
   async function resumeJob() {
@@ -233,6 +237,15 @@
       setStatus(currentJob.status === 'complete'
         ? 'Render complete. Export each completed chunk as a ZIP of numbered PNG frames.'
         : 'Render paused safely. Resume later; stored frames will not be rendered again.', 'success');
+    } catch (error) {
+      if (currentJob && currentJob.status !== 'failed') {
+        currentJob.status = 'failed';
+        currentJob.error = error?.message || String(error);
+        currentJob.updated_at = stamp();
+        await root.FFV2Studio.renderStorage.saveJob(currentJob);
+      }
+      setStatus('Render job failed: ' + (error?.message || String(error)), 'error');
+      throw error;
     } finally {
       running = false;
       await refreshJobs();
