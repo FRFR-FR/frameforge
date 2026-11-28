@@ -135,6 +135,7 @@
     const projectId = makeId('project');
     const tracks = [
       ['track-video', 'Video', 'video'],
+      ['track-images', 'Images / cut-outs', 'image'],
       ['track-graphics', 'Graphics', 'graphic'],
       ['track-titles', 'Titles', 'title'],
       ['track-voiceover', 'Voiceover', 'voiceover'],
