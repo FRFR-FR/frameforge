@@ -28,7 +28,6 @@
     'void main(){',
     '  vec2 uv = v_uv;',
     '  float t = u_time;',
-    '  if(u_pass == 6){}',
     '  vec4 base = texture2D(u_image, uv);',
     '  vec4 outColor = base;',
     '  if(u_kind == 0){',
