@@ -235,7 +235,8 @@
       id: makeId('clip'), kind: 'asset', asset_id: assetId,
       start_frame: start, duration_frames: length, source_in_frame: 0,
       playback_rate: 1, enabled: true,
-      transform: { position: [0, 0], scale: [1, 1], rotation_degrees: 0, opacity: 1, anchor: [0.5, 0.5] },
+      transform: { position: [0, 0], scale: [1, 1], rotation_degrees: 0, opacity: 1, anchor: [0.5, 0.5], fit: 'contain' },
+      blend_mode: 'normal',
       keyframes: [], effects: []
     };
     track.clips.push(clip);
@@ -393,12 +394,233 @@
     return errors;
   }
 
+
+  const BLEND_MODES = ['normal','multiply','screen','overlay','darken','lighten','color-dodge','color-burn','hard-light','soft-light','difference','exclusion','hue','saturation','color','luminosity','lighter','destination-over'];
+  const KEYFRAME_PROPERTIES = ['position.x','position.y','scale.x','scale.y','rotation_degrees','opacity','anchor.x','anchor.y'];
+
+  function addGraphicClip(project, trackId, generatorType, parameters, startFrame, durationFrames) {
+    if (!['text','shape','svg'].includes(generatorType)) throw new Error('Unsupported generated graphic type.');
+    const track = findTrack(project, trackId);
+    if (!['graphic','title'].includes(track.type)) throw new Error('Generated graphics require a Graphics or Titles track.');
+    const sequence = getMainSequence(project);
+    const defaults = generatorType === 'text'
+      ? { text: 'Your title', font_family: 'Arial, sans-serif', font_size: 72, font_weight: 700, color: '#ffffff', align: 'center', box_width: 900, box_height: 180 }
+      : generatorType === 'shape'
+        ? { shape: 'rect', width: 420, height: 220, fill: '#287fbd', stroke: '#ffffff', stroke_width: 0, radius: 18 }
+        : { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#287fbd"/></svg>' };
+    const next = Object.assign({}, defaults, clone(parameters || {}));
+    if (generatorType === 'svg') validateSvgText(next.svg);
+    const start = Math.max(0, Math.round(Number(startFrame) || 0));
+    const duration = Math.max(1, Math.round(Number(durationFrames) || sequence.fps * 3));
+    const clip = {
+      id: makeId('clip'), kind: 'generated', generator: { type: generatorType, parameters: next },
+      start_frame: start, duration_frames: duration, source_in_frame: 0,
+      playback_rate: 1, enabled: true,
+      transform: { position: [0, 0], scale: [1, 1], rotation_degrees: 0, opacity: 1, anchor: [0.5, 0.5], fit: 'contain' },
+      blend_mode: 'normal', keyframes: [], effects: []
+    };
+    track.clips.push(clip);
+    sequence.duration_frames = Math.max(sequence.duration_frames, start + duration);
+    return clip;
+  }
+
+  function setClipTransform(project, clipId, updates) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    const current = Object.assign({ position: [0, 0], scale: [1, 1], rotation_degrees: 0, opacity: 1, anchor: [0.5, 0.5], fit: 'contain' }, clone(found.clip.transform || {}));
+    const next = clone(current);
+    for (const [key, value] of Object.entries(updates || {})) {
+      if (key === 'position' || key === 'scale' || key === 'anchor') {
+        if (!Array.isArray(value) || value.length !== 2 || value.some(item => !Number.isFinite(Number(item)))) {
+          throw new Error('Transform ' + key + ' must contain two finite numbers.');
+        }
+        next[key] = value.map(Number);
+      } else if (key === 'rotation_degrees') {
+        next[key] = Number(value);
+        if (!Number.isFinite(next[key])) throw new Error('Rotation must be a finite number.');
+      } else if (key === 'opacity') {
+        next[key] = Number(value);
+        if (!Number.isFinite(next[key]) || next[key] < 0 || next[key] > 1) throw new Error('Opacity must be between 0 and 1.');
+      } else if (key === 'fit') {
+        if (!['contain','cover','stretch'].includes(value)) throw new Error('Fit must be contain, cover or stretch.');
+        next.fit = value;
+      } else if (key === 'crop') {
+        if (value !== null && (!value || !['x','y','width','height'].every(k => Number.isFinite(Number(value[k]))) ||
+            Number(value.x) < 0 || Number(value.y) < 0 || Number(value.width) <= 0 || Number(value.height) <= 0 ||
+            Number(value.x) + Number(value.width) > 1 || Number(value.y) + Number(value.height) > 1)) {
+          throw new Error('Crop must be a normalized rectangle inside the source image.');
+        }
+        if (value === null) delete next.crop;
+        else next.crop = { x: Number(value.x), y: Number(value.y), width: Number(value.width), height: Number(value.height) };
+      } else {
+        throw new Error('Unsupported transform property: ' + key);
+      }
+    }
+    found.clip.transform = next;
+    return found.clip;
+  }
+
+  function setClipParent(project, clipId, parentClipId) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    if (!parentClipId) {
+      delete found.clip.parent_clip_id;
+      return found.clip;
+    }
+    if (parentClipId === clipId) throw new Error('A clip cannot parent itself.');
+    const parent = findClip(project, parentClipId);
+    if (['audio','music','sfx','voiceover'].includes(parent.track.type)) throw new Error('An audio clip cannot be a visual parent.');
+    let cursor = parent.clip;
+    const seen = new Set([clipId]);
+    while (cursor) {
+      if (seen.has(cursor.id)) throw new Error('Parenting would create a cycle.');
+      seen.add(cursor.id);
+      if (!cursor.parent_clip_id) break;
+      cursor = findClip(project, cursor.parent_clip_id).clip;
+    }
+    found.clip.parent_clip_id = parentClipId;
+    return found.clip;
+  }
+
+  function setClipMask(project, clipId, mask) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    if (!mask || mask.type === 'none') {
+      delete found.clip.mask;
+      return found.clip;
+    }
+    const next = clone(mask);
+    if (!['shape','alpha','luma'].includes(next.type)) throw new Error('Mask type must be shape, alpha or luma.');
+    next.feather = Math.max(0, Math.min(100, Number(next.feather) || 0));
+    next.invert = Boolean(next.invert);
+    if (next.type === 'shape') {
+      if (!['rect','ellipse'].includes(next.shape)) throw new Error('Shape masks currently support rectangles and ellipses.');
+      const bounds = next.bounds || { x: 0, y: 0, width: 1, height: 1 };
+      if (!['x','y','width','height'].every(k => Number.isFinite(Number(bounds[k]))) ||
+          Number(bounds.x) < 0 || Number(bounds.y) < 0 || Number(bounds.width) <= 0 || Number(bounds.height) <= 0 ||
+          Number(bounds.x) + Number(bounds.width) > 1 || Number(bounds.y) + Number(bounds.height) > 1) {
+        throw new Error('Mask bounds must be a normalized rectangle inside the output frame.');
+      }
+      next.bounds = { x: Number(bounds.x), y: Number(bounds.y), width: Number(bounds.width), height: Number(bounds.height) };
+    } else {
+      if (!next.asset_id || !project.assets.some(asset => asset.id === next.asset_id)) throw new Error('Choose a matte asset that belongs to this project.');
+      next.channel = next.type === 'luma' ? 'luma' : 'alpha';
+    }
+    found.clip.mask = next;
+    return found.clip;
+  }
+
+  function applyKeyframeValue(target, property, value) {
+    const parts = property.split('.');
+    if (parts.length === 2 && ['position','scale','anchor'].includes(parts[0]) && ['x','y'].includes(parts[1])) {
+      const index = parts[1] === 'x' ? 0 : 1;
+      if (!Array.isArray(target[parts[0]])) target[parts[0]] = [0, 0];
+      target[parts[0]][index] = Number(value);
+    } else if (property === 'rotation_degrees' || property === 'opacity') {
+      target[property] = Number(value);
+    }
+  }
+
+  function setKeyframe(project, clipId, property, globalFrame, value, interpolation, bezier) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    if (!KEYFRAME_PROPERTIES.includes(property)) throw new Error('Unsupported keyframe property.');
+    const localFrame = Math.round(Number(globalFrame) || 0) - found.clip.start_frame;
+    if (localFrame < 0 || localFrame > found.clip.duration_frames) throw new Error('Move the playhead inside the selected clip to add a keyframe.');
+    if (typeof value === 'number' && !Number.isFinite(value)) throw new Error('Keyframe value must be finite.');
+    const mode = interpolation || 'ease_in_out';
+    if (!['step','linear','ease_in','ease_out','ease_in_out','bezier'].includes(mode)) throw new Error('Unsupported keyframe interpolation.');
+    const key = { property, frame: localFrame, value: clone(value), interpolation: mode };
+    if (mode === 'bezier') {
+      const curve = Array.isArray(bezier) && bezier.length === 4 ? bezier.map(Number) : [0.25, 0.1, 0.25, 1];
+      if (curve.some(n => !Number.isFinite(n)) || curve.some(n => n < 0 || n > 1)) throw new Error('Bezier controls must be in the 0–1 range.');
+      key.bezier = curve;
+    }
+    found.clip.keyframes = Array.isArray(found.clip.keyframes) ? found.clip.keyframes : [];
+    const existing = found.clip.keyframes.findIndex(item => item.property === property && item.frame === localFrame);
+    if (existing >= 0) found.clip.keyframes[existing] = key;
+    else found.clip.keyframes.push(key);
+    found.clip.keyframes.sort((a, b) => a.frame - b.frame || a.property.localeCompare(b.property));
+    return key;
+  }
+
+  function cubicAt(t, p1, p2) {
+    const inv = 1 - t;
+    return 3 * inv * inv * t * p1 + 3 * inv * t * t * p2 + t * t * t;
+  }
+
+  function cubicBezierEase(progress, curve) {
+    const p = Math.max(0, Math.min(1, progress));
+    const [x1,y1,x2,y2] = curve || [0.25,0.1,0.25,1];
+    let t = p;
+    for (let i = 0; i < 8; i++) {
+      const estimate = cubicAt(t, x1, x2) - p;
+      const derivative = 3 * (1 - t) * (1 - t) * x1 +
+        6 * (1 - t) * t * (x2 - x1) + 3 * t * t * (1 - x2);
+      if (Math.abs(derivative) < 1e-6) break;
+      t = Math.max(0, Math.min(1, t - estimate / derivative));
+    }
+    return cubicAt(t, y1, y2);
+  }
+
+  function interpolateValue(a, b, progress) {
+    if (typeof a === 'number' && typeof b === 'number') return a + (b - a) * progress;
+    if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) return a.map((v, i) => interpolateValue(v, b[i], progress));
+    return progress < 1 ? clone(a) : clone(b);
+  }
+
+  function evaluateKeyframes(clip, property, localFrame, fallback) {
+    const keys = (clip.keyframes || []).filter(item => item.property === property).sort((a, b) => a.frame - b.frame);
+    if (!keys.length) return clone(fallback);
+    if (localFrame <= keys[0].frame) return clone(keys[0].value);
+    if (localFrame >= keys[keys.length - 1].frame) return clone(keys[keys.length - 1].value);
+    let left = keys[0], right = keys[keys.length - 1];
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (localFrame >= keys[i].frame && localFrame <= keys[i + 1].frame) {
+        left = keys[i]; right = keys[i + 1]; break;
+      }
+    }
+    if (left.interpolation === 'step') return clone(left.value);
+    const raw = (localFrame - left.frame) / Math.max(1, right.frame - left.frame);
+    let eased = raw;
+    if (left.interpolation === 'ease_in') eased = raw * raw;
+    else if (left.interpolation === 'ease_out') eased = 1 - (1 - raw) * (1 - raw);
+    else if (left.interpolation === 'ease_in_out') eased = raw * raw * (3 - 2 * raw);
+    else if (left.interpolation === 'bezier') eased = cubicBezierEase(raw, left.bezier);
+    return interpolateValue(left.value, right.value, eased);
+  }
+
+  function evaluateClipTransform(clip, globalFrame) {
+    const transform = Object.assign({ position: [0,0], scale: [1,1], rotation_degrees: 0, opacity: 1, anchor: [0.5,0.5], fit: 'contain' }, clone(clip.transform || {}));
+    const localFrame = Math.max(0, Math.round(Number(globalFrame) || 0) - clip.start_frame);
+    for (const property of KEYFRAME_PROPERTIES) {
+      const fallback = property === 'rotation_degrees' || property === 'opacity'
+        ? transform[property]
+        : transform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
+      applyKeyframeValue(transform, property, evaluateKeyframes(clip, property, localFrame, fallback));
+    }
+    transform.opacity = Math.max(0, Math.min(1, Number(transform.opacity)));
+    return transform;
+  }
+
+  function getActiveVisualClips(project, frame) {
+    const sequence = getMainSequence(project);
+    const visualTypes = new Set(['video','image','graphic','title','scene3d','effect','adjustment']);
+    return sequence.tracks
+      .filter(track => track.enabled !== false && visualTypes.has(track.type))
+      .flatMap(track => (track.clips || []).filter(clip =>
+        clip.enabled !== false && frame >= clip.start_frame && frame < clip.start_frame + clip.duration_frames
+      ).map(clip => ({ track, clip })))
+      .sort((a, b) => (a.track.order - b.track.order) || a.clip.start_frame - b.clip.start_frame);
+  }
+
   const api = {
     FORMAT, SCHEMA_VERSION, MAX_FILE_BYTES, HASH_LIMIT_BYTES, FORMATS, TRACK_TYPES,
     makeId, clone, extensionOf, classifyFile, verifySignature, validateSvgText,
     createDefaultProject, getMainSequence, addTrack, trackForAssetType,
     assetToProjectRecord, addAsset, addAssetClip, findClip, moveClip, trimClip,
-    splitClip, duplicateClip, deleteClip, validateProject
+    splitClip, duplicateClip, deleteClip, addGraphicClip, setClipTransform, setClipParent, setClipMask,
+    BLEND_MODES, KEYFRAME_PROPERTIES, setKeyframe, evaluateKeyframes, evaluateClipTransform, getActiveVisualClips, validateProject
   };
   root.FFV2Core = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
