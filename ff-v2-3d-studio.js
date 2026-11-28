@@ -64,17 +64,24 @@
   }
 
   async function inspectModelFile(file, extension, allAssets, resolveDependency) {
-    const asset = { id:'inspect-' + file.name, file_name:file.name, label:file.name, blob:file };
-    const loaded = await loadModel(asset, allAssets || [], resolveDependency);
-    return {
-      codec: extension === 'glb' ? 'glTF Binary 2.0 · Three.js r164.1' : 'glTF JSON 2.0 · Three.js r164.1',
-      decode_status:'model-decoded',
-      model_count: loaded.gltf.scene.children.length,
-      mesh_count: countMeshes(loaded.gltf.scene),
-      animation_clips: loaded.animations,
-      bounds: loaded.bounds.isEmpty() ? null : { min:loaded.bounds.min.toArray(), max:loaded.bounds.max.toArray() },
-      dimensions: loaded.size
-    };
+    const asset = { id:'inspect-' + file.name + '-' + file.size, file_name:file.name, label:file.name, blob:file };
+    try {
+      const loaded = await loadModel(asset, allAssets || [], resolveDependency);
+      return {
+        codec: extension === 'glb' ? 'glTF Binary 2.0 · Three.js r164.1' : 'glTF JSON 2.0 · Three.js r164.1',
+        decode_status:'model-decoded',
+        model_count: loaded.gltf.scene.children.length,
+        mesh_count: countMeshes(loaded.gltf.scene),
+        animation_clips: loaded.animations,
+        bounds: loaded.bounds.isEmpty() ? null : { min:loaded.bounds.min.toArray(), max:loaded.bounds.max.toArray() },
+        dimensions: loaded.size
+      };
+    } finally {
+      purge(asset.id);
+      for (const [id,url] of cache.get(asset.id)?.dependencyUrls || []) {
+        if (url && String(url).startsWith('blob:')) URL.revokeObjectURL(url);
+      }
+    }
   }
 
   function countMeshes(rootObject) {
@@ -172,9 +179,12 @@
             instance.action.setLoop(animation.loop===false?THREE.LoopOnce:THREE.LoopRepeat,animation.loop===false?1:Infinity);
             instance.action.clampWhenFinished=animation.loop===false;
           }
+          instance.mixer.setTime(0);
+          instance.action.reset();
           instance.action.play();
           const elapsed=Math.max(0,frame-(Number(animation.start_frame)||clip.start_frame))/fps*Math.max(0,Number(animation.time_scale)||1);
-          instance.mixer.setTime(elapsed);
+          const duration=Math.max(0,clipData.duration||0);
+          instance.mixer.setTime(animation.loop===false?Math.min(elapsed,duration):elapsed);
         }
       }
     }
