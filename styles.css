@@ -405,3 +405,29 @@ button { color: inherit; cursor: pointer; }
   .ffv2-postfx-actions { grid-column:1 / -1; }
   .ffv2-particle-select { flex:1 1 100%; }
 }
+
+
+/* FrameForge V2 3D scene and Blender bridge panels */
+.ffv2-3d-scene-panel {
+  display:grid; gap:8px; margin:10px 0; padding:10px;
+  border:1px solid #304a65; border-radius:8px; background:#0d1825;
+}
+.ffv2-3d-scene-panel .ffv2-control-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.ffv2-3d-scene-panel label,.ffv2-clip-editor label { min-width:0; }
+.ffv2-3d-scene-panel input,.ffv2-3d-scene-panel select {
+  box-sizing:border-box; width:100%; min-width:0; padding:5px 7px;
+  border:1px solid #344a61; border-radius:5px; background:#09131e;
+  color:#e1ecf6; font-size:9px;
+}
+.ffv2-3d-scene-panel input[type=color] { height:27px; padding:2px; }
+#ffv23DClipControls { border-color:#365a78; background:#101e2c; }
+#ffv23DClipControls .ffv2-control-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+#ffv23DClipControls input,#ffv23DClipControls select {
+  box-sizing:border-box; width:100%; min-width:0; padding:5px 7px;
+  border:1px solid #344a61; border-radius:5px; background:#09131e;
+  color:#e1ecf6; font-size:9px;
+}
+@media (max-width:760px) {
+  .ffv2-3d-scene-panel .ffv2-control-grid,
+  #ffv23DClipControls .ffv2-control-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
