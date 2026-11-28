@@ -208,7 +208,18 @@ def animate_object(obj, keyframes):
 
 
 def world_bounds(obj):
-    points = [obj.matrix_world @ __import__("mathutils").Vector(corner) for corner in obj.bound_box]
+    from mathutils import Vector
+    candidates = [obj] + list(getattr(obj, "children_recursive", []))
+    points = []
+    for candidate in candidates:
+        if candidate.type != "MESH":
+            continue
+        points.extend(candidate.matrix_world @ Vector(corner) for corner in candidate.bound_box)
+    if not points:
+        points = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    if not points:
+        origin = obj.matrix_world.translation
+        points = [origin]
     return (
         min(point.x for point in points), min(point.y for point in points), min(point.z for point in points),
         max(point.x for point in points), max(point.y for point in points), max(point.z for point in points)
@@ -240,8 +251,8 @@ def solve_contacts(bpy, objects, constraints_by_id, frame):
             a, b = world_bounds(left), world_bounds(right)
             intersects = a[0] < b[3] and a[3] > b[0] and a[1] < b[4] and a[4] > b[1] and a[2] < b[5] and a[5] > b[2]
             if intersects:
-                right.location.z += max(0.0, a[5] - b[2]) + 0.001
-                right["frameforge_contact"] = "AABB vertical separation approximation"
+                right.location.x += max(0.0, a[3] - b[0]) + 0.001
+                right["frameforge_contact"] = "AABB horizontal separation approximation"
     bpy.context.view_layer.update()
 
 
@@ -296,7 +307,7 @@ def build_scene(bpy, manifest, manifest_path, output_dir):
         floor_obj.data.materials.append(create_material(bpy, "Ground Material", floor.get("material", {"color": "#202b38"})))
     scene["frameforge_project_name"] = str(manifest.get("project", {}).get("name", "FrameForge V2 3D Scene"))
     scene["frameforge_manifest_version"] = 1
-    scene["frameforge_contact_mode"] = "ground clamp + approximate vertical AABB separation; not full physics"
+    scene["frameforge_contact_mode"] = "ground clamp + approximate horizontal AABB separation; not full physics"
     os.makedirs(output_dir, exist_ok=True)
     return scene, roots, all_objects, constraints_by_id
 
