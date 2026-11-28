@@ -88,7 +88,8 @@ jobs:
             -frames:v 1 -q:v 2 artifacts/vfx-test/preview-final.jpg
           test -s artifacts/vfx-test/preview-final.jpg
 
-      - name: Upload MP4, transparent cut-out, imported VFX source and credits
+      - name: Upload MP4 and transparent cut-out (including cut-out-only diagnostic on VFX source failure)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frameforge-vfx-imported-\${{ github.run_number }}
