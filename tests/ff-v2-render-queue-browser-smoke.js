@@ -44,6 +44,32 @@ function createStaticServer() {
   });
 }
 
+async function waitForRenderState(page, jobId, predicate, timeoutMs = 30000) {
+  const started = Date.now();
+  let lastState = null;
+  let lastError = '';
+  while (Date.now() - started < timeoutMs) {
+    try {
+      lastState = await page.evaluate(async id => {
+        const storage = window.FFV2Studio?.renderStorage;
+        if (!storage) return null;
+        const job = await storage.getJob(id);
+        const count = await storage.countFrames(id);
+        const frameZero = await storage.getFrame(id, 0);
+        return { job, count, frameZero };
+      }, jobId);
+      if (lastState && predicate(lastState)) return lastState;
+    } catch (error) {
+      lastError = error.message;
+    }
+    await page.waitForTimeout(75);
+  }
+  throw new Error(
+    'Timed out waiting for render queue state. Last state: ' +
+    JSON.stringify(lastState, null, 2) + (lastError ? ' Last read error: ' + lastError : '')
+  );
+}
+
 async function main() {
   const server = createStaticServer();
   let browser;
@@ -100,23 +126,15 @@ async function main() {
     assert.ok(queueState.job?.id, 'Render job creation failed: ' + JSON.stringify(queueState));
     const jobId = queueState.job.id;
     await page.locator('#ffv2RenderQueueStart').click();
-    await page.waitForFunction(async id => {
-      const count = await window.FFV2Studio.renderStorage.countFrames(id);
-      const job = await window.FFV2Studio.renderStorage.getJob(id);
-      return count >= 1 || job?.status === 'failed';
-    }, jobId, { timeout: 30000 });
+    await waitForRenderState(page, jobId, state =>
+      state.count >= 1 || state.job?.status === 'failed', 30000
+    );
     await page.evaluate(() => window.FFV2RenderQueue.pause());
-    await page.waitForFunction(async id => {
-      const job = await window.FFV2Studio.renderStorage.getJob(id);
-      return job?.status === 'paused' || job?.status === 'failed';
-    }, jobId, { timeout: 30000 });
-
-    const pausedState = await page.evaluate(async id => ({
-      count: await window.FFV2Studio.renderStorage.countFrames(id),
-      job: await window.FFV2Studio.renderStorage.getJob(id),
-      frameZero: await window.FFV2Studio.renderStorage.getFrame(id, 0),
-      statusText: document.getElementById('ffv2RenderQueueStatus')?.textContent
-    }), jobId);
+    const pausedState = await waitForRenderState(page, jobId, state =>
+      state.job?.status === 'paused' || state.job?.status === 'failed' || state.job?.status === 'complete',
+      30000
+    );
+    pausedState.statusText = await page.locator('#ffv2RenderQueueStatus').innerText();
     console.log('RENDER_QUEUE_PAUSED_STATE', JSON.stringify({
       count: pausedState.count,
       jobStatus: pausedState.job?.status,
@@ -132,22 +150,17 @@ async function main() {
     assert.equal(pausedState.job?.completed_frames, pausedState.count);
     assert.ok(pausedState.frameZero?.blob?.size, 'The first completed PNG must be durable before pausing.');
     await page.locator('#ffv2RenderQueueStart').click();
-    await page.waitForFunction(async id => {
-      const job = await window.FFV2Studio.renderStorage.getJob(id);
-      return job?.status === 'complete';
-    }, jobId, { timeout: 30000 });
-
-    const completed = await page.evaluate(async id => {
-      const job = await window.FFV2Studio.renderStorage.getJob(id);
-      const count = await window.FFV2Studio.renderStorage.countFrames(id);
-      return {
-        count,
-        rendered_frames: job.rendered_frames,
-        skipped_frames: job.skipped_frames,
-        status: job.status,
-        chunk_count: job.chunks
-      };
-    }, jobId);
+    const completedState = await waitForRenderState(page, jobId, state =>
+      state.job?.status === 'complete' || state.job?.status === 'failed', 30000
+    );
+    const completed = {
+      count: completedState.count,
+      rendered_frames: completedState.job?.rendered_frames,
+      skipped_frames: completedState.job?.skipped_frames,
+      status: completedState.job?.status,
+      chunk_count: completedState.job?.chunks,
+      error: completedState.job?.error
+    };
     assert.equal(completed.status, 'complete');
     assert.equal(completed.count, 4);
     assert.equal(completed.rendered_frames, 4, 'Each unique frame should be rendered exactly once.');
@@ -168,14 +181,13 @@ async function main() {
 
     await page.waitForTimeout(900);
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(async id => {
-      const job = await window.FFV2Studio?.renderStorage?.getJob(id);
-      return Boolean(job);
-    }, jobId, { timeout: 15000 });
-    const persisted = await page.evaluate(async id => ({
-      job: await window.FFV2Studio.renderStorage.getJob(id),
-      frameCount: await window.FFV2Studio.renderStorage.countFrames(id)
-    }), jobId);
+    const persistedState = await waitForRenderState(page, jobId, state =>
+      Boolean(state.job), 15000
+    );
+    const persisted = {
+      job: persistedState.job,
+      frameCount: persistedState.count
+    };
     assert.equal(persisted.job.status, 'complete');
     assert.equal(persisted.frameCount, 4);
     assert.equal(persisted.job.width, 320);
