@@ -122,6 +122,23 @@ class FrameForgeFoundationTests(unittest.TestCase):
         self.assertNotIn("review_basis", pending["rights"])
         self.assertEqual(list(self.manifest_validator.iter_errors(payload)), [])
 
+    def test_project_validator_handles_malformed_collections_without_crashing(self) -> None:
+        payload = copy.deepcopy(self.project)
+        payload["assets"] = "not-an-array"
+        payload["research"] = "not-an-object"
+        result = self.run_validator("validate_project.py", payload)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("FRAMEFORGE PROJECT VALIDATION FAILED", result.stdout)
+        self.assertNotIn("Traceback", result.stdout + result.stderr)
+
+    def test_manifest_validator_handles_malformed_assets_without_crashing(self) -> None:
+        payload = copy.deepcopy(self.manifest)
+        payload["assets"] = "not-an-array"
+        result = self.run_validator("validate_media_manifest.py", payload)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("FRAMEFORGE MEDIA MANIFEST VALIDATION FAILED", result.stdout)
+        self.assertNotIn("Traceback", result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
