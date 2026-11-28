@@ -111,7 +111,7 @@
       throw new Error('SVG contains active content and was rejected.');
     }
     for (const styleElement of Array.from(doc.querySelectorAll('style'))) {
-      if (/@import|url\\s*\\(\\s*['"]?(?:https?:|javascript:|data:)/i.test(styleElement.textContent || '')) {
+      if (/@import|url\\s*\\(\\s*['"]?(?!#)/i.test(styleElement.textContent || '')) {
         throw new Error('SVG external style imports/resources are not allowed.');
       }
     }
