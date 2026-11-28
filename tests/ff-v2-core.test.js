@@ -177,3 +177,19 @@ test('rejects active or externally linked SVG content', () => {
   assert.throws(() => Core.validateSvgText('<svg><style>@import url(https://example.com/a.css)</style></svg>'), /active or external content/);
   assert.doesNotThrow(() => Core.validateSvgText('<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="url(#paint)"/></svg>'));
 });
+
+test('anger-rise is a supported, keyframable clip effect', () => {
+  const project = Core.createDefaultProject();
+  const track = project.sequences[0].tracks.find(item => item.type === 'image');
+  const clip = Core.addGraphicClip(project, track.id, 'shape', { width:300, height:500 }, 0, 80);
+  const effect = Core.setClipEffect(project, clip.id, 'anger-rise', {
+    intensity:0, tint_strength:0.58, flame_height:0.22, burst_threshold:0.985
+  });
+  assert.equal(effect.type, 'anger-rise');
+  assert.equal(effect.parameters.flame_height, 0.22);
+  Core.setEffectParameterKeyframe(project, clip.id, effect.id, 'intensity', 0, 0, 'linear');
+  Core.setEffectParameterKeyframe(project, clip.id, effect.id, 'intensity', 80, 1, 'linear');
+  assert.equal(Core.evaluateEffectParameters(effect, 0).intensity, 0);
+  assert.equal(Core.evaluateEffectParameters(effect, 40).intensity, 0.5);
+  assert.equal(Core.evaluateEffectParameters(effect, 80).intensity, 1);
+});

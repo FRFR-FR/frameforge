@@ -92,3 +92,20 @@ Other limits:
 - Project JSON still does not package imported media blobs; keep source media backed up separately.
 
 No paid render service, paid API, stock-media purchase, CDN shader library or image-generation service is required.
+
+## 21. Anger rise, peak burst and bottom-edge fire
+
+The **Anger rise + explosion + fire** clip effect is designed for a transparent PNG cut-out or other isolated subject. Add it to the subject's image clip, then keyframe the effect's **Intensity** from 0 to 1 across the joke's build-up:
+
+1. At the first joke beat, set intensity to **0** and press **Keyframe effect intensity**.
+2. At each later joke beat, raise the intensity and add another keyframe. The warm red tint progresses from the feet upward.
+3. Set the final-beat keyframe to **1.0**. When intensity crosses the configurable **Explosion trigger**, a short radial burst, flash and shock ring play. Fire and ember particles animate along the lower screen edge while the anger remains high.
+4. The colour mix is deliberately restrained (default tint strength 0.58), so texture, clothing and facial detail remain visible. Reduce tint strength for pale or already-red artwork.
+
+Clip controls:
+- **Tint strength:** how far the original pixel colour moves toward warm red.
+- **Fire height:** maximum height of the lower-edge flame band.
+- **Explosion trigger:** intensity threshold for the final burst.
+- **Intensity:** animated/keyframable anger level, 0–1 recommended for this effect.
+
+Use a transparent PNG with a clean alpha edge for the best cut-out result. The effect keeps the source alpha channel; it does not remove a background from an ordinary photograph. It is local Canvas 2D artwork and has no stock footage, paid plug-in or external image-generation dependency. The burst is deterministic from the saved seed and clip-local keyframes, so preview and frame-queue renders match.

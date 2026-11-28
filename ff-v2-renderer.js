@@ -335,6 +335,191 @@
     return ctx;
   }
 
+
+  function smoothStep(edge0, edge1, value) {
+    const t = Math.max(0, Math.min(1, (value - edge0) / Math.max(0.000001, edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+  }
+
+  function angerTintPixel(red, green, blue, yNorm, intensity, tintStrength) {
+    const level = Math.max(0, Math.min(1, Number(intensity) || 0));
+    const tint = Math.max(0, Math.min(0.9, Number(tintStrength ?? 0.58)));
+    if (level <= 0 || tint <= 0) return [red, green, blue];
+    const position = Math.max(0, Math.min(1, Number(yNorm) || 0));
+    const edge = 0.075;
+    const coverage = level >= 0.985 ? 1 : smoothStep(1 - level - edge, 1 - level + edge, position);
+    const amount = tint * coverage;
+    return [
+      Math.round(red + (255 - red) * amount),
+      Math.round(green + (42 - green) * amount),
+      Math.round(blue + (30 - blue) * amount)
+    ];
+  }
+
+  function alphaBounds(data, width, height) {
+    let left = width, top = height, right = -1, bottom = -1;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (data[(y * width + x) * 4 + 3] < 12) continue;
+        if (x < left) left = x;
+        if (x > right) right = x;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+      }
+    }
+    if (right < left || bottom < top) return null;
+    return { left, top, right, bottom, cx: (left + right) / 2, cy: (top + bottom) / 2,
+      width: right - left + 1, height: bottom - top + 1 };
+  }
+
+  function drawAngerExplosion(ctx, width, height, bounds, frame, fps, elapsed, duration, seed, scale) {
+    const progress = Math.max(0, Math.min(1, elapsed / Math.max(1, duration)));
+    const fade = 1 - progress;
+    const center = bounds || { cx: width / 2, cy: height * 0.46, width: width * 0.36, height: height * 0.5 };
+    const baseRadius = Math.max(46, Math.max(center.width, center.height) * 0.34);
+    const radius = baseRadius * (0.48 + progress * 1.45) * scale;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = Math.min(0.9, fade * (elapsed < fps * 0.12 ? 0.82 : 0.42));
+    if (elapsed < fps * 0.18) {
+      const flash = ctx.createRadialGradient(center.cx, center.cy, 0, center.cx, center.cy, baseRadius * 1.45);
+      flash.addColorStop(0, 'rgba(255,244,194,0.78)');
+      flash.addColorStop(0.25, 'rgba(255,163,61,0.44)');
+      flash.addColorStop(1, 'rgba(255,47,26,0)');
+      ctx.fillStyle = flash;
+      ctx.beginPath();
+      ctx.arc(center.cx, center.cy, baseRadius * 1.45, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    for (let ring = 0; ring < 2; ring++) {
+      ctx.globalAlpha = fade * (ring === 0 ? 0.82 : 0.42);
+      ctx.lineWidth = (ring === 0 ? 7 : 3) * (1 - progress * 0.35);
+      ctx.strokeStyle = ring === 0 ? '#ffe29b' : '#ff5938';
+      ctx.beginPath();
+      ctx.arc(center.cx, center.cy, radius * (ring === 0 ? 1 : 1.22), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    const random = seededRandom((Number(seed) || 901) + 1777);
+    const rays = 26;
+    for (let i = 0; i < rays; i++) {
+      const angle = (i / rays) * Math.PI * 2 + (random() - 0.5) * 0.09;
+      const inner = radius * (0.82 + random() * 0.12);
+      const outer = radius * (1.12 + random() * 0.9) * scale;
+      ctx.globalAlpha = fade * (0.35 + random() * 0.48);
+      ctx.strokeStyle = i % 3 === 0 ? '#fff0c2' : i % 2 === 0 ? '#ffad51' : '#ff5137';
+      ctx.lineWidth = 1.5 + random() * 3.5;
+      ctx.beginPath();
+      ctx.moveTo(center.cx + Math.cos(angle) * inner, center.cy + Math.sin(angle) * inner);
+      ctx.lineTo(center.cx + Math.cos(angle) * outer, center.cy + Math.sin(angle) * outer);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawAngerFlames(ctx, width, height, frame, fps, intensity, parameters) {
+    const strengthValue = Math.max(0, Math.min(1, (intensity - 0.12) / 0.88));
+    if (strengthValue <= 0) return;
+    const requestedHeight = Math.max(0.08, Math.min(0.42, Number(parameters.flame_height) || 0.22));
+    const maxHeight = height * requestedHeight * strengthValue;
+    const count = Math.max(12, Math.min(44, Math.round(width / 58)));
+    const baseWidth = width / count;
+    const time = frame / Math.max(1, fps);
+    const seed = Number(parameters.seed) || 901;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = Math.min(0.94, strengthValue * 0.92);
+    const baseGlow = ctx.createLinearGradient(0, height - maxHeight * 0.65, 0, height);
+    baseGlow.addColorStop(0, 'rgba(255,67,24,0)');
+    baseGlow.addColorStop(0.45, 'rgba(255,86,25,0.22)');
+    baseGlow.addColorStop(1, 'rgba(255,151,48,0.52)');
+    ctx.fillStyle = baseGlow;
+    ctx.fillRect(0, height - maxHeight * 0.65, width, maxHeight * 0.65);
+    for (let i = 0; i < count; i++) {
+      const random = seededRandom(seed + i * 7919);
+      const x = (i + 0.5) * baseWidth + (random() - 0.5) * baseWidth * 0.22;
+      const phase = time * (3.1 + random() * 1.2) + i * 1.31 + random() * 6;
+      const heightFactor = 0.46 + 0.54 * (0.5 + 0.5 * Math.sin(phase));
+      const flameHeight = maxHeight * heightFactor * (0.82 + random() * 0.28);
+      const half = baseWidth * (0.31 + random() * 0.15);
+      const lean = Math.sin(phase * 0.72) * half * 0.62;
+      const gradient = ctx.createLinearGradient(x, height - flameHeight, x, height);
+      gradient.addColorStop(0, 'rgba(255,231,135,0.18)');
+      gradient.addColorStop(0.16, 'rgba(255,191,69,0.94)');
+      gradient.addColorStop(0.55, 'rgba(255,94,29,0.96)');
+      gradient.addColorStop(1, 'rgba(178,26,16,0.98)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(x - half, height);
+      ctx.bezierCurveTo(x - half * 0.84, height - flameHeight * 0.3,
+        x - half * 0.12 + lean * 0.15, height - flameHeight * 0.64,
+        x + lean, height - flameHeight);
+      ctx.bezierCurveTo(x + half * 0.1 + lean, height - flameHeight * 0.65,
+        x + half * 0.94, height - flameHeight * 0.38,
+        x + half, height);
+      ctx.closePath();
+      ctx.fill();
+
+      const innerHeight = flameHeight * (0.42 + 0.18 * (0.5 + 0.5 * Math.sin(phase + 1.7)));
+      const inner = ctx.createLinearGradient(x, height - innerHeight, x, height);
+      inner.addColorStop(0, 'rgba(255,245,174,0)');
+      inner.addColorStop(0.28, 'rgba(255,219,105,0.78)');
+      inner.addColorStop(1, 'rgba(255,134,31,0)');
+      ctx.fillStyle = inner;
+      ctx.beginPath();
+      ctx.moveTo(x - half * 0.38, height);
+      ctx.quadraticCurveTo(x - half * 0.26, height - innerHeight * 0.62, x + lean * 0.52, height - innerHeight);
+      ctx.quadraticCurveTo(x + half * 0.34, height - innerHeight * 0.47, x + half * 0.38, height);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+    drawParticles(ctx, {
+      preset: 'embers', count: Math.round(18 + 24 * strengthValue), seed: seed + 49,
+      speed: 1.25, spread: 1.1, gravity: -30, size: 2.4,
+      life_seconds: 1.1, origin_x: 0.5, origin_y: 0.96, color: '#ffb24d'
+    }, width, height, frame, fps);
+  }
+
+  function applyAngerRisePass(canvas, sourceCtx, outputCtx, parameters, frame, fps, intensity) {
+    let pixels;
+    try { pixels = sourceCtx.getImageData(0, 0, canvas.width, canvas.height); }
+    catch (_) { return { applied:false, warning:'Anger-rise needs a readable local PNG/Canvas layer; pixel access was blocked.' }; }
+    const width = canvas.width, height = canvas.height;
+    const bounds = alphaBounds(pixels.data, width, height);
+    const tintStrength = Math.max(0.1, Math.min(0.9, Number(parameters.tint_strength ?? 0.58)));
+    for (let y = 0; y < height; y++) {
+      const yNorm = y / Math.max(1, height - 1);
+      for (let x = 0; x < width; x++) {
+        const index = (y * width + x) * 4;
+        if (pixels.data[index + 3] < 1) continue;
+        const tinted = angerTintPixel(pixels.data[index], pixels.data[index + 1], pixels.data[index + 2],
+          yNorm, intensity, tintStrength);
+        pixels.data[index] = tinted[0];
+        pixels.data[index + 1] = tinted[1];
+        pixels.data[index + 2] = tinted[2];
+      }
+    }
+    outputCtx.putImageData(pixels, 0, 0);
+    const burstElapsed = Number(parameters.burst_elapsed ?? -1);
+    const burstDuration = Math.max(8, Math.min(60, Number(parameters.burst_duration_frames) || 28));
+    if (burstElapsed >= 0 && burstElapsed < burstDuration) {
+      drawAngerExplosion(outputCtx, width, height, bounds, frame, fps, burstElapsed, burstDuration,
+        parameters.seed, Math.max(0.5, Math.min(2, Number(parameters.explosion_scale) || 1)));
+    }
+    drawAngerFlames(outputCtx, width, height, frame, fps, intensity, parameters);
+    return { applied:true };
+  }
+
+  function angerBurstElapsed(effect, localFrame, threshold, duration) {
+    const firstFrame = Math.max(0, localFrame - duration + 1);
+    for (let cursor = localFrame; cursor >= firstFrame; cursor--) {
+      const current = Core.evaluateEffectParameters(effect, cursor).intensity;
+      const previous = cursor === 0 ? 0 : Core.evaluateEffectParameters(effect, cursor - 1).intensity;
+      if (current >= threshold && previous < threshold) return localFrame - cursor;
+    }
+    return -1;
+  }
+
   function applyCanvasPass(canvas, type, parameters, frame, fps) {
     const p = parameters || {};
     const intensity = Math.max(0, Math.min(2, Number(p.intensity ?? 1)));
@@ -346,6 +531,9 @@
     const time = frame / Math.max(1, fps);
     const strength = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) * intensity : fallback;
 
+    if (type === 'anger-rise') {
+      return applyAngerRisePass(canvas, sourceCtx, out, p, frame, fps, Math.max(0, Math.min(1, intensity)));
+    }
     if (type === 'depth-of-field') {
       const blurred = makeCanvas(w,h,canvas);
       const bctx = blurred.getContext('2d');
@@ -644,6 +832,11 @@
     for(const effect of clip.effects||[]){
       if(effect.enabled===false) continue;
       const parameters=Core.evaluateEffectParameters(effect,localFrame);
+      if (effect.type === 'anger-rise') {
+        const threshold = Math.max(0.5, Math.min(1, Number(parameters.burst_threshold) || 0.985));
+        const burstDuration = Math.max(8, Math.min(60, Number(parameters.burst_duration_frames) || 28));
+        parameters.burst_elapsed = angerBurstElapsed(effect, localFrame, threshold, burstDuration);
+      }
       const result=applyCanvasPass(layer,effect.type,parameters,frame,fps);
       if(result.warning) return result.warning;
     }
@@ -746,7 +939,7 @@
     return { frame, drawn, warnings, width: sequence.width, height: sequence.height, backend:post.backend };
   }
 
-  const api = { composeFrame, resolveGlobalTransform, drawText, drawShape, fitAsset, drawParticles, seededRandom, applyCanvasPass, transitionValues, applyTransitionMask, applyPostProcessing, sourceFramesAtClipFrame };
+  const api = { composeFrame, resolveGlobalTransform, drawText, drawShape, fitAsset, drawParticles, seededRandom, applyCanvasPass, angerTintPixel, angerBurstElapsed, transitionValues, applyTransitionMask, applyPostProcessing, sourceFramesAtClipFrame };
   root.FFV2Renderer = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

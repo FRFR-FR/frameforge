@@ -269,7 +269,56 @@ async function main() {
     assert.equal(particleFrameA.hash,particleFrameB.hash,'Seeded particles must render deterministically at a fixed frame');
     assert.ok(particleFrameA.visible>0,'Particle and lower layers should contribute visible pixels');
 
-    // Apply a clip effect and animate its intensity.
+    // Apply the anger-rise VFX to the transparent PNG cut-out and verify the gradient, flames and peak burst.
+    const cutoutChip = page.locator('.ffv2-clip[title^="v2-cutout-test.png"]').first();
+    assert.equal(await cutoutChip.count(), 1, 'the imported PNG cut-out should be selectable from the timeline');
+    await cutoutChip.click();
+    await page.locator('#ffv2ClipEffectType').selectOption('anger-rise');
+    assert.equal(await page.locator('#ffv2AngerOptions').isVisible(), true, 'anger-specific controls should appear');
+    await page.locator('#ffv2ClipEffectIntensity').fill('0');
+    await page.locator('#ffv2AddClipEffect').click();
+    await page.locator('#ffv2Playhead').evaluate(el => {
+      el.value = '20';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.locator('#ffv2ClipEffectIntensity').fill('0');
+    await page.locator('#ffv2KeyframeEffect').click();
+    await page.locator('#ffv2Playhead').evaluate(el => {
+      el.value = '44';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.locator('#ffv2ClipEffectIntensity').fill('1');
+    await page.locator('#ffv2KeyframeEffect').click();
+    assert.match(await page.locator('#ffv2ClipEffectInfo').textContent(), /2 effect keyframe/);
+    await page.locator('#ffv2Playhead').evaluate(el => {
+      el.value = '32';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const angerBuildPixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
+      const ctx = canvas.getContext('2d');
+      return {
+        top: Array.from(ctx.getImageData(640, 300, 1, 1).data),
+        lower: Array.from(ctx.getImageData(640, 500, 1, 1).data),
+        fire: Array.from({length:20},(_,i)=>ctx.getImageData(70+i*60,710,1,1).data[3])
+      };
+    });
+    assert.ok(angerBuildPixels.lower[1] < angerBuildPixels.top[1],
+      'at half anger, the lower part of the transparent cut-out should be redder than its upper part');
+    assert.ok(angerBuildPixels.top[3] >= 126 && angerBuildPixels.top[3] <= 130,
+      'the original PNG alpha should remain intact');
+    assert.ok(angerBuildPixels.fire.some(alpha=>alpha>0), 'animated flames should appear along the lower screen edge');
+    await page.locator('#ffv2Playhead').evaluate(el => {
+      el.value = '44';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const peakAngerPixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
+      const ctx = canvas.getContext('2d');
+      return Array.from(ctx.getImageData(640, 300, 1, 1).data);
+    });
+    assert.ok(peakAngerPixels[1] < angerBuildPixels.top[1],
+      'maximum anger should tint the upper part without completely flattening its colour');
+
+    // Apply another clip effect and animate its intensity.
     await page.locator('#ffv2ClipEffectType').selectOption('glitch');
     await page.locator('#ffv2ClipEffectIntensity').fill('0.25');
     await page.locator('#ffv2AddClipEffect').click();

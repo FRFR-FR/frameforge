@@ -958,6 +958,7 @@
     }
     $('ffv2ClipEffectInfo').textContent = (clip.effects || []).length + ' clip effect(s) · ' +
       (clip.effects || []).reduce((sum,effect)=>sum+(effect.keyframes||[]).length,0) + ' effect keyframe(s)';
+    updateAngerOptions();
 
     const incoming = clip.transition_in;
     const outgoing = clip.transition_out;
@@ -1435,6 +1436,13 @@
   }
 
 
+
+  function updateAngerOptions() {
+    const visible = $('ffv2ClipEffectType').value === 'anger-rise';
+    $('ffv2AngerOptions').classList.toggle('hidden', !visible);
+    $('ffv2AngerHelp').classList.toggle('hidden', !visible);
+  }
+
   function applyClipEffect() {
     const found = selectedClipInfo();
     if (!found) return;
@@ -1451,6 +1459,14 @@
       if (type === 'shake') { params.amount = 5; params.seed = 17; }
       if (type === 'chromatic-aberration') params.amount = 2;
       if (type === 'motion-blur') params.amount = 4;
+      if (type === 'anger-rise') {
+        params.tint_strength = Math.max(0.1, Math.min(0.9, Number($('ffv2AngerTintStrength').value) || 0.58));
+        params.flame_height = Math.max(0.08, Math.min(0.42, Number($('ffv2AngerFlameHeight').value) || 0.22));
+        params.burst_threshold = Math.max(0.5, Math.min(1, Number($('ffv2AngerBurstThreshold').value) || 0.985));
+        params.burst_duration_frames = 28;
+        params.explosion_scale = 1;
+        params.seed = 901;
+      }
       const effect = Core.setClipEffect(state.project, found.clip.id, type, params);
       $('ffv2EffectKeyframeTarget').value = effect.id;
       scheduleSave();
@@ -1943,6 +1959,7 @@
     $('ffv2AddSvg').addEventListener('click', () => addGeneratedGraphic('svg'));
     $('ffv2AddParticles').addEventListener('click', () => addGeneratedGraphic('particles'));
     $('ffv2AddClipEffect').addEventListener('click', applyClipEffect);
+    $('ffv2ClipEffectType').addEventListener('change', updateAngerOptions);
     $('ffv2KeyframeEffect').addEventListener('click', keyframeClipEffect);
     $('ffv2ApplyTransitionIn').addEventListener('click', () => applyClipTransition('in'));
     $('ffv2ApplyTransitionOut').addEventListener('click', () => applyClipTransition('out'));

@@ -256,3 +256,27 @@ test('3D ground, look-at and parent constraints validate targets and cycles', ()
   assert.throws(()=>Core.set3DClipConstraints(p,a.id,[{type:'parent',target_clip_id:b.id}]),/cycle/);
   assert.throws(()=>Core.set3DClipConstraints(p,b.id,[{type:'look_at',target:[0,1]}]),/three finite/);
 });
+
+test('anger-rise tint progresses from the bottom while preserving maximum recognisability', () => {
+  const topEarly = Renderer.angerTintPixel(180, 150, 130, 0.2, 0.5, 0.58);
+  const bottomEarly = Renderer.angerTintPixel(180, 150, 130, 0.82, 0.5, 0.58);
+  const topMaximum = Renderer.angerTintPixel(180, 150, 130, 0.02, 1, 0.58);
+  assert.deepEqual(topEarly, [180,150,130], 'upper area stays unchanged while the effect rises');
+  assert.ok(bottomEarly[1] < topEarly[1] && bottomEarly[2] < topEarly[2],
+    'lower area receives the warm red tint first');
+  assert.ok(topMaximum[0] > 215 && topMaximum[1] > 60 && topMaximum[2] > 45,
+    'maximum tint remains warm and restrained rather than flattening the image to pure red');
+});
+
+test('anger-rise burst fires once at the threshold and then expires', () => {
+  const effect = {
+    parameters:{intensity:0},
+    keyframes:[
+      {property:'intensity',frame:0,value:0,interpolation:'linear'},
+      {property:'intensity',frame:24,value:1,interpolation:'linear'}
+    ]
+  };
+  assert.equal(Renderer.angerBurstElapsed(effect, 24, 0.985, 28), 0);
+  assert.equal(Renderer.angerBurstElapsed(effect, 32, 0.985, 28), 8);
+  assert.equal(Renderer.angerBurstElapsed(effect, 60, 0.985, 28), -1);
+});
