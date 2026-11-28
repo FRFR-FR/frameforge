@@ -380,6 +380,13 @@
     return true;
   }
 
+  function sourceTypeForLicense(licenseName) {
+    const license = String(licenseName || '').toLowerCase().replace(/[_-]/g, ' ');
+    if (/cc0|public domain|publicdomain|\bpdm\b/.test(license)) return 'public_domain';
+    if (/creative commons|\bcc\s*by\b|^by(?:\s|$)|^by sa|^by nc|^by nd/.test(license)) return 'open_license';
+    return 'unknown';
+  }
+
   function normaliseOpenverse(item, mediaType) {
     const license = text(item.license, 100);
     return {
@@ -416,7 +423,7 @@
       license_url: get('LicenseUrl'),
       attribution_text: get('Attribution') || (get('Artist') ? 'Creator: ' + get('Artist') : ''),
       rights_status: 'pending',
-      source_type: license.toLowerCase().includes('cc0') || license.toLowerCase().includes('public domain') ? 'public_domain' : (license ? 'open_license' : 'unknown')
+      source_type: sourceTypeForLicense(license)
     };
   }
 
@@ -466,8 +473,7 @@
   function importOptionsForSelection(selected, audioRole) {
     const item = selected || {};
     const license = text(item.license_name, 300);
-    const sourceType = ['public_domain','open_license'].includes(item.source_type) ? item.source_type
-      : (/cc0|public domain|pdm/i.test(license) ? 'public_domain' : (license ? 'open_license' : 'unknown'));
+    const sourceType = ['public_domain','open_license'].includes(item.source_type) ? item.source_type : sourceTypeForLicense(license);
     const attributionRequired = attributionIsRequired(license);
     const attribution = text(item.attribution_text, 1800) ||
       (item.creator && item.creator !== 'Creator not supplied' ? 'Creator: ' + item.creator + '. Source: ' + item.landing_url : '');
