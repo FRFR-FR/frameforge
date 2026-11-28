@@ -272,22 +272,35 @@ function makeTinScene(T,detailed){
   var redGlow=mat(T,PALETTE.red,0.18,0.16,PALETTE.red);
   var gold=mat(T,0xC3A16A,0.9,0.19),tin=mat(T,0xD2DCE5,0.94,0.13);
   var hot=mat(T,0xFFB35C,0.08,0.16,0xFF6A28),cyan=mat(T,PALETTE.cyan,0.12,0.15,0x53CFFF);
-  // Machined vacuum vessel, flanges, seals, service skid and inspection window.
-  var vessel=addCylinder(T,g,"vacuum vessel",[0,0,0],1.62,1.62,6.9,black,72);vessel.rotation.z=Math.PI/2;
+  // Open-front vacuum vessel cutaway: camera-facing half removed to reveal the actual
+  // droplet generator, laser optics, plasma and collector instead of hiding them inside a dark tube.
+  var vesselShell=new T.Mesh(
+    new T.CylinderGeometry(1.62,1.62,6.9,96,1,true,Math.PI/2,Math.PI),
+    mat(T,0x253542,0.88,0.24)
+  );
+  vesselShell.name="rear half-shell of vacuum vessel — open-front cutaway";
+  vesselShell.rotation.z=Math.PI/2;vesselShell.position.z=-0.05;
+  vesselShell.castShadow=true;vesselShell.receiveShadow=true;g.add(vesselShell);
   [-3.46,3.46].forEach(function(x){
-    var flange=addCylinder(T,g,"vacuum vessel end flange",[x,0,0],1.78,1.78,0.22,brushed,72);flange.rotation.z=Math.PI/2;
-    addRing(T,g,"flange seal",[x+(x<0?-0.12:0.12),0,0],1.7,0.045,black,[0,Math.PI/2,0]);
-    addBoltCircle(T,g,"flange bolt circle",[x,0,0],1.55,20,0.055,steel);
+    addRing(T,g,"vacuum vessel annular end flange",[x,0,0],1.72,0.14,brushed,[0,Math.PI/2,0]);
+    addRing(T,g,"flange vacuum seal",[x+(x<0?-0.13:0.13),0,0],1.61,0.045,black,[0,Math.PI/2,0]);
+    addBoltCircle(T,g,"flange bolt circle",[x,0,0],1.52,24,0.048,steel);
+  });
+  [-1.58,1.58].forEach(function(y){
+    addBeam(T,g,"longitudinal cutaway rim rail",[-3.25,y,0.03],[3.25,y,0.03],0.075,brushed);
   });
   addBox(T,g,"lower vacuum skid",[0,-1.96,0],[8.2,0.26,4.1],black,true);
   addBox(T,g,"upper equipment bridge",[0,2.0,-1.55],[7.8,0.18,1.15],steel,true);
   [-3.7,3.7].forEach(function(x){
     addBox(T,g,"vessel pedestal",[x,-1.42,0],[0.32,1.0,0.58],titanium,true);
     addBox(T,g,"pedestal foot",[x,-1.91,0],[0.78,0.12,0.95],brushed,true);
+    addRing(T,g,"pedestal isolator mount",[x,-0.93,0],0.23,0.045,gold);
   });
-  addRing(T,g,"inspection viewport bezel",[0,0,1.54],1.08,0.12,brushed,[Math.PI/2,0,0]);
-  var viewport=addCylinder(T,g,"inspection viewport glass",[0,0,1.52],0.94,0.94,0.045,glass,64);viewport.rotation.x=Math.PI/2;
-  addBoltCircle(T,g,"viewport fasteners",[0,0,1.61],1.04,12,0.035,steel);
+  addRing(T,g,"inspection viewport bezel",[0,0,1.60],1.08,0.12,brushed,[Math.PI/2,0,0]);
+  var viewport=addCylinder(T,g,"inspection viewport glass",[0,0,1.57],0.94,0.94,0.045,glass,64);viewport.rotation.x=Math.PI/2;
+  addBoltCircle(T,g,"viewport fasteners",[0,0,1.65],1.04,12,0.035,steel);
+  addBox(T,g,"vacuum service manifold",[2.95,1.08,-0.52],[0.46,0.82,0.62],titanium,true);
+  for(var port=0;port<4;port++)addRing(T,g,"vacuum service port collar",[2.70,0.82+port*0.18,-0.18],0.105,0.028,gold,[0,Math.PI/2,0]);
 
   // Droplet generator with a piezoelectric sleeve and replaceable ceramic orifice.
   var nozzleRig=makePivot(T,g,"DROPLET GENERATOR RIG",[0,1.52,0]);
@@ -341,21 +354,22 @@ function makeTinScene(T,detailed){
   addCylinder(T,collectorBase,"collector mount pedestal",[0,-0.94,0],0.32,0.40,0.58,titanium,40);
   addRing(T,collectorBase,"collector alignment ring",[0,0,0],1.22,0.085,gold,[0,Math.PI/2,0]);
   var collectorTilt=makeHinge(T,collectorBase,"COLLECTOR TIP/TILT JOINT",[0,0,0],"y",-0.035,0.035);
-  addParabolicReflector(T,collectorTilt.rig,"parabolic collector mirror — conceptual",1.05,0.62,mat(T,0xD7C5A4,0.96,0.09));
+  var collectorDish=addParabolicReflector(T,collectorTilt.rig,"parabolic collector mirror — conceptual",1.05,0.62,mat(T,0xD7C5A4,0.96,0.09));
+  collectorDish.rotation.y=Math.PI;
   addRing(T,collectorTilt.rig,"collector mirror retaining rim",[0,0,0],1.07,0.045,brushed,[0,Math.PI/2,0]);
   [-0.7,0,0.7].forEach(function(z){addBeam(T,collectorTilt.rig,"collector kinematic support",[0.14,-0.05,z],[0.40,-0.78,z],0.055,titanium);});
   for(var bolt=0;bolt<16;bolt++){
     var a=bolt/16*Math.PI*2;
     addSphere(T,collectorTilt.rig,"collector retaining screw",[0.02,1.12*Math.cos(a),1.12*Math.sin(a)],0.035,steel,12);
   }
-  var plasmaRig=makePivot(T,g,"PLASMA EXPANSION RIG",[0,-0.34,0]);
+  var plasmaRig=makePivot(T,g,"PLASMA EXPANSION RIG",[0,-0.66,0]);
   var plasma=addSphere(T,plasmaRig,"ionized tin plasma",[0,0,0],0.28,hot,48);
   var halo=addRing(T,plasmaRig,"plasma emission shell",[0,0,0],0.55,0.025,hot,[Math.PI/2,0,0]);
   var spark=pulsePoints(T,plasmaRig,150,0xFF9A4A,1.35);
   var rays=[];
   for(var k=0;k<13;k++){
     var a=k/12*Math.PI*0.56-Math.PI*0.28;
-    rays.push(addPulseBeam(T,g,"EUV collector output ray "+k,[0.10,0,0.05],[3.45,Math.sin(a)*0.95,Math.cos(a)*0.95],0.012,cyan));
+    rays.push(addPulseBeam(T,g,"EUV collector output ray "+k,[1.05,-0.66+Math.sin(a)*0.18,0.05],[3.45,-0.66+Math.sin(a)*0.95,Math.cos(a)*0.95],0.012,cyan));
   }
   addRing(T,g,"EUV output aperture",[3.35,0.02,0],0.58,0.07,brushed,[0,Math.PI/2,0]);
   addBox(T,g,"source support chassis",[0,-2.22,0],[8.1,0.16,4.4],black,true);
@@ -597,10 +611,10 @@ function makeStageScene(T){
   }
   // Four physical end stops define actual X/Y travel limits for the carriage.
   var stops=[
-    addBox(T,g,"X-axis left hard stop",[-1.78,-0.06,0],[0.18,0.60,2.9],gold,true),
-    addBox(T,g,"X-axis right hard stop",[1.78,-0.06,0],[0.18,0.60,2.9],gold,true),
-    addBox(T,g,"Y-axis front hard stop",[0,-0.06,1.78],[2.9,0.60,0.18],gold,true),
-    addBox(T,g,"Y-axis rear hard stop",[0,-0.06,-1.78],[2.9,0.60,0.18],gold,true)
+    addBox(T,g,"X-axis left hard stop",[-2.30,-0.06,0],[0.18,0.60,2.9],gold,true),
+    addBox(T,g,"X-axis right hard stop",[2.30,-0.06,0],[0.18,0.60,2.9],gold,true),
+    addBox(T,g,"Y-axis front hard stop",[0,-0.06,2.30],[2.9,0.60,0.18],gold,true),
+    addBox(T,g,"Y-axis rear hard stop",[0,-0.06,-2.30],[2.9,0.60,0.18],gold,true)
   ];
   var collision=createCollisionWorld(T);
   var moving=collision.register("ceramic XY carriage",carriage,[2.20,0.30,2.20]);
@@ -609,7 +623,7 @@ function makeStageScene(T){
       index<2?[0.18,0.60,2.9]:[2.9,0.60,0.18]);
   });
   return {group:g,collisionSystem:collision,tick:function(p){
-    var target=new T.Vector3(Math.sin(p*Math.PI*4)*1.35,carriage.position.y,Math.cos(p*Math.PI*4)*1.32);
+    var target=new T.Vector3(Math.sin(p*Math.PI*4)*0.80,carriage.position.y,Math.cos(p*Math.PI*4)*0.80);
     collision.move(moving,target,obstacles,22);
     rotary.rotation.y=p*Math.PI*2;
     actuators.forEach(function(a,index){a.set(0.018*Math.sin(p*Math.PI*4+index));});
@@ -632,7 +646,7 @@ function makeProcessScene(T){
     addCylinder(T,module,"vibration isolation foot",[-0.62,-1.12,0.55],0.10,0.10,0.50,dark,24);
     addCylinder(T,module,"vibration isolation foot",[0.62,-1.12,0.55],0.10,0.10,0.50,dark,24);
     // Pivot-centred vertical shutter swings clear of the transfer throat.
-    var hinge=makeHinge(T,module,"INTERLOCKED TRANSFER GATE "+i,[0,-1.26,0.78],"y",-1.22,0.02);
+    var hinge=makeHinge(T,module,"INTERLOCKED TRANSFER GATE "+i,[0,-1.26,1.35],"y",-1.22,0.02);
     var gate=addBox(T,hinge.rig,"transfer gate panel",[0,0,0],[1.12,0.62,0.06],steel,true);
     doors.push(hinge);
     gateBodies.push(collisionPlaceholder(T,gate,[1.12,0.62,0.06]));
@@ -651,7 +665,7 @@ function makeProcessScene(T){
   addCylinder(T,shuttle,"wafer in transport carrier",[0,0.245,0],0.37,0.37,0.055,mat(T,0x31618B,0.88,0.17),56);
   addRing(T,shuttle,"carrier retainer ring",[0,0.285,0],0.39,0.022,copper);
   var leftStop=addBox(T,g,"transfer rail left hard stop",[-4.72,-1.31,0.62],[0.24,0.55,1.05],copper,true);
-  var rightStop=addBox(T,g,"transfer rail right hard stop",[4.72,-1.31,0.62],[0.24,0.55,1.05],copper,true);
+  var rightStop=addBox(T,g,"transfer rail right hard stop",[4.98,-1.31,0.62],[0.24,0.55,1.05],copper,true);
   var collision=createCollisionWorld(T);
   var shuttleBody=collision.register("wafer transfer shuttle",shuttle,[1.02,0.22,0.96]);
   var obstacles=[collision.register("left rail end stop",leftStop,[0.24,0.55,1.05]),
@@ -659,7 +673,7 @@ function makeProcessScene(T){
   gateBodies.forEach(function(item,index){obstacles.push(collision.register("transfer gate "+index,item.object,item.size));});
   return {group:g,collisionSystem:collision,tick:function(p){
     var q=p<0.5?p*2:(1-p)*2;
-    var targetX=-3.72+q*8.2;
+    var targetX=-3.72+q*7.85;
     doors.forEach(function(door,index){
       var centre=-3.3+index*2.2,approach=Math.max(0,1-Math.abs(targetX-centre)/1.65);
       door.set(-1.18*T.MathUtils.smoothstep(approach,0.08,0.58));
@@ -770,7 +784,7 @@ export function mountScene(container,options){
   ctx.fillStyle="rgba(214,40,57,0.24)";ctx.fillRect(525,0,18,512);
   var envTexture=new T.CanvasTexture(envCanvas);envTexture.mapping=T.EquirectangularReflectionMapping;
   envTexture.colorSpace=T.SRGBColorSpace;envTexture.needsUpdate=true;scene.environment=envTexture;scene.environmentIntensity=0.8;
-  var camera=new T.PerspectiveCamera(39,width/height,0.1,140);camera.position.set(8.6,5.4,10.5);camera.lookAt(0,0,0);
+  var camera=new T.PerspectiveCamera(37,width/height,0.1,140);camera.position.set(6.9,4.5,8.5);camera.lookAt(0,0,0);
   scene.add(new T.HemisphereLight(0xD9E7F5,0x253140,1.25));
   var key=new T.DirectionalLight(0xFFF5E8,3.1);key.position.set(-4.5,8.5,6.5);key.castShadow=true;
   key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-10;key.shadow.camera.right=10;
@@ -798,8 +812,8 @@ export function mountScene(container,options){
     var current=sections[index],local=Math.max(0,Math.min(1,(t-current.start)/Math.max(0.001,current.duration)));
     current.tick(local,t);
     var orbit=local*Math.PI*0.48;
-    camera.position.set(8.1+Math.sin(orbit)*0.68,5.0+Math.sin(local*Math.PI)*0.32,10.0+Math.cos(orbit)*0.5);
-    camera.lookAt(0,-0.12,0);renderer.render(scene,camera);
+    camera.position.set(6.9+Math.sin(orbit)*0.50,4.4+Math.sin(local*Math.PI)*0.25,8.35+Math.cos(orbit)*0.40);
+    camera.lookAt(0,-0.02,0);renderer.render(scene,camera);
   }
   seek(0);
   return {duration:duration,renderer:renderer,resize:resize,seek:seek,collisionReport:function(){return sections.map(function(section){return {name:section.name,collision:section.collisionSystem?section.collisionSystem.report():{status:'no dynamic collision pair; articulated joints are travel-limited'}};});},pause:function(){},
