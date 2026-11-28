@@ -112,6 +112,17 @@ test('a manual CC0 source is classified as public-domain but never approved auto
   assert.equal(options.rights.attribution_required, false);
 });
 
+test('ordinary restrictive licence text is not mislabelled as an open licence', () => {
+  const options = Production.importOptionsForSelection({
+    provider: 'Manual import',
+    license_name: 'All Rights Reserved',
+    landing_url: 'https://media.example.org/item'
+  });
+  assert.equal(options.provenance.source_type, 'unknown');
+  assert.equal(options.rights.status, 'pending');
+  assert.equal(options.rights.attribution_required, true);
+});
+
 test('audio usage limits are retained in the catalogue until rights review', () => {
   const project = Core.createDefaultProject('Audio terms');
   Core.addAsset(project,makeAsset('music-terms','audio',{ attribution_required: true }));
@@ -274,6 +285,8 @@ test('shot orchestrator creates real clips, requested procedural art and records
   assert.equal(project.extensions.production_orchestration.review_required_before_render,true);
   assert.equal(project.extensions.production_orchestration.status,'draft_needs_assets');
   assert.equal(Core.validateProject(project).length,0);
+  const readiness = Director.readinessReport(project);
+  assert.ok(readiness.blockers.length > 0, 'Missing source footage must remain a production-readiness blocker.');
 });
 
 test('orchestrator can enforce the director readiness gate when requested', () => {
