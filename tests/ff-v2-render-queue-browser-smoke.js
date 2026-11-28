@@ -79,7 +79,7 @@ async function main() {
       window.FFV2Studio.markDirty();
       const originalCompose = window.FFV2Renderer.composeFrame.bind(window.FFV2Renderer);
       window.FFV2Renderer.composeFrame = async options => {
-        await new Promise(resolve => window.setTimeout(resolve, 120));
+        await new Promise(resolve => window.setTimeout(resolve, 250));
         return originalCompose(options);
       };
     });
@@ -100,14 +100,15 @@ async function main() {
     assert.ok(queueState.job?.id, 'Render job creation failed: ' + JSON.stringify(queueState));
     const jobId = queueState.job.id;
     await page.locator('#ffv2RenderQueueStart').click();
-    await page.waitForFunction(async id =>
-      (await window.FFV2Studio.renderStorage.countFrames(id)) >= 1,
-      jobId, { timeout: 30000 }
-    );
+    await page.waitForFunction(async id => {
+      const count = await window.FFV2Studio.renderStorage.countFrames(id);
+      const job = await window.FFV2Studio.renderStorage.getJob(id);
+      return count >= 1 || job?.status === 'failed';
+    }, jobId, { timeout: 30000 });
     await page.evaluate(() => window.FFV2RenderQueue.pause());
     await page.waitForFunction(async id => {
       const job = await window.FFV2Studio.renderStorage.getJob(id);
-      return job?.status === 'paused';
+      return job?.status === 'paused' || job?.status === 'failed';
     }, jobId, { timeout: 30000 });
 
     const pausedState = await page.evaluate(async id => ({
@@ -119,12 +120,14 @@ async function main() {
     console.log('RENDER_QUEUE_PAUSED_STATE', JSON.stringify({
       count: pausedState.count,
       jobStatus: pausedState.job?.status,
+      jobError: pausedState.job?.error,
       completedFrames: pausedState.job?.completed_frames,
       renderedFrames: pausedState.job?.rendered_frames,
       skippedFrames: pausedState.job?.skipped_frames,
       hasFrameZero: Boolean(pausedState.frameZero?.blob?.size),
       statusText: pausedState.statusText
     }));
+    assert.equal(pausedState.job?.status, 'paused', 'Render job failed or did not pause: ' + JSON.stringify(pausedState.job));
     assert.ok(pausedState.count >= 1 && pausedState.count <= 2, 'Pause should occur after one or two durable frames.');
     assert.equal(pausedState.job?.completed_frames, pausedState.count);
     assert.ok(pausedState.frameZero?.blob?.size, 'The first completed PNG must be durable before pausing.');
