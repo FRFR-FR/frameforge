@@ -65,7 +65,14 @@ async function main() {
 
     await page.locator('#ffv2RenderQueueChunkSize').selectOption('12');
     await page.locator('#ffv2RenderQueueCreate').click();
-    const jobId = await page.evaluate(() => window.FFV2RenderQueue.getCurrentJob().id);
+    const queueState = await page.evaluate(() => ({
+      job: window.FFV2RenderQueue.getCurrentJob(),
+      status: document.getElementById('ffv2RenderQueueStatus')?.textContent,
+      ready: Boolean(window.FFV2Studio.getProject()),
+      buttonDisabled: document.getElementById('ffv2RenderQueueStart')?.disabled
+    }));
+    assert.ok(queueState.job?.id, 'Render job creation failed: ' + JSON.stringify(queueState));
+    const jobId = queueState.job.id;
     await page.locator('#ffv2RenderQueueStart').click();
     await page.waitForFunction(async id => {
       const count = await window.FFV2Studio.renderStorage.countFrames(id);
