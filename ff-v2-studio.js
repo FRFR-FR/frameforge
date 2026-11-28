@@ -947,6 +947,7 @@
         });
         if (renderId !== state.previewRenderId) return;
         const notice = $('ffv2CompositorStatus');
+        notice.dataset.renderId = String(renderId);
         if (result.warnings.length) {
           notice.textContent = result.drawn + ' layer(s) rendered · ' + result.warnings[0].message;
           notice.dataset.kind = 'warning';
