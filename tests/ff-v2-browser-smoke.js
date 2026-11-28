@@ -270,8 +270,14 @@ async function main() {
     assert.ok(particleFrameA.visible>0,'Particle and lower layers should contribute visible pixels');
 
     // Apply the anger-rise VFX to the transparent PNG cut-out and verify the gradient, flames and peak burst.
-    const cutoutChip = page.locator('.ffv2-clip[title^="v2-cutout-test.png"]').first();
-    assert.equal(await cutoutChip.count(), 1, 'the imported PNG cut-out should be selectable from the timeline');
+    const cutoutClipId = await page.evaluate(() => {
+      const project = window.FFV2Studio.getProject();
+      const imageTrack = project.sequences[0].tracks.find(track => track.type === 'image' && track.clips.length);
+      return imageTrack?.clips[0]?.id || '';
+    });
+    assert.ok(cutoutClipId, 'the imported PNG should have a clip on the image track');
+    const cutoutChip = page.locator('.ffv2-clip[data-clip-id="' + cutoutClipId + '"]');
+    assert.equal(await cutoutChip.count(), 1, 'the image-track cut-out should be selectable by stable clip ID');
     await cutoutChip.click();
     await page.locator('#ffv2ClipEffectType').selectOption('anger-rise');
     assert.equal(await page.locator('#ffv2AngerOptions').isVisible(), true, 'anger-specific controls should appear');

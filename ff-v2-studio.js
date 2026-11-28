@@ -718,6 +718,7 @@
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'ffv2-clip' + (clip.id === state.selectedClipId ? ' selected' : '');
+        chip.dataset.clipId = clip.id;
         chip.style.left = (clip.start_frame * timelineScale()) + 'px';
         chip.style.width = Math.max(28, clip.duration_frames * timelineScale()) + 'px';
         chip.title = (asset?.label || clip.id) + ' · frame ' + clip.start_frame + ' · ' + clip.duration_frames + ' frames';
