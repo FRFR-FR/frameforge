@@ -308,7 +308,7 @@
       '\n' + report.note;
     if (credits) credits.value = report.credits;
     const limits = $('ffv2AudioUsageLimits');
-    if (limits) limits.value = report.usage_limits.map(item => item.label + ':\\n' + item.restrictions.join('\\n')).join('\\n\\n');
+    if (limits) { const newline = String.fromCharCode(10); limits.value = report.usage_limits.map(item => item.label + ':' + newline + item.restrictions.join(newline)).join(newline + newline); }
   }
 
   function assemble() {
