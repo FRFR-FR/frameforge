@@ -746,3 +746,34 @@ button { color: inherit; cursor: pointer; }
   .ffv2-render-queue-panel > details > summary { align-items:flex-start; flex-direction:column; }
   .ffv2-render-queue-panel .ffv2-production-actions > button { flex:1 1 40%; }
 }
+
+/* Android / phone quick navigation and touch-friendly controls (V2 step 46). */
+.ffv2-mobile-nav { display:none; }
+@media (max-width:760px) {
+  body { padding-bottom:calc(66px + env(safe-area-inset-bottom, 0px)); }
+  .ffv2-mobile-nav {
+    position:fixed; z-index:50; left:0; right:0; bottom:0;
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px;
+    padding:6px 7px calc(6px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid #30445b; background:rgba(9,15,24,.97);
+    backdrop-filter:blur(14px); box-shadow:0 -8px 24px #0008;
+  }
+  .ffv2-mobile-nav button {
+    display:flex; min-width:0; min-height:50px; flex-direction:column;
+    align-items:center; justify-content:center; gap:3px;
+    border:1px solid transparent; border-radius:8px; background:transparent;
+    color:#a7bbd0; font-size:17px; line-height:1; touch-action:manipulation;
+  }
+  .ffv2-mobile-nav button span { font-size:10px; font-weight:650; }
+  .ffv2-mobile-nav button[aria-current="location"] { color:#e4f2ff; border-color:#3975a8; background:#16304a; }
+  .ffv2-mobile-nav button:focus-visible { outline:2px solid #83c5ff; outline-offset:1px; }
+  .button, .icon-button, .play-button, .panel-tab, .tool, select { touch-action:manipulation; }
+  .top-actions .button, .timeline-controls button, .ffv2-production-actions button, .ffv2-panel-actions button { min-height:40px; }
+  .timeline-panel, #ffv2AssetsPanel, #ffv2DirectorPanel, #ffv2ProductionPanel, #ffv2RenderQueuePanel {
+    scroll-margin-top:12px; scroll-margin-bottom:90px;
+  }
+  .ffv2-ruler-row, .ffv2-track-row { min-width:0; }
+  .ffv2-track-lane { touch-action:pan-x pan-y; }
+  .ffv2-drop-zone { min-height:64px; display:grid; place-items:center; }
+}
+@media (prefers-reduced-motion:reduce) { .ffv2-mobile-nav { backdrop-filter:none; } }

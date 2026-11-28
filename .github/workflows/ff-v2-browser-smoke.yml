@@ -26,6 +26,8 @@ on:
       - "tests/ff-v2-production-browser-smoke.js"
       - "tests/ff-v2-render-queue-browser-smoke.js"
       - "tests/ff-v2-renderer.test.js"
+      - "ff-v2-mobile.js"
+      - "tests/ff-v2-mobile-browser-smoke.js"
       - ".github/workflows/ff-v2-browser-smoke.yml"
   workflow_dispatch:
 
@@ -62,3 +64,4 @@ jobs:
           node tests/ff-v2-director-browser-smoke.js
           node tests/ff-v2-production-browser-smoke.js
           node tests/ff-v2-render-queue-browser-smoke.js
+          node tests/ff-v2-mobile-browser-smoke.js

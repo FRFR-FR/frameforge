@@ -158,7 +158,7 @@ ctx.stroke();</pre>
     </aside>
   </main>
 
-  <section class="timeline-panel">
+  <section class="timeline-panel" id="ffv2TimelineSection">
     <div class="timeline-header">
       <div class="timeline-title"><h2>Timeline</h2><span id="frameCounter">Frame 1 / 1</span></div>
       <div class="timeline-controls">
@@ -486,7 +486,7 @@ void main() {
       <div id="ffv2CompositorStatus" class="ffv2-save-status" role="status">Ready to composite visual timeline layers.</div>
       <small class="ffv2-info-text">The preview renders the current playhead frame. This is a PNG-frame compositor, not yet the final MP4 export pipeline. Keep source assets backed up separately.</small>
     </div>
-    <section class="ffv2-director-panel" aria-label="Research and visual director">
+    <section class="ffv2-director-panel" id="ffv2DirectorPanel" aria-label="Research and visual director">
       <details open>
         <summary class="ffv2-director-title">
           <span><strong>Research & visual director</strong><small>Brief → sources → niche style → timed shots → evidence and rights review</small></span>
@@ -607,7 +607,7 @@ void main() {
         </div>
       </details>
     </section>
-    <section class="ffv2-production-panel" aria-label="FrameForge production workflows">
+    <section class="ffv2-production-panel" id="ffv2ProductionPanel" aria-label="FrameForge production workflows">
       <details open>
         <summary class="ffv2-director-title">
           <span><strong>Production workflows · Steps 36–40</strong><small>Recipes → open media → procedural artwork → audio credits → editable assembly</small></span>
@@ -782,6 +782,15 @@ void main() {
   <script src="ff-v2-production.js"></script>
   <script src="ff-v2-production-ui.js"></script>
   <script src="ff-v2-render-queue.js"></script>
+  <script src="ff-v2-mobile.js"></script>
   <script src="app.js"></script>
+  <nav id="ffv2MobileNav" class="ffv2-mobile-nav" aria-label="V2 mobile navigation">
+    <button type="button" data-mobile-target="assets" aria-label="Open V2 assets">▦<span>Assets</span></button>
+    <button type="button" data-mobile-target="timeline" aria-label="Open timeline">▤<span>Timeline</span></button>
+    <button type="button" data-mobile-target="director" aria-label="Open research and visual director">⌕<span>Director</span></button>
+    <button type="button" data-mobile-target="production" aria-label="Open production workflows">✦<span>Produce</span></button>
+    <button type="button" data-mobile-target="render" aria-label="Open render queue">⇩<span>Render</span></button>
+  </nav>
+
 </body>
 </html>
