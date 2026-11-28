@@ -1,0 +1,173 @@
+{
+  "status": "PASS",
+  "title": "The Great Emu War",
+  "voice": "Kokoro Echo (am_echo)",
+  "model": "hexgrad/Kokoro-82M",
+  "language": "American English",
+  "sample_rate_hz": 24000,
+  "channels": 1,
+  "target_duration_seconds": 53.0,
+  "wav_duration_seconds": 53.0,
+  "mp3_duration_seconds": 53.064,
+  "mp3_bitrate": "160 kbps",
+  "source_mix_duration_seconds": 65.31,
+  "final_global_atempo": 1.2323,
+  "quote_intro_omitted_for_pacing": true,
+  "pause_after_lost_seconds": 0.42,
+  "pause_after_easy_win_right_seconds": 0.42,
+  "slow_delivery_lines": [
+    "Army, zero. Emus, one.",
+    "The emus won."
+  ],
+  "segments": [
+    {
+      "id": "hook",
+      "section": "hook",
+      "text": "In 1932, the Australian army went to war... and lost.",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 0.0,
+      "source_end_seconds": 4.15,
+      "pause_after_seconds": 0.42,
+      "final_start_seconds": 0.0,
+      "final_end_seconds": 3.3678
+    },
+    {
+      "id": "hook_payoff",
+      "section": "hook",
+      "text": "To birds. Stay to the end, because the general's confession is unbelievable.",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 4.57,
+      "source_end_seconds": 9.07,
+      "pause_after_seconds": 0.1,
+      "final_start_seconds": 3.7086,
+      "final_end_seconds": 7.3604
+    },
+    {
+      "id": "setting",
+      "section": "setting",
+      "text": "Western Australia. Twenty thousand emus are eating the farmers' wheat. The farmers, all war veterans, beg the army for help.",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 9.17,
+      "source_end_seconds": 16.045,
+      "pause_after_seconds": 0.1,
+      "final_start_seconds": 7.4416,
+      "final_end_seconds": 13.0207
+    },
+    {
+      "id": "plan",
+      "section": "plan",
+      "text": "The army's plan? Three soldiers. Two machine guns. Ten thousand bullets. Easy win... right?",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 16.145,
+      "source_end_seconds": 21.495,
+      "pause_after_seconds": 0.42,
+      "final_start_seconds": 13.1019,
+      "final_end_seconds": 17.4435
+    },
+    {
+      "id": "day_one_cta",
+      "section": "day_one",
+      "text": "Day one: the emus split into tiny groups. Impossible to hit. If you're enjoying this, like and subscribe!",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 21.915,
+      "source_end_seconds": 27.79,
+      "pause_after_seconds": 0.1,
+      "final_start_seconds": 17.7843,
+      "final_end_seconds": 22.552
+    },
+    {
+      "id": "truck_comment",
+      "section": "truck",
+      "text": "So they mounted the gun on a truck. But emus run fifty kilometres an hour, and the truck bounced too much to aim. Comment now: army or emus, who wins round two?",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 27.89,
+      "source_end_seconds": 36.29,
+      "pause_after_seconds": 0.1,
+      "final_start_seconds": 22.6331,
+      "final_end_seconds": 29.4499
+    },
+    {
+      "id": "retreat",
+      "section": "retreat",
+      "text": "It gets worse. Within a week, the army retreated. Then they came back for round two... and got the same result.",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 36.39,
+      "source_end_seconds": 41.99,
+      "pause_after_seconds": 0.1,
+      "final_start_seconds": 29.531,
+      "final_end_seconds": 34.0755
+    },
+    {
+      "id": "tally_setup",
+      "section": "tally",
+      "text": "Almost ten thousand bullets later, the emus were still eating.",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 42.09,
+      "source_end_seconds": 45.94,
+      "pause_after_seconds": 0.08,
+      "final_start_seconds": 34.1566,
+      "final_end_seconds": 37.281
+    },
+    {
+      "id": "score",
+      "section": "tally",
+      "text": "Army, zero. Emus, one.",
+      "kokoro_speed": 0.72,
+      "source_start_seconds": 46.02,
+      "source_end_seconds": 49.82,
+      "pause_after_seconds": 0.18,
+      "final_start_seconds": 37.3459,
+      "final_end_seconds": 40.4296
+    },
+    {
+      "id": "confession_setup",
+      "section": "quote",
+      "text": "Now... the general's confession.",
+      "kokoro_speed": 1.15,
+      "source_start_seconds": 50.0,
+      "source_end_seconds": 52.35,
+      "pause_after_seconds": 0.1,
+      "final_start_seconds": 40.5757,
+      "final_end_seconds": 42.4828
+    },
+    {
+      "id": "quote",
+      "section": "quote",
+      "text": "If we had a military division with the bullet-carrying capacity of these birds, it would face any army in the world.",
+      "kokoro_speed": 1.0,
+      "source_start_seconds": 52.45,
+      "source_end_seconds": 59.675,
+      "pause_after_seconds": 0.12,
+      "final_start_seconds": 42.5639,
+      "final_end_seconds": 48.4271
+    },
+    {
+      "id": "final_payoff",
+      "section": "outro",
+      "text": "The emus won.",
+      "kokoro_speed": 0.72,
+      "source_start_seconds": 59.795,
+      "source_end_seconds": 62.52,
+      "pause_after_seconds": 0.14,
+      "final_start_seconds": 48.5245,
+      "final_end_seconds": 50.7359
+    },
+    {
+      "id": "follow",
+      "section": "outro",
+      "text": "Follow for more crazy true stories.",
+      "kokoro_speed": 1.2,
+      "source_start_seconds": 62.66,
+      "source_end_seconds": 65.31,
+      "pause_after_seconds": 0.0,
+      "final_start_seconds": 50.8495,
+      "final_end_seconds": 53.0
+    }
+  ],
+  "files": {
+    "mp3": "great-emu-war-narration-kokoro-echo.mp3",
+    "wav": "great-emu-war-narration-kokoro-echo.wav"
+  },
+  "mp3_size_bytes": 1061805,
+  "wav_size_bytes": 2544078
+}
