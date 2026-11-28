@@ -73,7 +73,7 @@ def build_command(
         raise ValueError("CRF must be between 0 and 35.")
     if preset not in {"ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow"}:
         raise ValueError("Unsupported x264 preset.")
-    if not (64 <= int(audio_bitrate[:-1]) <= 512 and audio_bitrate.endswith("k")):
+    if not (audio_bitrate.endswith("k") and audio_bitrate[:-1].isdigit() and 64 <= int(audio_bitrate[:-1]) <= 512):
         raise ValueError("Audio bitrate must be between 64k and 512k.")
     width, height = PROFILES[profile]
     command = [ffmpeg, "-hide_banner", "-nostdin"]
