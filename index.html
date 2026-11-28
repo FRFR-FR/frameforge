@@ -661,7 +661,7 @@ void main() {
             <p>Create original SVG artwork directly from editable parameters. Illustrative/sample graphics are labelled and must not be presented as factual evidence.</p>
             <div class="ffv2-production-grid">
               <label>Graphic type <select id="ffv2GraphicType" class="ffv2-production-input">
-                <option value="background">Atmospheric background</option><option value="comparison">Comparison layout</option>
+                <option value="background">Atmospheric background</option><option value="particles">Seeded particle field</option><option value="comparison">Comparison layout</option>
                 <option value="flowchart">Process / system diagram</option><option value="map">Schematic route map</option>
                 <option value="timeline">Chronology timeline</option><option value="evidence">Evidence callout frame</option>
                 <option value="bar_chart">Bar chart (sample values unless supplied)</option><option value="badge">Key-idea badge</option>
@@ -671,7 +671,13 @@ void main() {
               <label>Start frame <input id="ffv2GraphicStart" class="ffv2-production-input" type="number" min="0" step="1" value="0"></label>
               <label>Duration (frames) <input id="ffv2GraphicDuration" class="ffv2-production-input" type="number" min="1" step="1" value="90"></label>
             </div>
+            <div class="ffv2-production-grid">
+              <label>Particle preset <select id="ffv2GraphicParticlePreset" class="ffv2-production-input"><option value="sparks">Sparks</option><option value="dust">Dust</option><option value="embers">Embers</option><option value="magic">Magic</option><option value="confetti">Confetti</option></select></label>
+              <label>Particle count (max 500) <input id="ffv2GraphicParticleCount" class="ffv2-production-input" type="number" min="1" max="500" value="72"></label>
+              <label>Random seed <input id="ffv2GraphicParticleSeed" class="ffv2-production-input" type="number" min="0" max="2147483647" value="1337"></label>
+            </div>
             <label class="ffv2-production-full">Labels (one per line) <textarea id="ffv2GraphicLabels" class="ffv2-production-input" rows="3" maxlength="800" placeholder="Input&#10;Process&#10;Output"></textarea></label>
+            <label class="ffv2-production-full">Chart values (one non-negative number per line) <textarea id="ffv2GraphicValues" class="ffv2-production-input" rows="2" maxlength="400" placeholder="3&#10;5&#10;4"></textarea></label>
             <button id="ffv2CreateProceduralGraphic" class="button small primary">Create editable graphic clip</button>
           </section>
 
