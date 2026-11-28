@@ -1,7 +1,7 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–10  
+**Current completed batch:** Steps 1–15  
 **Last updated:** 2026-11-28
 
 ## Batch 1–5 status
@@ -59,6 +59,49 @@ Created:
 - [validate_media_manifest.py](../tools/validate_media_manifest.py)
 
 The format records source classification, source URL, creator/provider, acquisition time, technical metadata, licence/permission basis, attribution and reviewer state. Approved assets require a review basis, reviewer and review timestamp; attribution-required assets must include attribution text. The sample includes a deliberately pending placeholder to demonstrate that unknown rights are not silently approved.
+
+## Batch 11–15 status
+
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 11 | Canvas 2D layer compositor and alpha pipeline | Complete | Chromium smoke verifies a 1280 × 720 frame, semi-transparent PNG alpha retention (sampled alpha 126–130), and untouched transparent pixels (alpha 0); layers render in track order |
+| 12 | Transform, crop, anchor, fit and opacity controls | Complete | Studio controls are connected to the clip model and compositor; Node tests validate normalized crop bounds, fit modes and opacity range |
+| 13 | Transform keyframes, easing and layer parenting | Complete | Node tests cover linear/eased/Bezier interpolation, parent transform inheritance and cycle rejection; browser smoke adds a keyframe through the UI |
+| 14 | Shape masks, alpha/luma mattes, feathering and blend modes | Complete | Node tests validate mask model constraints; Chromium smoke exercises a feathered ellipse mask and its inverted form; alpha/luma matte rendering is implemented but not separately pixel-tested in Chromium |
+| 15 | Typography, lower thirds, SVG and vector shapes | Complete | Generated title/lower-third, shape and SVG clips are connected to the compositor; browser smoke composites generated vector artwork; SVG validation rejects active/external content |
+
+## Step 11 — Layer compositor and alpha pipeline
+
+Created [ff-v2-renderer.js](../ff-v2-renderer.js), a dependency-free Canvas 2D compositor. It resolves imported local image/SVG/video assets, orders visual layers by track order, renders each layer to an isolated transparent surface, and composites into an output canvas matching the sequence dimensions. The output is cleared to transparent for each render; untouched pixels stay transparent, and browser Canvas 2D performs the premultiplied-alpha compositing.
+
+The V2 editor now displays the compositor canvas beneath the multi-track timeline. **Render frame** rerenders the current playhead frame and **Download PNG** exports that one frame. Rendering is queued to avoid stale asynchronous preview frames replacing newer ones.
+
+## Step 12 — Transform, crop and anchor controls
+
+Selected clips expose position X/Y, scale X/Y, rotation, opacity, anchor X/Y, fit mode and optional normalized source crop. Supported fit modes are contain, cover and stretch. These are non-destructive clip-level properties and are evaluated by the same compositor transform path.
+
+## Step 13 — Keyframes, easing and parenting
+
+Transform keyframes use clip-local frame positions and support position, scale, rotation, opacity and anchor properties. Interpolation supports step, linear, ease-in, ease-out, ease-in/out and cubic Bezier. Parent-child relationships propagate transforms and opacity; audio clips cannot be visual parents. Self-parenting and cycles are rejected by the project model.
+
+## Step 14 — Masks, mattes and blend modes
+
+The renderer supports rectangle/ellipse shape masks, inversion, feathering, alpha mattes and luma mattes. Matte sources are imported local image/graphic assets. The editor includes a curated list of Canvas blend modes, with normal compositing as the fallback for unsupported modes. Mask bounds are normalized against the sequence canvas. The Chromium smoke test pixel-checks a feathered ellipse mask and inverted result; alpha/luma matte modes are implemented but do not yet have a dedicated pixel-level browser fixture.
+
+## Step 15 — Typography, SVG and shape graphics
+
+Added generated title, lower-third, shape and inline-SVG clips on the Graphics/Titles tracks. Text supports font family, size, weight, colour, alignment, multiline content, optional background, outline and shadow parameters in the rendering layer. Shapes support rectangle, ellipse, line and polygon primitives. Generated graphics use the same transform, keyframe, parent, mask and blend pipeline as imported visual media. SVG input is validated before it is drawn.
+
+## Verification for batch 11–15
+
+- [Foundation validation run 46109813955 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46109813955): JavaScript syntax checks passed; **23 Node tests passed**; **14 Python regression tests passed**; the V2 schema and both example validators passed.
+- [Chromium browser smoke run 46109813917 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46109813917): verified local asset import and timeline persistence, 1280 × 720 compositing, semitransparent PNG alpha retention, untouched transparent canvas pixels, generated vector artwork, transform controls, keyframe creation, feathered shape mask and inverted-mask pixel output.
+
+## Current V2 boundary after steps 11–15
+
+The V2 timeline is now connected to a **single-frame Canvas 2D compositor**, with transparent PNG-frame export. It is not yet a full-sequence renderer and does not yet export the V2 timeline as an MP4. Final video rendering, resumable chunks and FFmpeg export profiles are later roadmap steps. Audio tracks remain editing data only; there is no V2 audio mixer or real-time audio playback yet. 3D model/scene tracks are not rendered by this 2D compositor.
+
+The browser compositor uses device-supported Canvas 2D features and browser media decoders. Video seeking/codec support, fonts, Canvas filters, memory and local storage vary by browser/device. V2 project JSON still does not package imported binary files; keep separate backups of source assets. The V1 drawing editor and its existing workflows remain available.
 
 ## Batch 6–10 status
 
