@@ -788,7 +788,7 @@ function createSceneForSection(T, index) {
 export function mountScene(container,options){
   var T=(options&&options.THREE)||THREE,width=(options&&options.width)||1280,height=(options&&options.height)||720;
   var duration=(options&&options.duration)||699.25;
-  var renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
+  var renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance",preserveDrawingBuffer:true});
   renderer.setPixelRatio(1);renderer.setSize(width,height,false);
   renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.setClearColor(0x0A1420,1);
