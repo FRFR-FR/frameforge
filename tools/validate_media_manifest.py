@@ -34,7 +34,9 @@ def validate(manifest_path: Path, schema_path: Path) -> list[str]:
 
     if isinstance(data, dict):
         seen: set[str] = set()
-        for asset in data.get("assets", []):
+        raw_assets = data.get("assets", [])
+        assets = raw_assets if isinstance(raw_assets, list) else []
+        for asset in assets:
             asset_id = asset.get("id") if isinstance(asset, dict) else None
             if not isinstance(asset_id, str):
                 continue
