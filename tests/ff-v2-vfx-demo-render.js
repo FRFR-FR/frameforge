@@ -143,6 +143,7 @@ async function main() {
     const font = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
     const bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
     const filter = [
+      'crop=1280:720:0:0',
       "drawtext=fontfile=" + bold + ":text='FRAMEFORGE VFX TEST':fontcolor=white:fontsize=34:x=(w-text_w)/2:y=26:box=1:boxcolor=0x081322cc:boxborderw=14",
       "drawtext=fontfile=" + font + ":text='SIMULATED DIGITAL EFFECT DEMONSTRATION':fontcolor=0xe3edf8:fontsize=17:x=(w-text_w)/2:y=h-74:box=1:boxcolor=0x081322cc:boxborderw=10",
       "drawtext=fontfile=" + font + ":text='Photo: Kremlin.ru | CC BY 4.0 | modified':fontcolor=0xe3edf8:fontsize=14:x=(w-text_w)/2:y=h-36:box=1:boxcolor=0x081322cc:boxborderw=8"
