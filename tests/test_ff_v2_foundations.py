@@ -16,6 +16,7 @@ PROJECT_SCHEMA_PATH = ROOT / "schemas" / "frameforge-project-v2.schema.json"
 MANIFEST_SCHEMA_PATH = ROOT / "schemas" / "media-asset-manifest-v1.schema.json"
 PROJECT_EXAMPLE_PATH = ROOT / "examples" / "frameforge-project-v2.example.json"
 MANIFEST_EXAMPLE_PATH = ROOT / "examples" / "media-asset-manifest.example.json"
+DIRECTOR_EXAMPLE_PATH = ROOT / "examples" / "frameforge-research-director.example.json"
 
 
 def read_json(path: Path) -> dict:
@@ -67,6 +68,42 @@ class FrameForgeFoundationTests(unittest.TestCase):
             cwd=ROOT, text=True, capture_output=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_research_director_example_passes_schema_and_semantic_validation(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        self.assertEqual(list(self.project_validator.iter_errors(payload)), [])
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "validate_project.py"), str(DIRECTOR_EXAMPLE_PATH)],
+            cwd=ROOT, text=True, capture_output=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_evidence_shot_rejects_unverified_or_unsourced_claim(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        payload["research"]["claims"][0]["verification_status"] = "unverified"
+        result = self.run_validator("validate_project.py", payload)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("cannot present an unverified or unsourced claim as evidence", result.stdout)
+
+    def test_shot_plan_rejects_missing_asset_reference(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        payload["shot_plan"]["beats"][0]["asset_ids"] = ["asset-not-in-project"]
+        result = self.run_validator("validate_project.py", payload)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("references missing asset", result.stdout)
+
+    def test_reference_video_is_reference_only(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        payload["research"]["reference_videos"][0]["reference_only"] = False
+        result = self.run_validator("validate_project.py", payload)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("reference_only", result.stdout)
+
+    def test_approved_asset_review_needs_basis_reviewer_and_date(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        review = payload["rights_review"]["asset_reviews"][0]
+        review.pop("reviewer", None)
+        self.assertTrue(list(self.project_validator.iter_errors(payload)))
 
     def test_unknown_project_schema_version_is_rejected(self) -> None:
         payload = copy.deepcopy(self.project)
