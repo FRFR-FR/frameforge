@@ -88,6 +88,15 @@
     '    vec4 s = texture2D(u_image,clamp(uv+offset,0.0,1.0));',
     '    outColor = vec4(s.rgb,base.a);',
     '  } else if(u_kind == 10){',
+    '  } else if(u_kind == 11){',
+    '    float d = distance(v_uv,vec2(0.5));',
+    '    float blur = smoothstep(u_p1,u_p1+0.22,d) * u_p0 / max(u_resolution.x,1.0);',
+    '    vec4 sum = base * 0.2;',
+    '    sum += texture2D(u_image,uv+vec2(blur,0.0))*0.2;',
+    '    sum += texture2D(u_image,uv-vec2(blur,0.0))*0.2;',
+    '    sum += texture2D(u_image,uv+vec2(0.0,blur))*0.2;',
+    '    sum += texture2D(u_image,uv-vec2(0.0,blur))*0.2;',
+    '    outColor = vec4(sum.rgb,base.a);',
     '    vec2 px = vec2(u_p0/max(u_resolution.x,1.0),0.0);',
     '    vec4 a = texture2D(u_image,clamp(uv-px,0.0,1.0));',
     '    vec4 b = texture2D(u_image,clamp(uv+px,0.0,1.0));',
@@ -99,7 +108,7 @@
 
   const KIND = {
     'brightness-contrast':0, saturation:1, vignette:2, blur:3, glow:4,
-    'light-rays':5, 'chromatic-aberration':6, glitch:7, ripple:8, shake:9, 'motion-blur':10
+    'light-rays':5, 'chromatic-aberration':6, glitch:7, ripple:8, shake:9, 'motion-blur':10, 'depth-of-field':11
   };
   let state = null;
 
@@ -203,7 +212,8 @@
       glitch:[Math.max(0,Number(p.amount)||0.35),Math.max(8,Number(p.bands)||24),0],
       ripple:[Math.max(0,Number(p.amount)||0.25),Math.max(1,Number(p.frequency)||8),0],
       shake:[Math.max(0,Number(p.amount)||5),0,0],
-      'motion-blur':[Math.max(0,Number(p.amount)||4),0,0]
+      'motion-blur':[Math.max(0,Number(p.amount)||4),0,0],
+      'depth-of-field':[Math.max(0,Number(p.blur_radius)||7),Math.max(0.01,Number(p.focus_radius)||0.24),0]
     };
     return defaults[type] || [0,0,0];
   }
