@@ -661,8 +661,8 @@
 
 
   const PARTICLE_PRESETS = ['sparks','dust','embers','magic','confetti'];
-  const CLIP_EFFECT_TYPES = ['blur','glow','vignette','brightness-contrast','saturation','light-rays','chromatic-aberration','glitch','ripple','shake','motion-blur'];
-  const POST_PROCESS_TYPES = ['brightness-contrast','saturation','vignette','blur','glow','light-rays','chromatic-aberration','glitch','ripple','shake','motion-blur','custom'];
+  const CLIP_EFFECT_TYPES = ['blur','glow','vignette','brightness-contrast','saturation','light-rays','depth-of-field','chromatic-aberration','glitch','ripple','shake','motion-blur'];
+  const POST_PROCESS_TYPES = ['brightness-contrast','saturation','vignette','blur','glow','light-rays','depth-of-field','chromatic-aberration','glitch','ripple','shake','motion-blur','custom'];
   const TRANSITION_TYPES = ['crossfade','fade','wipe','zoom','whip_pan','radial','hypnosis_wheel','swirl_warp','glitch'];
 
 
@@ -709,6 +709,7 @@
       blur: { radius: 2, intensity: 1 },
       glow: { strength: 0.45, radius: 12, intensity: 1 },
       'light-rays': { strength: 0.3, angle: 0, intensity: 1 },
+      'depth-of-field': { blur_radius: 7, focus_radius: 0.24, intensity: 0.8 },
       'chromatic-aberration': { amount: 2, intensity: 1 },
       glitch: { amount: 0.35, seed: 7, intensity: 1 },
       ripple: { amount: 0.25, frequency: 8, intensity: 1 },
