@@ -143,7 +143,7 @@ async function main() {
       renderedFrames: pausedState.job?.rendered_frames,
       skippedFrames: pausedState.job?.skipped_frames,
       hasFrameZero: Boolean(pausedState.frameZero?.blob?.size),
-      frameRecordKeys: (pausedState.frameRecords || []).map(item => ({ id: item.id, frame: item.frame, hasBlob: Boolean(item.blob?.size) })),
+      frameRecordKeys: (pausedState.rawFrameRecords || []).map(item => ({ id: item.id, job_id: item.job_id, frame: item.frame, hasBlob: Boolean(item.blob?.size) })),
       statusText: pausedState.statusText
     }));
     assert.equal(pausedState.job?.status, 'paused', 'Render job failed or did not pause: ' + JSON.stringify(pausedState.job));
