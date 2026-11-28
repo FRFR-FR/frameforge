@@ -217,12 +217,39 @@
     const available = new Set(project.research.sources.map(source => source.id));
     const missing = sourceIds.filter(id => !available.has(id));
     if (missing.length) throw new Error('Unknown source ID(s): ' + missing.join(', '));
+    const evidenceLocations = Array.isArray(input?.evidence_locations) ? input.evidence_locations.map(location => {
+      const sourceId = String(location?.source_id || '').trim();
+      const locator = String(location?.locator || '').trim().slice(0,500);
+      if (!available.has(sourceId)) throw new Error('Evidence location references an unknown source ID: ' + sourceId);
+      if (!sourceIds.includes(sourceId)) throw new Error('Every evidence location must point to a source already linked to this claim.');
+      if (!locator) throw new Error('Each evidence location needs a page, section or media timestamp locator.');
+      const record = { source_id:sourceId, locator };
+      if (location.page_reference) record.page_reference = String(location.page_reference).slice(0,200);
+      if (location.excerpt) record.excerpt = String(location.excerpt).slice(0,2000);
+      if (location.notes) record.notes = String(location.notes).slice(0,1000);
+      if (location.start_time_seconds !== undefined) {
+        const start = Number(location.start_time_seconds);
+        if (!Number.isFinite(start) || start < 0) throw new Error('Evidence start timestamp must be a non-negative number of seconds.');
+        record.start_time_seconds = start;
+      }
+      if (location.end_time_seconds !== undefined) {
+        const end = Number(location.end_time_seconds);
+        if (!Number.isFinite(end) || end < 0) throw new Error('Evidence end timestamp must be a non-negative number of seconds.');
+        record.end_time_seconds = end;
+      }
+      if (record.start_time_seconds !== undefined && record.end_time_seconds !== undefined &&
+          record.end_time_seconds < record.start_time_seconds) {
+        throw new Error('Evidence end timestamp cannot be earlier than its start timestamp.');
+      }
+      return record;
+    }) : [];
     const classification = input?.classification || 'factual';
     if (!['factual','comparative','interpretation','opinion','illustrative'].includes(classification)) throw new Error('Unsupported claim classification.');
     const claim = {
       id:makeId('claim'),
       text:String(input?.text || '').trim().slice(0,2000),
       source_ids:Array.from(new Set(sourceIds)),
+      evidence_locations:evidenceLocations,
       classification,
       evidence_required:input?.evidence_required === undefined ? ['factual','comparative'].includes(classification) : Boolean(input.evidence_required),
       confidence:input?.confidence || 'unassessed',
@@ -523,9 +550,11 @@
       const heading=root.document.createElement('strong');heading.textContent=claim.classification+' · '+claim.verification_status+' · ID '+claim.id;
       const text=root.document.createElement('p');text.textContent=claim.text;
       const sources=root.document.createElement('small');sources.textContent='Sources: '+((claim.source_ids||[]).join(', ')||'none');
+      const locations=root.document.createElement('small');
+      locations.textContent='Pinpoints: '+((claim.evidence_locations||[]).map(item=>item.source_id+' · '+item.locator).join('; ')||'no page/timecode locator recorded');
       const remove=root.document.createElement('button');remove.type='button';remove.className='button small quiet';remove.textContent='Remove claim';
       remove.addEventListener('click',()=>{project.research.claims=project.research.claims.filter(item=>item.id!==claim.id);(project.shot_plan?.beats||[]).forEach(beat=>{beat.evidence_claim_ids=(beat.evidence_claim_ids||[]).filter(id=>id!==claim.id);});markDirty();refresh();});
-      card.append(heading,text,sources,remove);host.append(card);
+      card.append(heading,text,sources,locations,remove);host.append(card);
     }
   }
 
@@ -727,9 +756,13 @@
         verification_status:el('ffv2ClaimStatus').value,confidence:el('ffv2ClaimConfidence').value,
         source_ids:el('ffv2ClaimSources').value,
         uncertainty_notes:el('ffv2ClaimUncertainty').value,
+        evidence_locations:el('ffv2ClaimEvidenceLocations').value.split(/\n/).map(line=>{
+          const parts=line.split('|').map(value=>value.trim());
+          return {source_id:parts[0],locator:parts.slice(1).join(' | ')};
+        }).filter(item=>item.source_id&&item.locator),
         evidence_required:el('ffv2ClaimEvidenceRequired').checked
       });
-      ['ffv2ClaimText','ffv2ClaimSources','ffv2ClaimUncertainty'].forEach(id=>el(id).value='');
+      ['ffv2ClaimText','ffv2ClaimSources','ffv2ClaimUncertainty','ffv2ClaimEvidenceLocations'].forEach(id=>el(id).value='');
       markDirty();refresh();status('Claim added. Verification status is retained exactly as entered.','success');
     }catch(error){status(error.message,'warning');}
   }
