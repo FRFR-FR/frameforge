@@ -68,7 +68,7 @@ async function main() {
     await page.locator('#ffv2BriefNiche').selectOption('cybersecurity');
     await page.locator('#ffv2BriefDuration').fill('6');
     await page.locator('#ffv2BriefScript').fill(
-      'A device sends a request to the router.\\n\\nThe router checks the destination address.\\n\\nThe router forwards the packet toward its next hop.'
+      'A device sends a request to the router.\n\nThe router checks the destination address.\n\nThe router forwards the packet toward its next hop.'
     );
     await page.locator('#ffv2GenerateShotPlan').click();
     await page.waitForFunction(() =>
@@ -91,7 +91,7 @@ async function main() {
     await page.locator('#ffv2GraphicType').selectOption('flowchart');
     await page.locator('#ffv2GraphicTitle').fill('Router decision path');
     await page.locator('#ffv2GraphicSubtitle').fill('A simple illustrative routing sequence');
-    await page.locator('#ffv2GraphicLabels').fill('Device\\nRouter\\nNext hop');
+    await page.locator('#ffv2GraphicLabels').fill('Device\nRouter\nNext hop');
     await page.locator('#ffv2GraphicStart').fill('0');
     await page.locator('#ffv2GraphicDuration').fill('90');
     await page.locator('#ffv2CreateProceduralGraphic').click();
