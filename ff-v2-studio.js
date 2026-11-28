@@ -680,6 +680,7 @@
     $('ffv2SelectedClipName').textContent = asset?.label || clip.generator?.parameters?.text || clip.generator?.type || clip.id;
     $('ffv2ClipStart').value = String(clip.start_frame);
     $('ffv2ClipDuration').value = String(clip.duration_frames);
+    $('ffv2PlaybackRate').value = String(clip.playback_rate || 1);
     $('ffv2ClipTrack').textContent = found.track.name + (found.track.locked ? ' · locked' : '');
     const splitEnabled = !found.track.locked &&
       state.playhead > clip.start_frame &&
@@ -814,6 +815,7 @@
         x: Number($('ffv2CropX').value), y: Number($('ffv2CropY').value),
         width: Number($('ffv2CropW').value), height: Number($('ffv2CropH').value)
       } : null;
+      Core.setClipPlaybackRate(state.project, found.clip.id, Number($('ffv2PlaybackRate').value));
       Core.setClipTransform(state.project, found.clip.id, {
         position: [Number($('ffv2TransformX').value), Number($('ffv2TransformY').value)],
         scale: [Number($('ffv2TransformScaleX').value), Number($('ffv2TransformScaleY').value)],
