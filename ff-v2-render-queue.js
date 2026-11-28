@@ -260,12 +260,19 @@
     }
   }
 
+  const CRC_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let value = n;
+      for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (0xedb88320 & -(value & 1));
+      table[n] = value >>> 0;
+    }
+    return table;
+  })();
+
   function crc32(bytes) {
     let crc = 0xffffffff;
-    for (let i = 0; i < bytes.length; i++) {
-      crc ^= bytes[i];
-      for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-    }
+    for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
     return (crc ^ 0xffffffff) >>> 0;
   }
 
