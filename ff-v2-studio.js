@@ -250,7 +250,7 @@
           source_type: 'user_supplied',
           creator: '',
           acquired_at: new Date().toISOString(),
-          notes: 'Imported from the user's device. This does not establish ownership or permission to publish.'
+          notes: "Imported from the user's device. This does not establish ownership or permission to publish."
         },
         rights: {
           status: 'pending',
