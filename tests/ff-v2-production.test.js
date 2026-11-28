@@ -196,7 +196,12 @@ test('audio catalogue and publication report block unreviewed assets and output 
 
 test('unknown audio remains conservatively attribution-required and cannot be packaged', () => {
   const project = Core.createDefaultProject('Unknown audio');
-  Core.addAsset(project,makeAsset('audio-unknown','audio'));
+  Core.addAsset(project,makeAsset('audio-unknown','audio',{ attribution_required: true }));
+  Production.registerAudioMetadata(project,'audio-unknown',{
+    license_name:'Unverified licence',
+    attribution_required:true,
+    attribution_text:''
+  });
   const report = Production.audioPackagingReport(project);
   assert.equal(report.can_package,false);
   assert.ok(report.blockers.some(item=>item.includes('attribution text')));
