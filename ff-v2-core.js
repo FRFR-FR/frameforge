@@ -450,6 +450,74 @@
       }
     }
 
+    const research = isObject(project.research) ? project.research : {};
+    const sourceIds = new Set();
+    for (const source of Array.isArray(research.sources) ? research.sources : []) {
+      if (!isObject(source) || typeof source.id !== 'string') continue;
+      if (sourceIds.has(source.id)) errors.push('Duplicate research source id: ' + source.id);
+      sourceIds.add(source.id);
+    }
+    const claimIds = new Set();
+    for (const claim of Array.isArray(research.claims) ? research.claims : []) {
+      if (!isObject(claim) || typeof claim.id !== 'string') continue;
+      if (claimIds.has(claim.id)) errors.push('Duplicate research claim id: ' + claim.id);
+      claimIds.add(claim.id);
+      for (const sourceId of Array.isArray(claim.source_ids) ? claim.source_ids : []) {
+        if (!sourceIds.has(sourceId)) errors.push('Research claim ' + claim.id + ' references missing source: ' + sourceId);
+      }
+    }
+    const referenceIds = new Set();
+    for (const reference of Array.isArray(research.reference_videos) ? research.reference_videos : []) {
+      if (!isObject(reference) || typeof reference.id !== 'string') continue;
+      if (referenceIds.has(reference.id)) errors.push('Duplicate reference video id: ' + reference.id);
+      referenceIds.add(reference.id);
+      if (reference.reference_only !== true) errors.push('Reference video must be marked reference_only: ' + reference.id);
+    }
+
+    if (project.shot_plan) {
+      const plan = project.shot_plan;
+      if (!isObject(plan) || !Array.isArray(plan.beats)) errors.push('Shot plan must contain a beats array.');
+      else {
+        const shotIds = new Set();
+        for (const beat of plan.beats) {
+          if (!isObject(beat) || typeof beat.id !== 'string') { errors.push('Every shot beat needs a stable id.'); continue; }
+          if (shotIds.has(beat.id)) errors.push('Duplicate shot beat id: ' + beat.id);
+          shotIds.add(beat.id);
+          if (!Number.isInteger(beat.start_frame) || !Number.isInteger(beat.end_frame) ||
+              beat.start_frame < 0 || beat.end_frame <= beat.start_frame) {
+            errors.push('Shot beat has invalid frame timing: ' + beat.id);
+          }
+          for (const claimId of Array.isArray(beat.evidence_claim_ids) ? beat.evidence_claim_ids : []) {
+            const claim = (research.claims || []).find(item => item.id === claimId);
+            if (!claim) errors.push('Shot beat ' + beat.id + ' references missing research claim: ' + claimId);
+            if (['factual_evidence','comparative_evidence'].includes(beat.visual_role) &&
+                (!claim || claim.verification_status !== 'verified' || !Array.isArray(claim.source_ids) ||
+                 !claim.source_ids.length || !['factual','comparative'].includes(claim.classification))) {
+              errors.push('Shot beat ' + beat.id + ' cannot present an unverified or unsourced claim as evidence: ' + claimId);
+            }
+          }
+          if (['factual_evidence','comparative_evidence'].includes(beat.visual_role) &&
+              !(beat.evidence_claim_ids || []).length) {
+            errors.push('Evidence shot beat must reference at least one claim: ' + beat.id);
+          }
+        }
+      }
+    }
+
+    if (project.rights_review) {
+      const reviewIds = new Set();
+      for (const review of Array.isArray(project.rights_review.asset_reviews) ? project.rights_review.asset_reviews : []) {
+        if (!isObject(review) || typeof review.asset_id !== 'string') continue;
+        if (reviewIds.has(review.asset_id)) errors.push('Duplicate asset rights review: ' + review.asset_id);
+        reviewIds.add(review.asset_id);
+        if (!assetIds.has(review.asset_id)) errors.push('Rights review references missing asset: ' + review.asset_id);
+        if (['approved','approved_with_limits'].includes(review.decision) &&
+            (!String(review.basis || '').trim() || !String(review.reviewer || '').trim() || !review.reviewed_at)) {
+          errors.push('Approved rights review needs a basis, reviewer and review date: ' + review.asset_id);
+        }
+      }
+    }
+
     return errors;
   }
 
