@@ -901,6 +901,19 @@
               ]
             }
           }
+        },
+        "transform3d": {
+          "$ref": "#/$defs/transform3d"
+        },
+        "animation": {
+          "$ref": "#/$defs/animation3d"
+        },
+        "constraints": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/constraint3d"
+          }
         }
       },
       "allOf": [
@@ -1078,6 +1091,9 @@
           "items": {
             "$ref": "#/$defs/track"
           }
+        },
+        "scene3d": {
+          "$ref": "#/$defs/scene3d"
         }
       }
     },
@@ -1288,6 +1304,232 @@
           "items": {
             "$ref": "#/$defs/keyframe"
           }
+        }
+      }
+    },
+    "transform3d": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "$ref": "#/$defs/vector3"
+        },
+        "rotation": {
+          "$ref": "#/$defs/vector3"
+        },
+        "scale": {
+          "$ref": "#/$defs/vector3"
+        }
+      }
+    },
+    "vector3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "scene3d": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "camera": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "projection": {
+              "type": "string",
+              "enum": [
+                "perspective",
+                "orthographic"
+              ]
+            },
+            "position": {
+              "$ref": "#/$defs/vector3"
+            },
+            "target": {
+              "$ref": "#/$defs/vector3"
+            },
+            "up": {
+              "$ref": "#/$defs/vector3"
+            },
+            "fov": {
+              "type": "number",
+              "minimum": 10,
+              "maximum": 120
+            },
+            "orthographic_height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "near": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "far": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "lights": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "color",
+              "intensity"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "ambient",
+                  "directional",
+                  "point",
+                  "spot"
+                ]
+              },
+              "color": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "intensity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "position": {
+                "$ref": "#/$defs/vector3"
+              },
+              "direction": {
+                "$ref": "#/$defs/vector3"
+              },
+              "distance": {
+                "type": "number",
+                "minimum": 0
+              },
+              "angle": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 3.141592653589793
+              },
+              "penumbra": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "background": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "transparent": {
+              "type": "boolean"
+            }
+          }
+        },
+        "render": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tone_mapping": {
+              "type": "string",
+              "enum": [
+                "none",
+                "linear",
+                "aces"
+              ]
+            },
+            "exposure": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "shadows": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "animation3d": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "clip_name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "time_scale": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "start_frame": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "constraint3d": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ground_contact",
+            "look_at",
+            "parent",
+            "aabb_collision"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "ground_y": {
+          "type": "number"
+        },
+        "offset": {
+          "type": "number"
+        },
+        "target": {
+          "$ref": "#/$defs/vector3"
+        },
+        "target_clip_id": {
+          "$ref": "#/$defs/id"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "push_up",
+            "warn_only"
+          ]
         }
       }
     }
