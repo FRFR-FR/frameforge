@@ -726,9 +726,11 @@
 
     const property = $('ffv2KeyframeProperty').value || 'position.x';
     const currentTransform = Core.evaluateClipTransform(clip, state.playhead);
-    const keyValue = property === 'rotation_degrees' || property === 'opacity'
-      ? currentTransform[property]
-      : currentTransform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
+    const keyValue = property === 'playback_rate'
+      ? Core.evaluateClipPlaybackRate(clip,state.playhead)
+      : property === 'rotation_degrees' || property === 'opacity'
+        ? currentTransform[property]
+        : currentTransform[property.split('.')[0]][property.endsWith('.x') ? 0 : 1];
     $('ffv2KeyframeValue').value = String(keyValue);
     const localFrame = state.playhead - clip.start_frame;
     const sameFrameKeys = (clip.keyframes || []).filter(key => key.frame === localFrame);
@@ -1180,6 +1182,14 @@
     } catch(error) { setStatus(error.message,'warning'); }
   }
 
+  function applyPostPreset() {
+    try {
+      Core.applyPostProcessPreset(state.project,$('ffv2PostPreset').value);
+      scheduleSave(); renderPostPasses(); renderPreview();
+      setStatus('Post-processing preset added to the end of the pass stack.','success');
+    } catch(error) { setStatus(error.message,'warning'); }
+  }
+
   function addPostPass(type, parameters) {
     try {
       Core.addPostProcessPass(state.project,type,parameters);
@@ -1533,6 +1543,7 @@
     $('ffv2ApplyTransitionOut').addEventListener('click', () => applyClipTransition('out'));
     $('ffv2ClearTransitions').addEventListener('click', clearClipTransitions);
     $('ffv2PostRenderer').addEventListener('change', setPostRenderer);
+    $('ffv2ApplyPostPreset').addEventListener('click', applyPostPreset);
     $('ffv2AddPostPass').addEventListener('click', () => addPostPass($('ffv2PostType').value));
     $('ffv2AddCustomShader').addEventListener('click', addCustomShaderPass);
     $('ffv2RenderFrame').addEventListener('click', renderPreview);
