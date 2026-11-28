@@ -3,6 +3,8 @@ import * as THREE from 'three';
 /*
   Underneath Everything — EP002 Three.js visual master
   Original conceptual reconstructions. No stock footage or stock stills.
+  Engineering revision: articulated pivots/sliders, swept oriented-box SAT collision response,
+  physically based materials, studio reflections and shadow-casting product lighting.
   Rigged assemblies: pivots, bounded hinges/sliders, OBB SAT collision tests and travel-stop response.
   Not an exact model or recording of a proprietary ASML / ZEISS / Intel machine.
   Compatible with the supplied Offline Three.js MP4 Studio:
@@ -110,10 +112,10 @@ function makeSlider(T,parent,name,position,axis,minTravel,maxTravel){
 }
 /* Oriented-box SAT collision checks; blocked motion is clamped to the last safe pose. */
 function createCollisionWorld(T){
-  var tests=0,blocked=0;
+  var tests=0,blocked=0,sweeps=0;
   function register(name,object,size){return {name:name,object:object,half:[size[0]/2,size[1]/2,size[2]/2]};}
   function box(body){
-    var o=body.object, c=new T.Vector3(),q=new T.Quaternion(),sc=new T.Vector3();
+    var o=body.object,c=new T.Vector3(),q=new T.Quaternion(),sc=new T.Vector3();
     o.updateWorldMatrix(true,false);o.getWorldPosition(c);o.getWorldQuaternion(q);o.getWorldScale(sc);
     return {center:c,axes:[new T.Vector3(1,0,0).applyQuaternion(q),new T.Vector3(0,1,0).applyQuaternion(q),new T.Vector3(0,0,1).applyQuaternion(q)],
       half:[body.half[0]*Math.abs(sc.x),body.half[1]*Math.abs(sc.y),body.half[2]*Math.abs(sc.z)]};
@@ -133,21 +135,34 @@ function createCollisionWorld(T){
     return true;
   }
   function move(body,target,obstacles,iterations){
-    var obj=body.object,from=obj.position.clone(),to=target.clone(),n=iterations||18;
-    obj.position.copy(to);obj.updateWorldMatrix(true,false);
-    var hit=(obstacles||[]).some(function(o){return overlaps(body,o);});
-    if(!hit)return {blocked:false,fraction:1,position:obj.position.clone()};
-    blocked++;var lo=0,hi=1;
-    for(var k=0;k<n;k++){
-      var mid=(lo+hi)/2;obj.position.copy(from).lerp(to,mid);obj.updateWorldMatrix(true,false);
+    var obj=body.object,from=obj.position.clone(),to=target.clone();
+    var distance=from.distanceTo(to),steps=Math.max(iterations||18,Math.ceil(distance/0.055));
+    var firstHit=-1,previous=0;
+    // Swept test: sample the complete travel path, not just its destination.
+    for(var step=1;step<=steps;step++){
+      var fraction=step/steps;
+      obj.position.copy(from).lerp(to,fraction);obj.updateWorldMatrix(true,false);
+      var hit=(obstacles||[]).some(function(o){return overlaps(body,o);});
+      sweeps++;
+      if(hit){firstHit=fraction;break;}
+      previous=fraction;
+    }
+    if(firstHit<0)return {blocked:false,fraction:1,position:obj.position.clone()};
+    blocked++;
+    var lo=previous,hi=firstHit;
+    for(var k=0;k<18;k++){
+      var mid=(lo+hi)*0.5;obj.position.copy(from).lerp(to,mid);obj.updateWorldMatrix(true,false);
       var collision=(obstacles||[]).some(function(o){return overlaps(body,o);});
       if(collision)hi=mid;else lo=mid;
     }
-    obj.position.copy(from).lerp(to,Math.max(0,lo-0.0005));obj.updateWorldMatrix(true,false);
+    obj.position.copy(from).lerp(to,Math.max(0,lo-0.0008));obj.updateWorldMatrix(true,false);
     return {blocked:true,fraction:lo,position:obj.position.clone()};
   }
-  return {register:register,overlaps:overlaps,move:move,report:function(){return {solver:"oriented-box SAT",overlapTests:tests,blockedMoves:blocked,status:"active"};}};
+  return {register:register,overlaps:overlaps,move:move,report:function(){
+    return {solver:"swept oriented-box SAT",overlapTests:tests,sweepSamples:sweeps,blockedMoves:blocked,status:"active"};
+  }};
 }
+
 function addBoltCircle(T,parent,name,center,radius,count,boltRadius,material){
   var group=new T.Group();group.name=name;group.position.set(center[0],center[1],center[2]);parent.add(group);
   for(var i=0;i<count;i++){
@@ -313,7 +328,7 @@ function makeTinScene(T,detailed){
   addCylinder(T,collectorBase,"collector mount pedestal",[0,-0.94,0],0.32,0.40,0.58,titanium,40);
   addRing(T,collectorBase,"collector alignment ring",[0,0,0],1.22,0.085,gold,[0,Math.PI/2,0]);
   var collectorTilt=makeHinge(T,collectorBase,"COLLECTOR TIP/TILT JOINT",[0,0,0],"y",-0.035,0.035);
-  addParabolicReflector(T,collectorTilt.rig,"parabolic collector mirror — conceptual",[0.99][0]||1.05,0.62,mat(T,0xD7C5A4,0.96,0.09));
+  addParabolicReflector(T,collectorTilt.rig,"parabolic collector mirror — conceptual",1.05,0.62,mat(T,0xD7C5A4,0.96,0.09));
   addRing(T,collectorTilt.rig,"collector mirror retaining rim",[0,0,0],1.07,0.045,brushed,[0,Math.PI/2,0]);
   [-0.7,0,0.7].forEach(function(z){addBeam(T,collectorTilt.rig,"collector kinematic support",[0.14,-0.05,z],[0.40,-0.78,z],0.055,titanium);});
   for(var bolt=0;bolt<16;bolt++){
@@ -448,216 +463,261 @@ function makeWavelengthScene(T) {
 }
 
 /* 05 — vacuum chamber and multilayer reflection path. */
-function makeMirrorScene(T) {
-  var g = new T.Group();
-  addChamber(T, g, 9.5, 3.8);
-  var mirrorMat = mat(T, PALETTE.silver, 0.98, 0.12);
-  var gold = mat(T, PALETTE.gold, 0.95, 0.15);
-  var cyan = mat(T, PALETTE.cyan, 0.15, 0.16, PALETTE.cyan);
-  var mirrors = [];
-  [-2.6, 0, 2.6].forEach(function(x, i) {
-    var mirror = addBox(T, g, "multilayer mirror", [x, 0, 0.4], [1.55, 0.16, 1.05], mirrorMat, true);
-    mirror.rotation.y = i === 1 ? -0.45 : 0.43;
-    mirrors.push(mirror);
-    for (var j = 0; j < 9; j++) {
-      var layer = addBox(T, g, "thin reflective coating layer", [x, -0.095 - j * 0.018, 0.4],
-        [1.48, 0.014, 0.98], j % 2 ? mirrorMat : gold);
-      layer.rotation.y = mirror.rotation.y;
-    }
+function makeMirrorScene(T){
+  var g=new T.Group();
+  var steel=mat(T,0x8898A8,0.94,0.18),dark=mat(T,0x152332,0.68,0.3);
+  var gold=mat(T,0xBBA178,0.92,0.14),silver=mat(T,0xD9E2EA,0.98,0.09);
+  var cyan=mat(T,PALETTE.cyan,0.12,0.15,PALETTE.cyan);
+  addBox(T,g,"optical bench granite base",[0,-1.65,0],[9.6,0.28,3.8],dark,true);
+  addBox(T,g,"vacuum chamber upper shell",[0,1.68,-1.4],[9.5,0.18,0.42],steel,true);
+  [-4.5,4.5].forEach(function(x){
+    addBox(T,g,"vacuum chamber end bulkhead",[x,0,-0.25],[0.18,3.15,3.15],dark,true);
+    addRing(T,g,"chamber access flange",[x,0,0.35],0.72,0.075,steel,[0,Math.PI/2,0]);
+    addBoltCircle(T,g,"bulkhead fasteners",[x,0,0.35],0.63,16,0.035,gold);
   });
-  var pts = [[-4.2, 0.3, 0.1], [-2.6, 0.4, 0.6], [0, 0.4, -0.25], [2.6, 0.4, 0.6], [4.25, 0.4, 0.05]];
-  addLine(T, g, "conceptual reflected EUV path", pts, PALETTE.cyan, 0.38);
-  var photon = addSphere(T, g, "EUV pulse", pts[0], 0.12, cyan, 24);
-  pts.forEach(function(p) { addSphere(T, g, "path marker", p, 0.07, cyan, 16); });
-  addLabel(T, g, "EUV IS ABSORBED BY AIR AND GLASS", [-3.2, 2.2, 0], 3.7);
-  addLabel(T, g, "MULTILAYER MIRRORS · HIGH VACUUM", [-2.5, -2.3, 0], 3.4);
-  return {
-    group: g,
-    tick: function(p) {
-      var total = p * (pts.length - 1);
-      var index = Math.min(pts.length - 2, Math.floor(total));
-      var local = total - index;
-      photon.position.set(
-        T.MathUtils.lerp(pts[index][0], pts[index + 1][0], local),
-        T.MathUtils.lerp(pts[index][1], pts[index + 1][1], local),
-        T.MathUtils.lerp(pts[index][2], pts[index + 1][2], local)
-      );
-      mirrors.forEach(function(m, i) { m.rotation.y = (i === 1 ? -0.45 : 0.43) + Math.sin(p * Math.PI * 2 + i) * 0.025; });
+  var mirrors=[];
+  [-2.7,0,2.7].forEach(function(x,index){
+    var base=makePivot(T,g,"MIRROR "+index+" INVAR SUPPORT PEDESTAL",[x,-1.18,0.20]);
+    addBox(T,base,"pedestal foot",[0,0,0],[1.15,0.18,0.94],dark,true);
+    addCylinder(T,base,"vertical fine adjustment screw",[0,0.35,0],0.10,0.10,0.60,gold,28);
+    var pitch=makeHinge(T,base,"MIRROR "+index+" TIP HINGE",[0,0.75,0],"z",-0.045,0.045);
+    var yaw=makeHinge(T,pitch.rig,"MIRROR "+index+" TILT HINGE",[0,0.18,0],"y",-0.04,0.04);
+    addRing(T,yaw.rig,"mirror retaining frame",[0,0.25,0],0.93,0.075,gold);
+    var substrate=addCylinder(T,yaw.rig,"low expansion glass mirror substrate",[0,0.25,0],0.82,0.82,0.14,steel,80);
+    for(var layer=0;layer<12;layer++){
+      addCylinder(T,yaw.rig,"Mo-Si multilayer coating witness "+layer,[0,0.333+layer*0.008,0],
+        0.77,0.77,0.006,layer%2?silver:gold,64);
     }
-  };
+    for(var bolt=0;bolt<18;bolt++){
+      var a=bolt/18*Math.PI*2;
+      addSphere(T,yaw.rig,"flexure mount screw",[Math.cos(a)*0.91,0.26,Math.sin(a)*0.91],0.032,dark,12);
+    }
+    mirrors.push({pitch:pitch,yaw:yaw,body:substrate});
+  });
+  var path=[[-4.1,0.2,0.1],[-2.7,0.32,0.28],[0,0.42,-0.15],[2.7,0.30,0.25],[4.1,0.12,0.02]];
+  addLine(T,g,"conceptual EUV optical path",path,PALETTE.cyan,0.38);
+  var photon=addSphere(T,g,"EUV photon packet",path[0],0.10,cyan,24);
+  return {group:g,tick:function(p){
+    var total=p*(path.length-1),i=Math.min(path.length-2,Math.floor(total)),q=total-i;
+    photon.position.set(T.MathUtils.lerp(path[i][0],path[i+1][0],q),T.MathUtils.lerp(path[i][1],path[i+1][1],q),T.MathUtils.lerp(path[i][2],path[i+1][2],q));
+    mirrors.forEach(function(m,index){m.pitch.set(0.012*Math.sin(p*Math.PI*2+index));m.yaw.set(0.009*Math.sin(p*Math.PI*2.5+index*0.6));});
+  }};
 }
 
 /* 06 — reflective reticle, reduction optics and photoresist-coated wafer. */
-function makeReticleScene(T) {
-  var g = new T.Group();
-  var gold = mat(T, PALETTE.gold, 0.88, 0.18);
-  var dark = mat(T, PALETTE.navy, 0.58, 0.28);
-  var cyan = mat(T, PALETTE.cyan, 0.1, 0.2, PALETTE.cyan);
-  var wafer = mat(T, 0x2D6599, 0.88, 0.19);
-  addBox(T, g, "reflective reticle", [-2.3, 0.8, 0], [2.1, 0.12, 1.7], gold, true);
-  for (var i = -4; i <= 4; i++) {
-    addBox(T, g, "reticle circuit pattern", [-2.3 + i * 0.2, 0.88, 0], [0.035, 0.018, 1.45], dark);
-    addBox(T, g, "reticle horizontal pattern", [-2.3, 0.89, i * 0.16], [1.9, 0.02, 0.035], dark);
+function makeReticleScene(T){
+  var g=new T.Group();
+  var gold=mat(T,0xBDA16F,0.92,0.14),steel=mat(T,0xAEBBC8,0.94,0.17);
+  var dark=mat(T,0x172433,0.64,0.28),cyan=mat(T,PALETTE.cyan,0.08,0.14,PALETTE.cyan);
+  var waferMat=mat(T,0x2F648C,0.88,0.16);
+  var base=addBox(T,g,"reticle stage granite base",[-2.35,0.30,0],[2.9,0.35,2.3],dark,true);
+  var xSlide=makeSlider(T,g,"RETICLE X ALIGNMENT CARRIAGE",[-2.35,0.60,0],"x",-0.30,0.30);
+  addBox(T,xSlide.rig,"reticle carrier frame",[0,0,0],[2.35,0.18,1.95],steel,true);
+  var reticle=addBox(T,xSlide.rig,"EUV reflective reticle plate",[0,0.15,0],[1.92,0.07,1.55],gold,true);
+  for(var i=-7;i<=7;i++){
+    addBox(T,xSlide.rig,"reticle absorber line vertical",[i*0.12,0.192,0],[0.018,0.012,1.28],dark);
+    addBox(T,xSlide.rig,"reticle absorber line horizontal",[0,0.193,i*0.10],[1.72,0.012,0.018],dark);
   }
-  var lens = addRing(T, g, "reduction optics", [0.3, 0, 0], 0.72, 0.1, mat(T, PALETTE.silver, 0.92, 0.12), [Math.PI / 2, 0, 0]);
-  var waferDisc = addCylinder(T, g, "photoresist-coated wafer", [2.8, -0.95, 0], 1.13, 1.13, 0.12, wafer, 64);
-  var rays = [];
-  for (var r = -4; r <= 4; r++) rays.push(addBeam(T, g, "projected pattern ray",
-    [-2.2, 0.7, r * 0.13], [2.7, -0.88, r * 0.0325], 0.012, cyan));
-  addLabel(T, g, "REFLECTIVE RETICLE → 4× REDUCTION → WAFER", [-3.9, 2.2, 0], 4.4);
-  var pattern = new T.Group();
-  g.add(pattern);
-  for (var k = -5; k <= 5; k++) {
-    addBox(T, pattern, "exposed resist line", [2.8 + k * 0.17, -0.875, k * 0.08], [0.025, 0.02, 0.95], cyan);
+  for(var b=0;b<4;b++){
+    var bx=(b%2?0.92:-0.92),bz=(b<2?0.72:-0.72);
+    addCylinder(T,xSlide.rig,"reticle clamp bolt",[bx,0.22,bz],0.055,0.055,0.10,gold,16);
   }
-  return {
-    group: g,
-    tick: function(p) {
-      lens.rotation.z = p * Math.PI * 2;
-      waferDisc.rotation.y = p * Math.PI * 1.4;
-      pattern.position.z = 0.05 * Math.sin(p * Math.PI * 2);
-      rays.forEach(function(ray, i) { ray.material.emissiveIntensity = 0.6 + 1.5 * (0.5 + 0.5 * Math.sin(p * 8 + i)); });
-    }
-  };
+  var objective=makePivot(T,g,"OBJECTIVE OPTICS BARREL",[0.35,0.20,0]);
+  addCylinder(T,objective,"objective assembly housing",[0,0,0],0.75,0.90,1.25,steel,64);
+  var tilt=makeHinge(T,objective,"OBJECTIVE TIP/TILT FLEXURE",[0,-0.42,0],"x",-0.025,0.025);
+  addRing(T,tilt.rig,"objective barrel retainer",[0,-0.05,0],0.77,0.065,gold);
+  addCylinder(T,tilt.rig,"projection mirror optic",[0,-0.13,0],0.63,0.63,0.12,mat(T,0xA8C4D5,0.35,0.1),64);
+  var focus=makeSlider(T,tilt.rig,"OBJECTIVE FOCUS TRAVEL",[0,-0.40,0],"y",-0.06,0.06);
+  var waferRig=makePivot(T,g,"WAFER EXPOSURE CHUCK",[2.85,-1.22,0]);
+  addCylinder(T,waferRig,"wafer stage platform",[0,-0.06,0],1.18,1.18,0.22,steel,64);
+  var wafer=addCylinder(T,waferRig,"photoresist-coated wafer",[0,0.09,0],1.05,1.05,0.07,waferMat,80);
+  addRing(T,waferRig,"wafer edge retaining ring",[0,0.13,0],1.08,0.035,gold);
+  var rays=[];
+  for(var r=-7;r<=7;r++)rays.push(addBeam(T,g,"EUV exposure ray",[-2.2,0.77,r*0.085],[2.72,-1.04,r*0.022],0.009,cyan));
+  var pattern=makePivot(T,waferRig,"PHOTORESIST PATTERN EXPOSURE",[0,0.14,0]);
+  for(var k=-6;k<=6;k++)addBox(T,pattern,"exposed resist line",[k*0.14,0.048,k*0.055],[0.018,0.014,0.86],cyan);
+  return {group:g,tick:function(p){
+    xSlide.set(0.27*Math.sin(p*Math.PI*4));
+    tilt.set(0.012*Math.sin(p*Math.PI*2));
+    focus.set(0.045*Math.sin(p*Math.PI*3));
+    waferRig.rotation.y=p*Math.PI*1.25;
+    pattern.visible=p>0.2;pattern.scale.setScalar(T.MathUtils.smoothstep(p,0.18,0.48));
+    rays.forEach(function(ray,i){ray.material.emissiveIntensity=0.65+0.9*(0.5+0.5*Math.sin(p*5+i*0.17));});
+  }};
 }
 
 /* 07 — precision wafer stage and metrology feedback. */
-function makeStageScene(T) {
-  var g = new T.Group();
-  var steel = mat(T, PALETTE.steel, 0.9, 0.2);
-  var gold = mat(T, PALETTE.gold, 0.88, 0.18);
-  var waferMat = mat(T, 0x2C679C, 0.9, 0.14);
-  var cyan = mat(T, PALETTE.cyan, 0.15, 0.22, PALETTE.cyan);
-  addCylinder(T, g, "precision stage base", [0, -0.55, 0], 2.2, 2.2, 0.52, steel, 64);
-  addRing(T, g, "magnetic drive ring", [0, -0.18, 0], 1.78, 0.12, gold);
-  var actuators = [];
-  for (var i = 0; i < 8; i++) {
-    var a = i / 8 * Math.PI * 2;
-    var x = Math.cos(a) * 1.82;
-    var z = Math.sin(a) * 1.82;
-    actuators.push(addCylinder(T, g, "linear actuator", [x, 0.14, z], 0.12, 0.12, 0.82, steel, 24));
-    addBeam(T, g, "metrology sensor beam", [x * 1.12, 0.65, z * 1.12], [x * 0.42, 1.12, z * 0.42], 0.012, cyan);
+function makeStageScene(T){
+  var g=new T.Group();
+  var steel=mat(T,0x718394,0.94,0.20),bright=mat(T,0xC7D2DB,0.96,0.15);
+  var gold=mat(T,0xB78B54,0.88,0.20),ceramic=mat(T,0xE1E6EB,0.15,0.26);
+  var dark=mat(T,0x1B2937,0.68,0.32),cyan=mat(T,PALETTE.cyan,0.12,0.16,PALETTE.cyan);
+  addBox(T,g,"granite isolation base",[0,-0.92,0],[5.8,0.64,5.0],dark,true);
+  addBox(T,g,"precision base top plate",[0,-0.54,0],[5.35,0.12,4.55],steel,true);
+  [-1.82,1.82].forEach(function(x){
+    addBox(T,g,"X-axis crossed-roller rail",[x,-0.30,0],[0.16,0.28,3.72],bright,true);
+    addBox(T,g,"linear encoder scale",[x,-0.12,0],[0.07,0.035,3.40],gold);
+  });
+  [-1.82,1.82].forEach(function(z){addBox(T,g,"Y-axis crossed-roller rail",[0,-0.30,z],[3.72,0.28,0.16],bright,true);});
+  var carriage=makePivot(T,g,"XY CERAMIC CARRIAGE RIG",[0,-0.06,0]);
+  addBox(T,carriage,"monolithic ceramic XY carriage",[0,0,0],[2.20,0.30,2.20],ceramic,true);
+  addBox(T,carriage,"wafer chuck mount",[0,0.20,0],[1.85,0.16,1.85],steel,true);
+  var rotary=makePivot(T,carriage,"ROTARY VACUUM CHUCK",[0,0.34,0]);
+  addCylinder(T,rotary,"precision vacuum chuck",[0,0,0],0.90,0.90,0.16,bright,72);
+  addCylinder(T,rotary,"silicon wafer",[0,0.105,0],0.84,0.84,0.055,mat(T,0x31618B,0.86,0.17),72);
+  addRing(T,rotary,"wafer edge clamp",[0,0.14,0],0.86,0.028,gold);
+  var actuators=[];
+  for(var i=0;i<4;i++){
+    var a=i*Math.PI/2+Math.PI/4,x=Math.cos(a)*1.30,z=Math.sin(a)*1.30;
+    var flex=makeHinge(T,carriage,"FLEXURE ACTUATOR "+i,[x,-0.08,z],"x",-0.06,0.06);
+    addCylinder(T,flex.rig,"piezoelectric stack actuator",[0,-0.20,0],0.10,0.10,0.38,ceramic,28);
+    addRing(T,flex.rig,"actuator load washer",[0,-0.02,0],0.13,0.025,gold);
+    actuators.push(flex);
   }
-  var platform = addCylinder(T, g, "moving wafer platform", [0, 0.46, 0], 1.55, 1.55, 0.22, steel, 64);
-  var wafer = addCylinder(T, g, "silicon wafer", [0, 0.62, 0], 1.42, 1.42, 0.09, waferMat, 64);
-  addLabel(T, g, "MEASURE · CORRECT · EXPOSE", [-2.8, 2.0, 0], 3.4);
-  addLabel(T, g, "ILLUSTRATIVE PRECISION-STAGE MOTION", [-3.2, -1.8, 0], 3.6);
-  return {
-    group: g,
-    tick: function(p) {
-      platform.position.x = Math.sin(p * Math.PI * 4) * 0.22;
-      platform.position.z = Math.cos(p * Math.PI * 4) * 0.18;
-      platform.rotation.y = p * Math.PI * 2;
-      wafer.position.x = platform.position.x;
-      wafer.position.z = platform.position.z;
-      wafer.rotation.y = -platform.rotation.y * 0.35;
-      actuators.forEach(function(a, i) { a.scale.y = 0.84 + 0.18 * Math.sin(p * 8 + i); });
-    }
-  };
+  var encoders=[];
+  for(var e=0;e<4;e++){
+    var x=e<2?(e===0?-1:1)*1.55:0,z=e>=2?(e===2?-1:1)*1.55:0;
+    encoders.push(addBox(T,g,"heterodyne interferometer head",[x,0.12,z],[0.26,0.22,0.32],dark,true));
+    addBeam(T,g,"interferometer measurement beam",[x,0.24,z],[0,0.60,0],0.009,cyan);
+  }
+  // Four physical end stops define actual X/Y travel limits for the carriage.
+  var stops=[
+    addBox(T,g,"X-axis left hard stop",[-1.78,-0.06,0],[0.18,0.60,2.9],gold,true),
+    addBox(T,g,"X-axis right hard stop",[1.78,-0.06,0],[0.18,0.60,2.9],gold,true),
+    addBox(T,g,"Y-axis front hard stop",[0,-0.06,1.78],[2.9,0.60,0.18],gold,true),
+    addBox(T,g,"Y-axis rear hard stop",[0,-0.06,-1.78],[2.9,0.60,0.18],gold,true)
+  ];
+  var collision=createCollisionWorld(T);
+  var moving=collision.register("ceramic XY carriage",carriage,[2.20,0.30,2.20]);
+  var obstacles=stops.map(function(stop,index){
+    return collision.register("travel hard stop "+index,stop,
+      index<2?[0.18,0.60,2.9]:[2.9,0.60,0.18]);
+  });
+  return {group:g,collisionSystem:collision,tick:function(p){
+    var target=new T.Vector3(Math.sin(p*Math.PI*4)*1.35,carriage.position.y,Math.cos(p*Math.PI*4)*1.32);
+    collision.move(moving,target,obstacles,22);
+    rotary.rotation.y=p*Math.PI*2;
+    actuators.forEach(function(a,index){a.set(0.018*Math.sin(p*Math.PI*4+index));});
+  }};
 }
 
 /* 08 — process sequence. */
-function makeProcessScene(T) {
-  var g = new T.Group();
-  var steel = mat(T, PALETTE.steel, 0.78, 0.25);
-  var gold = mat(T, PALETTE.gold, 0.75, 0.24);
-  var cyan = mat(T, PALETTE.cyan, 0.1, 0.2, PALETTE.cyan);
-  var names = ["DEPOSITION", "LITHOGRAPHY", "ETCH", "INSPECTION"];
-  var machines = [];
-  for (var i = 0; i < 4; i++) {
-    var x = -3.3 + i * 2.2;
-    var machine = addBox(T, g, "process tool", [x, 0.2, 0], [1.45, 2.05, 1.35], i % 2 ? gold : steel, true);
-    addBox(T, g, "machine window", [x, 0.35, 0.69], [0.72, 0.7, 0.06],
-      mat(T, PALETTE.navy, 0.25, 0.2, PALETTE.blue), true);
-    addLabel(T, g, names[i], [x - 0.72, 1.6, 0.2], 1.5);
-    addRing(T, g, "tool port", [x, -0.88, 0.7], 0.24, 0.035, cyan);
-    machines.push(machine);
+function makeProcessScene(T){
+  var g=new T.Group();
+  var steel=mat(T,0x8997A4,0.88,0.22),white=mat(T,0xDCE3E9,0.18,0.27);
+  var dark=mat(T,0x1C2B38,0.64,0.34),glass=mat(T,0x6E9CB6,0.18,0.13,0x0A243B,true,0.28);
+  var copper=mat(T,0xB77E4C,0.90,0.20),cyan=mat(T,PALETTE.cyan,0.10,0.14,PALETTE.cyan);
+  var names=["DEPOSITION","LITHOGRAPHY","ETCH","INSPECTION"],doors=[],gateBodies=[];
+  for(var i=0;i<4;i++){
+    var x=-3.3+i*2.2,module=makePivot(T,g,"PROCESS MODULE "+names[i],[x,0.12,0]);
+    addBox(T,module,"sealed process chamber",[0,0.2,0],[1.75,1.72,1.55],white,true);
+    addBox(T,module,"access window",[0,0.30,0.80],[1.15,0.63,0.08],glass,true);
+    addRing(T,module,"vacuum service port",[0,-0.20,0.82],0.22,0.04,copper,[Math.PI/2,0,0]);
+    addBox(T,module,"module lower frame",[0,-0.82,0],[1.92,0.18,1.72],steel,true);
+    addCylinder(T,module,"vibration isolation foot",[-0.62,-1.12,0.55],0.10,0.10,0.50,dark,24);
+    addCylinder(T,module,"vibration isolation foot",[0.62,-1.12,0.55],0.10,0.10,0.50,dark,24);
+    // Pivot-centred vertical shutter swings clear of the transfer throat.
+    var hinge=makeHinge(T,module,"INTERLOCKED TRANSFER GATE "+i,[0,-1.26,0.78],"y",-1.22,0.02);
+    var gate=addBox(T,hinge.rig,"transfer gate panel",[0,0,0],[1.12,0.62,0.06],steel,true);
+    doors.push(hinge);
+    gateBodies.push(collisionPlaceholder(T,gate,[1.12,0.62,0.06]));
   }
-  var wafer = addCylinder(T, g, "wafer travelling through process tools", [-4.45, -1.0, 0.6],
-    0.43, 0.43, 0.08, mat(T, 0x2C679C, 0.9, 0.18), 48);
-  var track = addLine(T, g, "process flow route", [[-4.4, -0.88, 0.6], [4.4, -0.88, 0.6]], PALETTE.cyan, 0.45);
-  addLabel(T, g, "ONE WAFER · MANY DISTINCT PROCESS STEPS", [-3.5, 2.4, 0], 4.1);
-  return {
-    group: g,
-    tick: function(p) {
-      wafer.position.x = -4.4 + p * 8.8;
-      wafer.rotation.z = p * Math.PI * 4;
-      machines.forEach(function(m, i) { m.scale.y = 1 + 0.025 * Math.sin(p * 12 + i); });
-      track.material.opacity = 0.35 + 0.25 * Math.sin(p * Math.PI * 2);
-    }
-  };
+  function collisionPlaceholder(T,mesh,size){return {object:mesh,size:size};}
+  addBox(T,g,"wafer transfer line base",[0,-1.68,0.62],[9.6,0.22,1.45],dark,true);
+  [-0.08,1.30].forEach(function(z){addBox(T,g,"precision transfer guide",[0,-1.43,z],[9.3,0.15,0.12],steel,true);});
+  var rollers=[];
+  for(var r=0;r<24;r++){
+    var roller=addCylinder(T,g,"ceramic transfer roller",[-4.32+r*0.375,-1.36,0.61],0.075,0.075,1.05,white,20);
+    roller.rotation.x=Math.PI/2;rollers.push(roller);
+  }
+  var shuttle=makePivot(T,g,"WAFER TRANSFER SHUTTLE",[-3.72,-1.31,0.62]);
+  addBox(T,shuttle,"precision carrier chassis",[0,0,0],[1.02,0.22,0.96],steel,true);
+  addBox(T,shuttle,"vacuum wafer nest",[0,0.16,0],[0.90,0.08,0.86],dark,true);
+  addCylinder(T,shuttle,"wafer in transport carrier",[0,0.245,0],0.37,0.37,0.055,mat(T,0x31618B,0.88,0.17),56);
+  addRing(T,shuttle,"carrier retainer ring",[0,0.285,0],0.39,0.022,copper);
+  var leftStop=addBox(T,g,"transfer rail left hard stop",[-4.72,-1.31,0.62],[0.24,0.55,1.05],copper,true);
+  var rightStop=addBox(T,g,"transfer rail right hard stop",[4.72,-1.31,0.62],[0.24,0.55,1.05],copper,true);
+  var collision=createCollisionWorld(T);
+  var shuttleBody=collision.register("wafer transfer shuttle",shuttle,[1.02,0.22,0.96]);
+  var obstacles=[collision.register("left rail end stop",leftStop,[0.24,0.55,1.05]),
+                 collision.register("right rail end stop",rightStop,[0.24,0.55,1.05])];
+  gateBodies.forEach(function(item,index){obstacles.push(collision.register("transfer gate "+index,item.object,item.size));});
+  return {group:g,collisionSystem:collision,tick:function(p){
+    var q=p<0.5?p*2:(1-p)*2;
+    var targetX=-3.72+q*8.2;
+    doors.forEach(function(door,index){
+      var centre=-3.3+index*2.2,approach=Math.max(0,1-Math.abs(targetX-centre)/1.65);
+      door.set(-1.18*T.MathUtils.smoothstep(approach,0.08,0.58));
+    });
+    collision.move(shuttleBody,new T.Vector3(targetX,shuttle.position.y,shuttle.position.z),obstacles,24);
+    rollers.forEach(function(roller,index){roller.rotation.z=p*Math.PI*3+(index%2)*Math.PI;});
+  }};
 }
 
 /* 09 — 0.33 vs 0.55 numerical-aperture cone comparison. */
-function makeHighNAScene(T) {
-  var g = new T.Group();
-  var steel = mat(T, PALETTE.steel, 0.9, 0.18);
-  var waferMat = mat(T, 0x286093, 0.86, 0.18);
-  var red = mat(T, PALETTE.red, 0.1, 0.18, PALETTE.red);
-  var cyan = mat(T, PALETTE.cyan, 0.1, 0.18, PALETTE.cyan);
-  var sides = [-2.2, 2.2];
-  var apertures = [0.72, 1.12];
-  var raysBySide = [];
-  for (var i = 0; i < 2; i++) {
-    var x = sides[i], aperture = apertures[i], color = i ? cyan : red;
-    addCylinder(T, g, "objective aperture", [x, 1.15, 0], aperture, aperture, 0.18, steel, 48);
-    addRing(T, g, "numerical aperture ring", [x, 1.0, 0], aperture, 0.07, color);
-    var rays = [];
-    for (var j = 0; j < 20; j++) {
-      var a = j / 20 * Math.PI * 2;
-      var end = [x * 0.12 + Math.cos(a) * 0.38, -1.0, Math.sin(a) * 0.38];
-      rays.push(addBeam(T, g, "optical ray",
-        [x + Math.cos(a) * aperture, 1.0, Math.sin(a) * aperture], end, 0.012, color));
+function makeHighNAScene(T){
+  var g=new T.Group(),steel=mat(T,0x8596A6,0.94,0.18),ceramic=mat(T,0xDDE4EA,0.18,0.26);
+  var red=mat(T,PALETTE.red,0.10,0.15,PALETTE.red),cyan=mat(T,PALETTE.cyan,0.10,0.15,PALETTE.cyan);
+  var waferMat=mat(T,0x286093,0.86,0.18),systems=[];
+  var sides=[-2.2,2.2],apertures=[0.72,1.12];
+  for(var i=0;i<2;i++){
+    var x=sides[i],aperture=apertures[i],colour=i?cyan:red;
+    var base=makePivot(T,g,"OBJECTIVE BASE "+i,[x,1.12,0]);
+    addBox(T,base,"objective isolation block",[0,0.50,0],[1.55,0.22,1.45],steel,true);
+    var focus=makeSlider(T,base,"OBJECTIVE FOCUS CARRIAGE "+i,[0,0.16,0],"y",-0.14,0.14);
+    var barrel=makePivot(T,focus.rig,"OBJECTIVE BARREL "+i,[0,0,0]);
+    addCylinder(T,barrel,"numerical aperture objective housing",[0,0,0],aperture+0.18,aperture+0.18,0.72,ceramic,56);
+    var retainer=addRing(T,barrel,"objective retaining flange",[0,-0.38,0],aperture,0.07,steel);
+    var sensor=makeHinge(T,barrel,"OBJECTIVE TIP/TILT FLEXURE "+i,[0,-0.43,0],"x",-0.02,0.02);
+    addCylinder(T,sensor.rig,"objective optical element",[0,-0.05,0],aperture*0.82,aperture*0.82,0.14,steel,56);
+    var rays=[];
+    for(var j=0;j<20;j++){
+      var a=j/20*Math.PI*2,end=[x*0.12+Math.cos(a)*0.38,-1.0,Math.sin(a)*0.38];
+      rays.push(addBeam(T,g,"numerical aperture ray",[
+        x+Math.cos(a)*aperture,0.10,Math.sin(a)*aperture],end,0.012,colour));
     }
-    addCylinder(T, g, "exposure plane", [x * 0.12, -1.12, 0], 0.62, 0.62, 0.11, waferMat, 48);
-    addLabel(T, g, i ? "HIGH-NA · 0.55" : "EUV · 0.33 NA", [x - 1.0, 2.0, 0], 2.4);
-    raysBySide.push(rays);
+    var waferStage=makePivot(T,g,"HIGH-NA WAFER STAGE "+i,[x*0.12,-1.12,0]);
+    addCylinder(T,waferStage,"wafer chuck",[0,0,0],0.66,0.66,0.13,steel,56);
+    addCylinder(T,waferStage,"exposure wafer plane",[0,0.09,0],0.62,0.62,0.055,waferMat,56);
+    systems.push({focus:focus,sensor:sensor,rays:rays,waferStage:waferStage});
   }
-  addLabel(T, g, "A LARGER APERTURE GATHERS A WIDER CONE OF LIGHT", [-4.0, -2.25, 0], 4.7);
-  return {
-    group: g,
-    tick: function(p) {
-      raysBySide.forEach(function(rays, i) {
-        rays.forEach(function(ray, j) {
-          ray.material.opacity = 0.35 + 0.55 * (0.5 + 0.5 * Math.sin(p * 7 + j * 0.4 + i));
-        });
-      });
-    }
-  };
+  return {group:g,tick:function(p){
+    systems.forEach(function(system,index){
+      system.focus.set(0.08*Math.sin(p*Math.PI*2+index));
+      system.sensor.set(0.012*Math.sin(p*Math.PI*2.5+index));
+      system.waferStage.rotation.y=p*Math.PI*0.4;
+      system.rays.forEach(function(ray,j){ray.material.emissiveIntensity=0.55+0.8*(0.5+0.5*Math.sin(p*7+j*0.4+index));});
+    });
+  }};
 }
 
 /* 10 — system ecosystem around the wafer. */
-function makeEcosystemScene(T) {
-  var g = new T.Group();
-  var steel = mat(T, PALETTE.steel, 0.82, 0.22);
-  var cyan = mat(T, PALETTE.cyan, 0.1, 0.2, PALETTE.cyan);
-  var gold = mat(T, PALETTE.gold, 0.85, 0.2);
-  var centre = addCylinder(T, g, "silicon wafer", [0, 0, 0], 1.05, 1.05, 0.12, mat(T, 0x2B6398, 0.9, 0.16), 64);
-  var nodes = [];
-  var labels = ["LASER SOURCE", "PRECISION OPTICS", "MOTION CONTROL", "SENSORS", "RESIST & MASK", "PROCESS TOOLS"];
-  for (var i = 0; i < 6; i++) {
-    var a = i / 6 * Math.PI * 2;
-    var x = Math.cos(a) * 3.0;
-    var z = Math.sin(a) * 2.2;
-    var node = addBox(T, g, "ecosystem component", [x, 0.15, z], [1.05, 1.0, 0.75], i % 2 ? gold : steel, true);
-    addBeam(T, g, "system interconnection", [x * 0.7, 0.05, z * 0.7],
-      [Math.cos(a) * 0.9, 0, Math.sin(a) * 0.7], 0.026, cyan);
-    addLabel(T, g, labels[i], [x - 0.9, 1.0, z], 1.8);
-    nodes.push(node);
+function makeEcosystemScene(T){
+  var g=new T.Group(),steel=mat(T,0x8797A6,0.90,0.22),gold=mat(T,0xB99B6D,0.9,0.2);
+  var cyan=mat(T,PALETTE.cyan,0.1,0.16,PALETTE.cyan);
+  var centreRig=makePivot(T,g,"CENTRAL WAFER PROCESS RIG",[0,0,0]);
+  addCylinder(T,centreRig,"silicon wafer",[0,0,0],1.05,1.05,0.12,mat(T,0x2B6398,0.9,0.16),72);
+  addRing(T,centreRig,"wafer retainer",[0,0.075,0],1.08,0.025,gold);
+  var labels=["LASER SOURCE","PRECISION OPTICS","MOTION CONTROL","SENSORS","RESIST & MASK","PROCESS TOOLS"],nodes=[];
+  for(var i=0;i<6;i++){
+    var a=i/6*Math.PI*2,x=Math.cos(a)*3.0,z=Math.sin(a)*2.2;
+    var mount=makePivot(T,g,"EQUIPMENT SUBSYSTEM MOUNT "+i,[x,0.12,z]);
+    addBox(T,mount,"subsystem mounting foot",[0,-0.62,0],[1.25,0.16,0.95],steel,true);
+    addCylinder(T,mount,"precision riser",[0,-0.28,0],0.10,0.10,0.58,gold,24);
+    var cradle=makeHinge(T,mount,"SUBSYSTEM CRADLE PIVOT "+i,[0,0.02,0],"y",-0.10,0.10);
+    var module=addBox(T,cradle.rig,labels[i]+" module casing",[0,0.42,0],[1.12,0.82,0.78],i%2?gold:steel,true);
+    addRing(T,cradle.rig,"subsystem service collar",[0,0.85,0],0.34,0.035,cyan);
+    addBeam(T,g,"precision system interconnect",[x*0.72,0.12,z*0.72],[Math.cos(a)*0.92,0,Math.sin(a)*0.68],0.026,cyan);
+    nodes.push({cradle:cradle,module:module});
   }
-  addRing(T, g, "integrated system orbit", [0, -0.05, 0], 2.05, 0.025, cyan, [Math.PI / 2, 0, 0]);
-  addLabel(T, g, "ONE BREAKTHROUGH · AN ENTIRE ENGINEERING ECOSYSTEM", [-4.0, 2.5, 0], 4.8);
-  return {
-    group: g,
-    tick: function(p) {
-      g.rotation.y = p * Math.PI * 0.75;
-      centre.rotation.y = -p * Math.PI * 3;
-      nodes.forEach(function(node, i) {
-        node.position.y = 0.12 + Math.sin(p * 8 + i) * 0.14;
-        node.rotation.y = Math.sin(p * 5 + i) * 0.08;
-      });
-    }
-  };
+  addRing(T,g,"integrated equipment alignment orbit",[0,-0.05,0],2.05,0.025,cyan,[Math.PI/2,0,0]);
+  return {group:g,tick:function(p){
+    centreRig.rotation.y=-p*Math.PI*1.5;
+    nodes.forEach(function(item,index){
+      item.cradle.set(0.04*Math.sin(p*Math.PI*2+index*0.8));
+      item.module.position.y=0.42+0.04*Math.sin(p*Math.PI*2+index);
+    });
+  }};
 }
 
 function createSceneForSection(T, index) {
@@ -673,101 +733,70 @@ function createSceneForSection(T, index) {
   return makeEcosystemScene(T);
 }
 
-export function mountScene(container, options) {
-  var T = (options && options.THREE) || THREE;
-  var width = (options && options.width) || 1280;
-  var height = (options && options.height) || 720;
-  var duration = (options && options.duration) || 699.25;
-  var renderer = new T.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(1);
-  renderer.setSize(width, height, false);
-  renderer.outputColorSpace = T.SRGBColorSpace;
-  renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
-  renderer.setClearColor(PALETTE.dark, 1);
-  renderer.domElement.style.display = "block";
-  container.innerHTML = "";
-  container.appendChild(renderer.domElement);
-
-  var scene = new T.Scene();
-  scene.background = new T.Color(PALETTE.dark);
-  scene.fog = new T.FogExp2(PALETTE.dark, 0.028);
-  var camera = new T.PerspectiveCamera(38, width / height, 0.1, 100);
-  camera.position.set(7.4, 4.7, 9.5);
-  camera.lookAt(0, 0, 0);
-  scene.add(new T.HemisphereLight(0xBCD8FF, 0x0A1426, 1.6));
-  var key = new T.DirectionalLight(0xF4F8FF, 3.0);
-  key.position.set(4, 7, 6);
-  scene.add(key);
-  var fill = new T.PointLight(PALETTE.blue, 28, 22);
-  fill.position.set(-6, 1, -3);
-  scene.add(fill);
-  var rim = new T.PointLight(PALETTE.red, 13, 15);
-  rim.position.set(5, 3, 1);
-  scene.add(rim);
-  addStars(T, scene);
-
-  var sections = [];
-  var totalWeight = SECTION_WEIGHTS.reduce(function(a, b) { return a + b; }, 0);
-  var elapsed = 0;
-  for (var i = 0; i < 10; i++) {
-    var length = duration * SECTION_WEIGHTS[i] / totalWeight;
-    var section = createSceneForSection(T, i);
-    section.name = SECTION_NAMES[i];
-    section.duration = length;
-    section.start = elapsed;
-    section.end = elapsed + length;
-    section.group.visible = false;
-    scene.add(section.group);
-    sections.push(section);
-    elapsed += length;
+export function mountScene(container,options){
+  var T=(options&&options.THREE)||THREE,width=(options&&options.width)||1280,height=(options&&options.height)||720;
+  var duration=(options&&options.duration)||699.25;
+  var renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});
+  renderer.setPixelRatio(1);renderer.setSize(width,height,false);
+  renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.setClearColor(0x0A1420,1);
+  renderer.domElement.style.display="block";container.innerHTML="";container.appendChild(renderer.domElement);
+  var scene=new T.Scene();scene.background=new T.Color(0x0A1420);scene.fog=new T.FogExp2(0x0A1420,0.010);
+  // Procedural studio softbox environment for believable metal, glass and ceramic reflections.
+  var envCanvas=document.createElement("canvas");envCanvas.width=1024;envCanvas.height=512;
+  var ctx=envCanvas.getContext("2d"),grad=ctx.createLinearGradient(0,0,0,512);
+  grad.addColorStop(0,"#111E2B");grad.addColorStop(0.46,"#788B9C");grad.addColorStop(1,"#172634");
+  ctx.fillStyle=grad;ctx.fillRect(0,0,1024,512);
+  [[70,35,175,455],[340,25,445,440],[670,55,775,420],[880,90,960,400]].forEach(function(r){
+    var glow=ctx.createLinearGradient(r[0],r[1],r[2],r[3]);
+    glow.addColorStop(0,"rgba(245,250,255,0)");glow.addColorStop(0.46,"rgba(245,250,255,0.92)");
+    glow.addColorStop(1,"rgba(245,250,255,0)");ctx.fillStyle=glow;ctx.fillRect(r[0],r[1],r[2]-r[0],r[3]-r[1]);
+  });
+  ctx.fillStyle="rgba(214,40,57,0.24)";ctx.fillRect(525,0,18,512);
+  var envTexture=new T.CanvasTexture(envCanvas);envTexture.mapping=T.EquirectangularReflectionMapping;
+  envTexture.colorSpace=T.SRGBColorSpace;envTexture.needsUpdate=true;scene.environment=envTexture;scene.environmentIntensity=0.8;
+  var camera=new T.PerspectiveCamera(39,width/height,0.1,140);camera.position.set(8.6,5.4,10.5);camera.lookAt(0,0,0);
+  scene.add(new T.HemisphereLight(0xD9E7F5,0x253140,1.25));
+  var key=new T.DirectionalLight(0xFFF5E8,3.1);key.position.set(-4.5,8.5,6.5);key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-10;key.shadow.camera.right=10;
+  key.shadow.camera.top=10;key.shadow.camera.bottom=-10;key.shadow.bias=-0.00025;scene.add(key);
+  var fill=new T.DirectionalLight(0x8EB8E1,1.25);fill.position.set(7,3,5);scene.add(fill);
+  var rim=new T.DirectionalLight(0x7B9FC4,1.45);rim.position.set(1,5,-8);scene.add(rim);
+  var redRim=new T.PointLight(PALETTE.red,13,16);redRim.position.set(-5,1.7,3);scene.add(redRim);
+  var floor=new T.Mesh(new T.PlaneGeometry(55,55),mat(T,0x182736,0.18,0.82));
+  floor.rotation.x=-Math.PI/2;floor.position.y=-2.58;floor.receiveShadow=true;scene.add(floor);
+  for(var f=-5;f<=5;f++){
+    var datum=addBox(T,scene,"floor datum line",[f*0.8,-2.565,-1.8],[0.012,0.006,8.5],mat(T,0x334657,0.25,0.7));
+    datum.material.transparent=true;datum.material.opacity=0.22;
   }
-
-  function resize(w, h) {
-    width = w || width;
-    height = h || height;
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
+  var sections=[],weights=SECTION_WEIGHTS.reduce(function(a,b){return a+b;},0),elapsed=0;
+  for(var i=0;i<10;i++){
+    var length=duration*SECTION_WEIGHTS[i]/weights,section=createSceneForSection(T,i);
+    section.name=SECTION_NAMES[i];section.duration=length;section.start=elapsed;section.end=elapsed+length;
+    section.group.visible=false;scene.add(section.group);sections.push(section);elapsed+=length;
   }
-  function seek(time) {
-    var t = Math.max(0, Math.min(duration, Number(time) || 0));
-    var currentIndex = 9;
-    for (var i = 0; i < sections.length; i++) {
-      if (t < sections[i].end || i === sections.length - 1) {
-        currentIndex = i;
-        break;
-      }
-    }
-    sections.forEach(function(section, i) { section.group.visible = i === currentIndex; });
-    var current = sections[currentIndex];
-    var local = Math.max(0, Math.min(1, (t - current.start) / Math.max(0.001, current.duration)));
-    current.tick(local, t);
-    var orbit = local * Math.PI * 0.55;
-    camera.position.set(7.8 + Math.sin(orbit) * 0.8, 4.6 + Math.sin(local * Math.PI) * 0.45, 9.6 + Math.cos(orbit) * 0.55);
-    camera.lookAt(0, 0, 0);
-    renderer.render(scene, camera);
+  function resize(w,h){width=w||width;height=h||height;camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false);}
+  function seek(time){
+    var t=Math.max(0,Math.min(duration,Number(time)||0)),index=9;
+    for(var i=0;i<sections.length;i++){if(t<sections[i].end||i===sections.length-1){index=i;break;}}
+    sections.forEach(function(section,i){section.group.visible=i===index;});
+    var current=sections[index],local=Math.max(0,Math.min(1,(t-current.start)/Math.max(0.001,current.duration)));
+    current.tick(local,t);
+    var orbit=local*Math.PI*0.48;
+    camera.position.set(8.1+Math.sin(orbit)*0.68,5.0+Math.sin(local*Math.PI)*0.32,10.0+Math.cos(orbit)*0.5);
+    camera.lookAt(0,-0.12,0);renderer.render(scene,camera);
   }
   seek(0);
-  return {
-    duration: duration,
-    renderer: renderer,
-    resize: resize,
-    seek: seek,
-    pause: function() {},
-    dispose: function() {
-      scene.traverse(function(object) {
-        if (object.geometry && object.geometry.dispose) object.geometry.dispose();
-        if (object.material) {
-          var materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach(function(material) {
-            if (material.map && material.map.dispose) material.map.dispose();
-            if (material.dispose) material.dispose();
-          });
+  return {duration:duration,renderer:renderer,resize:resize,seek:seek,pause:function(){},
+    dispose:function(){
+      scene.traverse(function(object){
+        if(object.geometry&&object.geometry.dispose)object.geometry.dispose();
+        if(object.material){
+          var materials=Array.isArray(object.material)?object.material:[object.material];
+          materials.forEach(function(material){if(material.map&&material.map.dispose)material.map.dispose();if(material.dispose)material.dispose();});
         }
       });
-      renderer.dispose();
-      if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
-  };
+      envTexture.dispose();renderer.dispose();
+      if(renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);
+    }};
 }
