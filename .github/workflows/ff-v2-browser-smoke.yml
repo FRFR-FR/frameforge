@@ -18,6 +18,8 @@ on:
       - "tools/frameforge_blender_bridge.py"
       - "ff-v2-shaders.js"
       - "tests/ff-v2-browser-smoke.js"
+      - "tests/ff-v2-audio-browser-smoke.js"
+      - "tests/ff-v2-director-browser-smoke.js"
       - "tests/ff-v2-renderer.test.js"
       - ".github/workflows/ff-v2-browser-smoke.yml"
   workflow_dispatch:
