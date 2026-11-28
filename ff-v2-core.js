@@ -423,6 +423,7 @@
 
   const BLEND_MODES = ['normal','multiply','screen','overlay','darken','lighten','color-dodge','color-burn','hard-light','soft-light','difference','exclusion','hue','saturation','color','luminosity','lighter','destination-over'];
   const KEYFRAME_PROPERTIES = ['position.x','position.y','scale.x','scale.y','rotation_degrees','opacity','anchor.x','anchor.y'];
+  const ANIMATABLE_PROPERTIES = KEYFRAME_PROPERTIES.concat(['playback_rate']);
 
   function addGraphicClip(project, trackId, generatorType, parameters, startFrame, durationFrames) {
     if (!['text','shape','svg','particles'].includes(generatorType)) throw new Error('Unsupported generated graphic type.');
@@ -552,7 +553,7 @@
   function setKeyframe(project, clipId, property, globalFrame, value, interpolation, bezier) {
     const found = findClip(project, clipId);
     if (found.track.locked) throw new Error('This track is locked.');
-    if (!KEYFRAME_PROPERTIES.includes(property)) throw new Error('Unsupported keyframe property.');
+    if (!ANIMATABLE_PROPERTIES.includes(property)) throw new Error('Unsupported keyframe property.');
     const localFrame = Math.round(Number(globalFrame) || 0) - found.clip.start_frame;
     if (localFrame < 0 || localFrame > found.clip.duration_frames) throw new Error('Move the playhead inside the selected clip to add a keyframe.');
     if (typeof value === 'number' && !Number.isFinite(value)) throw new Error('Keyframe value must be finite.');
@@ -570,6 +571,22 @@
     else found.clip.keyframes.push(key);
     found.clip.keyframes.sort((a, b) => a.frame - b.frame || a.property.localeCompare(b.property));
     return key;
+  }
+
+
+  function setClipPlaybackRate(project, clipId, rate) {
+    const found = findClip(project, clipId);
+    if (found.track.locked) throw new Error('This track is locked.');
+    const next = Number(rate);
+    if (!Number.isFinite(next) || next < 0.05 || next > 8) throw new Error('Playback rate must be between 0.05× and 8×.');
+    found.clip.playback_rate = next;
+    return found.clip;
+  }
+
+  function evaluateClipPlaybackRate(clip, globalFrame) {
+    const base = Number(clip.playback_rate) > 0 ? Number(clip.playback_rate) : 1;
+    const localFrame = Math.max(0,Math.round(Number(globalFrame)||0)-clip.start_frame);
+    return Math.max(0.05,Math.min(8,Number(evaluateKeyframes({keyframes:clip.keyframes||[]},'playback_rate',localFrame,base))));
   }
 
   function cubicAt(t, p1, p2) {
@@ -761,8 +778,8 @@
     createDefaultProject, getMainSequence, addTrack, trackForAssetType,
     assetToProjectRecord, addAsset, addAssetClip, findClip, moveClip, trimClip,
     splitClip, duplicateClip, deleteClip, addGraphicClip, setClipTransform, setClipParent, setClipMask,
-    BLEND_MODES, KEYFRAME_PROPERTIES, PARTICLE_PRESETS, CLIP_EFFECT_TYPES, POST_PROCESS_TYPES, TRANSITION_TYPES,
-    setKeyframe, evaluateKeyframes, evaluateClipTransform, getActiveVisualClips,
+    BLEND_MODES, KEYFRAME_PROPERTIES, ANIMATABLE_PROPERTIES, PARTICLE_PRESETS, CLIP_EFFECT_TYPES, POST_PROCESS_TYPES, TRANSITION_TYPES,
+    setKeyframe, evaluateKeyframes, evaluateClipTransform, setClipPlaybackRate, evaluateClipPlaybackRate, getActiveVisualClips,
     addPostProcessPass, removePostProcessPass, setPostProcessRenderer, setClipEffect, setEffectParameterKeyframe, evaluateEffectParameters, setClipTransition, validateProject
   };
   root.FFV2Core = api;
