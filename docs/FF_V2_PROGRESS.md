@@ -1,7 +1,7 @@
 # FrameForge V2 — Upgrade Progress
 
 **Canonical roadmap:** [FF_V2_50_STEP_ROADMAP.md](FF_V2_50_STEP_ROADMAP.md)  
-**Current completed batch:** Steps 1–25  
+**Current completed batch:** Steps 1–35  
 **Last updated:** 2026-11-28
 
 ## Batch 1–5 status
@@ -269,9 +269,47 @@ The audio engine renders a 48 kHz stereo PCM16 WAV master. Added [tools/mux_ffmp
 - [Chromium browser smoke run 46126529789 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46126529789): existing V2 visual smoke and new audio browser smoke passed. The audio test imported/decoded WAV, drew and sought the waveform, synchronized the frame playhead, exercised track solo/gain and clip fades/automation, created an SFX marker and downloaded a valid 48 kHz stereo PCM16 WAV master.
 - Audio implementation notes and the manual mux command are in [FF_V2_AUDIO.md](FF_V2_AUDIO.md).
 
-## Current V2 boundary after steps 1–30
+## Batch 31–35 status
 
-The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions, and a WebGL Three.js r164.1 scene renderer for imported GLB/glTF models. It can export transparent PNG frames and package 3D scenes for Blender. It still does **not** render a full V2 timeline to MP4. Final video rendering, resumable chunks, FFmpeg export and technical QA remain later roadmap steps. Audio tracks are timeline data only. The legacy V1 editor and existing Blender production workflows remain available.
+| Step | Deliverable | Status | Verification |
+|---:|---|---|---|
+| 31 | Structured production brief and research intake | Complete | Brief stores topic, niche, audience, platform, duration, script, restrictions, research questions and ambiguities; Node and Chromium tests cover save and reload |
+| 32 | Research dossier and reference-video records | Complete with transparent manual/assistant-led intake | Sources store URL/title/publisher/publication and retrieval dates, type, access state and confidence; reference videos are permanently marked reference-only; no private-page scraping or access bypass |
+| 33 | Editable niche visual style profiles | Complete | Distinct cybersecurity, history, science, mysteries, finance, gaming, entertainment/power-scaling and general profiles; browser smoke customises and saves one |
+| 34 | Narration-to-shot visual director | Complete as a deterministic first-pass planner | Script is split into paragraph/sentence beats and allocated frame ranges; each beat includes visual purpose, media mix, camera, actions, VFX, transitions, assets and audio cues; the user can edit each field |
+| 35 | Evidence and rights review gate | Complete as a workflow safeguard, not legal advice | Verified factual/comparative shots must link to source-backed claims; restricted sources are blocked; actual footage/screenshots require linked media assets; imported assets need documented user-reviewed rights decisions |
+
+## Step 31 — Production brief
+
+Added the Research & Visual Director panel to the V2 workspace. The structured brief records topic, niche, target audience, platform, target duration, tone, desired style, visual direction, narration/script, research questions, ambiguities/assumptions and production/legal/platform restrictions. Research questions are also copied into the dossier. The brief remains optional for older V2 projects and is saved in schema version 2.
+
+## Step 32 — Research and reference-video dossier
+
+Added source records for public URLs, titles, publishers, publication/retrieval dates, source type, access status, confidence and notes. Claims are stored separately and reference source IDs. Reference-video records capture title, creator, platform, dates, access status and format observations, and are always marked `reference_only: true`. The editor does not scrape pages, bypass login restrictions or independently verify a claim. Research is assistant-led or user-supplied; exact sources and confidence must be recorded. A reference video's style is not permission to reuse its protected footage, audio, branding or edit.
+
+## Step 33 — Niche-specific style profiles
+
+Created editable starting profiles for cybersecurity, history, science, mysteries/investigations, finance, gaming, entertainment/power-scaling and general/unclassified work. Profiles store visual language, preferred media, pacing, camera language, sound language and avoid/no-go rules. The user can load a profile, edit it and save the result to the V2 project.
+
+## Step 34 — Narration-to-shot visual director
+
+The first-pass planner divides the narration into timed beats, allocates each beat a start/end frame based on word-count weighting and the sequence frame rate, and suggests a topic-relevant media mix. Shot records include narration, visual purpose, visual role, evidence requirement, camera movement, visual actions, VFX/motion treatment, asset requirements and linked asset IDs, transitions, audio cues and linked claim IDs. It is deterministic and rule-assisted, not a claim of autonomous AI directing or verified fact research. It rejects durations too short to allocate a frame to every beat. Every shot remains editable.
+
+## Step 35 — Evidence, visual proof and rights review
+
+Factual/comparative evidence shots must link to a verified factual/comparative claim with at least one source marked publicly accessible. Blocked/login-only sources cannot clear the evidence gate. Illustrations, reconstructions, opinions and demonstrations remain distinct visual roles. If a shot requires actual footage, it must include source-footage media and link an imported video asset; an official-screenshot requirement must link an imported image. The rights review records the asset decision, basis, intended use, permission reference, attribution, restrictions, reviewer and review date. Approval requires a documented basis and reviewer/date; rejected, restricted and unreviewed assets block readiness.
+
+This is a production workflow safeguard, not legal advice or a determination that a use is lawful. The rights reviewer must confirm ownership, licence terms, permission or another defensible basis. Reference-video records are not reuse licences.
+
+## Verification for batch 31–35
+
+- [Foundation validation run 46128278996 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46128278996): **58 JavaScript tests passed**, **27 Python tests passed**, schema syntax and semantic tests passed, and the research/director example project passed the validator in the Python regression suite.
+- [Chromium browser smoke run 46128278936 — success](https://github.com/FRFR-FR/frameforge/actions/runs/46128278936): visual, audio and director smoke tests all passed. The director test verified brief/ambiguity intake, source and reference records, niche profile editing, timed shot generation, verified claim linking, asset rights approval and persistence after reload.
+- Detailed workflow and limitations: [FF_V2_RESEARCH_AND_DIRECTOR.md](FF_V2_RESEARCH_AND_DIRECTOR.md).
+
+## Current V2 boundary after steps 1–35
+
+The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optional WebGL 1 post-processing, procedural VFX, clip effects, transitions, and a WebGL Three.js r164.1 scene renderer for imported GLB/glTF models. It exports transparent PNG frames and packages 3D scenes for Blender. The audio engine provides editable multi-track mixing, waveforms, event-linked SFX, automation, ducking and WAV mastering; an FFmpeg utility muxes a WAV master with an already-rendered silent video. The Research & Visual Director stores a production brief, source/reference dossier, editable niche profile, timed narration shot plan and evidence/rights review. V2 still does **not** render an entire timeline to MP4 automatically. Full-sequence rendering, resumable chunks, integrated FFmpeg export and technical QA remain later roadmap steps. The legacy V1 editor and existing Blender production workflows remain available.
 
 
 ## Remaining limits / not yet done
@@ -286,10 +324,10 @@ The V2 timeline now feeds a single-frame Canvas 2D layer compositor with optiona
 - Imported media metadata validation relies partly on browser codecs; it is not a full decode of every video frame or audio sample.
 - Project JSON does not package imported binary files. Blobs remain in the originating browser's IndexedDB; keep source media separately backed up.
 - Local browser storage is quota-limited and can be evicted. Persistent-storage requests are best-effort, not guaranteed.
-- The rights validator checks metadata completeness; it does not determine legal rights or provide legal advice.
+- The asset rights gate checks user-recorded metadata and project references; it does not independently verify a licence, determine legal rights or provide legal advice. Research and reference-video intake is manual/assistant-led, not autonomous browsing or private-page scraping. Reference-video records are style observations only and do not authorise reuse.
 - The 250 MB per-file import ceiling may exceed the available browser storage quota on some devices.
 - The legacy V1 drawing editor and existing Blender/FF3D production workflows remain available and were not replaced by this batch.
 
 ## Next batch
 
-The next five-step batch is **31–35**. Do not start it until the user requests it.
+The next five-step batch is **36–40** (reusable shot recipes, free/open media adapters, procedural asset generation, free/licensed audio workflow and shot assembly/orchestration). Do not start it until the user requests it.
