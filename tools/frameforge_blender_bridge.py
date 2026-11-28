@@ -267,10 +267,12 @@ def build_scene(bpy, manifest, manifest_path, output_dir):
     scene.frame_start = int(settings.get("start_frame", 1))
     scene.frame_end = int(settings.get("end_frame", max(scene.frame_start, 48)))
     engine = str(settings.get("render_engine", "BLENDER_EEVEE_NEXT"))
-    try:
-        scene.render.engine = engine
-    except Exception:
-        scene.render.engine = "BLENDER_EEVEE_NEXT"
+    available_engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
+    if engine not in available_engines:
+        engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in available_engines else (
+            "BLENDER_EEVEE" if "BLENDER_EEVEE" in available_engines else "BLENDER_WORKBENCH"
+        )
+    scene.render.engine = engine
     if hasattr(scene, "eevee"):
         scene.eevee.taa_render_samples = max(1, min(64, int(settings.get("samples", 16))))
     scene.render.image_settings.file_format = "PNG"
