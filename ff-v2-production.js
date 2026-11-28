@@ -168,6 +168,11 @@
     return Number.isFinite(number) ? Math.max(min, Math.min(max, number)) : fallback;
   }
 
+  function safeHttpUrl(value) {
+    try { const url = new URL(String(value || '')); return ['http:','https:'].includes(url.protocol) ? url.href : ''; }
+    catch (_) { return ''; }
+  }
+
   function listRecipes() {
     return Object.entries(RECIPES).map(([id, recipe]) => Object.assign({ id: id }, Core.clone(recipe)));
   }
@@ -203,9 +208,7 @@
     beat.recipe_overlay = recipe.overlay;
     beat.recipe_transition = Core.clone(recipe.transition);
     const originalDuration = Math.max(1, beat.end_frame - beat.start_frame);
-    const scaled = Math.max(1, Math.round(originalDuration * recipe.duration_scale));
-    beat.end_frame = beat.start_frame + scaled;
-    project.shot_plan.total_frames = Math.max(project.shot_plan.total_frames || 0, beat.end_frame);
+    beat.recipe_duration_frames = Math.max(1, Math.round(originalDuration * recipe.duration_scale));
     return beat;
   }
 
@@ -442,24 +445,28 @@
     const attributionRequired = attributionIsRequired(license);
     const attribution = text(item.attribution_text, 1800) ||
       (item.creator && item.creator !== 'Creator not supplied' ? 'Creator: ' + item.creator + '. Source: ' + item.landing_url : '');
+    const provenance = {
+      source_type: sourceType,
+      source_title: text(item.title, 500),
+      creator: text(item.creator, 300),
+      provider: text(item.provider, 200),
+      acquired_at: new Date().toISOString(),
+      notes: 'Imported after manual selection. Source and licence metadata are recorded but remain subject to user review.'
+    };
+    const sourceUrl = safeHttpUrl(item.landing_url || item.download_url);
+    const licenseUrl = safeHttpUrl(item.license_url);
+    if (sourceUrl) provenance.source_url = sourceUrl;
+    const rights = {
+      status: 'pending',
+      license_name: license || 'Unverified — inspect the file page',
+      attribution_required: attributionRequired,
+      attribution_text: attribution,
+      restrictions: ['Pending individual rights review; verify licence scope, creator, source page and intended use before publication.']
+    };
+    if (licenseUrl) rights.license_url = licenseUrl;
     return {
-      provenance: {
-        source_type: sourceType,
-        source_url: item.landing_url || item.download_url || '',
-        source_title: text(item.title, 500),
-        creator: text(item.creator, 300),
-        provider: text(item.provider, 200),
-        acquired_at: new Date().toISOString(),
-        notes: 'Imported after manual selection. Source and licence metadata are recorded but remain subject to user review.'
-      },
-      rights: {
-        status: 'pending',
-        license_name: license || 'Unverified — inspect the file page',
-        license_url: item.license_url || '',
-        attribution_required: attributionRequired,
-        attribution_text: attribution,
-        restrictions: ['Pending individual rights review; verify licence scope, creator, source page and intended use before publication.']
-      },
+      provenance: provenance,
+      rights: rights,
       tags: audioRole ? ['audio-role:' + audioRole] : []
     };
   }
@@ -470,7 +477,9 @@
     const rights = asset.rights || { status: 'pending', attribution_required: true, restrictions: [] };
     rights.status = 'pending';
     rights.license_name = text(input?.license_name || rights.license_name || 'Unverified', 300);
-    rights.license_url = text(input?.license_url || rights.license_url || '', 1000);
+    const licenseUrl = safeHttpUrl(input?.license_url || rights.license_url || '');
+    if (licenseUrl) rights.license_url = licenseUrl;
+    else delete rights.license_url;
     rights.attribution_required = input?.attribution_required === undefined
       ? attributionIsRequired(rights.license_name) : Boolean(input.attribution_required);
     rights.attribution_text = text(input?.attribution_text || rights.attribution_text || '', 1800);
@@ -547,8 +556,8 @@
 
     for (const beat of project.shot_plan.beats) {
       const start = Math.max(0, Math.round(beat.start_frame));
-      const duration = Math.max(1, Math.round(beat.end_frame - beat.start_frame));
       const recipe = beat.shot_recipe || null;
+      const duration = Math.max(1, Math.round(beat.recipe_duration_frames || (beat.end_frame - beat.start_frame)));
       const linkedAssets = (beat.asset_ids || []).map(id => (project.assets || []).find(asset => asset.id === id)).filter(Boolean);
       const visualAssets = linkedAssets.filter(asset => ['image','video','graphic','model3d'].includes(asset.media_type));
       const audioAssets = linkedAssets.filter(asset => asset.media_type === 'audio');
@@ -640,7 +649,7 @@
   }
 
   const api = {
-    RECIPES, PROVIDERS, listRecipes, instantiateShotRecipe, applyShotRecipe,
+    RECIPES, PROVIDERS, listRecipes, instantiateShotRecipe, applyShotRecipe, safeHttpUrl,
     buildGraphicSvg, createProceduralGraphicClip, providerSearchUrl, searchProvider,
     importOptionsForSelection, registerAudioMetadata, audioCatalogue, buildAudioCredits,
     audioPackagingReport, assembleShotPlan
