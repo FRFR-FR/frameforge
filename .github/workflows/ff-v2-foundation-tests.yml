@@ -7,6 +7,11 @@ on:
       - "schemas/**"
       - "examples/**"
       - "tests/**"
+      - "ff-v2-core.js"
+      - "ff-v2-studio.js"
+      - "index.html"
+      - "app.js"
+      - "styles.css"
       - "tools/validate_project.py"
       - "tools/validate_media_manifest.py"
       - "requirements-dev.txt"
@@ -51,6 +56,9 @@ jobs:
         run: |
           node --check app.js
           node --check frameforge-3d.js
+          node --check ff-v2-core.js
+          node --check ff-v2-studio.js
+          node --test tests/ff-v2-core.test.js
           python -m compileall -q blender_pipeline brown_film minecraft_pipeline projects tools tests
 
       - name: Validate schemas, examples and semantic rules
