@@ -766,6 +766,7 @@
         pointer.put({ id: 'ffv2-active', project_id: snapshot.project.id, updated_at: Date.now() });
       };
       await txDone(transaction);
+      await showRecoveryCount();
       setStatus('Saved locally · recovery enabled', 'success');
       if (showMessage) window.alert('FrameForge V2 project saved in this browser.');
     } catch (error) {
