@@ -206,16 +206,27 @@ A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU 
 **Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
 
 
-## FrameForge V2 foundation (steps 1–5)
+## FrameForge V2 — foundations and workspace (steps 1–10)
 
-The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). The current foundation documents are:
+The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). Batch status is recorded in [docs/FF_V2_PROGRESS.md](docs/FF_V2_PROGRESS.md).
 
-- [Batch progress and test status](docs/FF_V2_PROGRESS.md)
+Foundation and architecture:
 - [Baseline audit](docs/FF_V2_BASELINE_AUDIT.md)
 - [Architecture blueprint](docs/FF_V2_ARCHITECTURE.md)
 - [Zero-cost and media-rights policy](docs/FF_V2_COST_AND_RIGHTS_POLICY.md)
 - [V2 project schema](schemas/frameforge-project-v2.schema.json)
 - [Media asset manifest schema](schemas/media-asset-manifest-v1.schema.json)
+
+Current editor workspace:
+- [V2 media import, asset library, timeline and persistence guide](docs/FF_V2_MEDIA_AND_TIMELINE.md)
+- [V2 media/timeline core](ff-v2-core.js)
+- [V2 browser studio](ff-v2-studio.js)
+- [V2 core regression tests](tests/ff-v2-core.test.js)
+- [V2 Chromium browser smoke test](tests/ff-v2-browser-smoke.js)
+- [Foundation CI](.github/workflows/ff-v2-foundation-tests.yml)
+- [Browser smoke CI](.github/workflows/ff-v2-browser-smoke.yml)
+
+Open FrameForge and select **V2 Assets** to use the V2 asset library and project controls. The separate **V2 Multi-track Timeline** sits below the legacy frame strip. The legacy version-1 drawing workflow remains available.
 
 ### Validate V2 project and media metadata
 
@@ -228,4 +239,6 @@ python tools/validate_project.py examples/frameforge-project-v2.example.json
 python tools/validate_media_manifest.py examples/media-asset-manifest.example.json
 ```
 
-The same checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) GitHub Actions workflow. This workflow uses read-only repository permissions and does not start any Blender or media-render job.
+The checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) workflow. The real-browser integration check runs separately in [FrameForge V2 Browser Smoke](.github/workflows/ff-v2-browser-smoke.yml). Both use read-only repository permissions and do not start any Blender or media-render job.
+
+**Current V2 boundary:** steps 6–10 add validated media import, local asset management, an editable multi-track project model, clip operations and local recovery. The V2 timeline is not yet connected to a final compositor or export renderer; those upgrades are scheduled later in the roadmap. V2 project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB.
