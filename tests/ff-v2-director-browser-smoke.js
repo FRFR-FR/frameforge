@@ -125,7 +125,9 @@ async function main() {
     const firstShot=page.locator('.ffv2-shot-card').first();
     await firstShot.locator('.ffv2-shot-head select').nth(0).selectOption('factual_evidence');
     await firstShot.locator('.ffv2-shot-head select').nth(1).selectOption('source_document');
-    await firstShot.locator('label').filter({hasText:'Linked claim IDs'}).locator('input').fill(claimId);
+    const claimLinkInput=firstShot.locator('label').filter({hasText:'Linked claim IDs'}).locator('input');
+    await claimLinkInput.fill(claimId);
+    await claimLinkInput.press('Tab');
     await page.waitForFunction(()=>window.FFV2Studio.getProject().shot_plan.beats[0].evidence_claim_ids[0]===window.FFV2Studio.getProject().research.claims[0].id);
 
     // Import a locally generated test asset, then record a documented rights basis.
@@ -134,7 +136,9 @@ async function main() {
     await page.waitForFunction(()=>document.querySelectorAll('.ffv2-asset-card').length===1);
     await page.waitForFunction(()=>document.querySelectorAll('.ffv2-rights-card').length===1);
     const assetId=await page.evaluate(()=>window.FFV2Studio.getProject().assets[0].id);
-    await firstShot.locator('label').filter({hasText:'Linked asset IDs'}).locator('input').fill(assetId);
+    const assetLinkInput=firstShot.locator('label').filter({hasText:'Linked asset IDs'}).locator('input');
+    await assetLinkInput.fill(assetId);
+    await assetLinkInput.press('Tab');
     await page.waitForFunction(()=>window.FFV2Studio.getProject().shot_plan.beats[0].asset_ids[0]===assetId);
     const rightsCard=page.locator('.ffv2-rights-card').first();
     await rightsCard.locator('select').selectOption('approved');
