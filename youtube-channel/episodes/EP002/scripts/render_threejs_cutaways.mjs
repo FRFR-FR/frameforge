@@ -110,8 +110,11 @@ try{
           const encoder=new VideoEncoder({
             output:function(chunk,metadata){
               try{
-                if(!avcC&&metadata&&metadata.decoderConfig&&metadata.decoderConfig.description)
-                  avcC=new Uint8Array(metadata.decoderConfig.description).slice();
+                if(!avcC&&metadata&&metadata.decoderConfig&&metadata.decoderConfig.description){
+                  const desc=metadata.decoderConfig.description;
+                  if(desc instanceof ArrayBuffer)avcC=new Uint8Array(desc).slice();
+                  else if(ArrayBuffer.isView(desc))avcC=new Uint8Array(desc.buffer,desc.byteOffset,desc.byteLength).slice();
+                }
                 const data=new Uint8Array(chunk.byteLength);chunk.copyTo(data);
                 samples.push({data:data,key:chunk.type==="key",timestamp:chunk.timestamp});
               }catch(e){error=e;}
@@ -136,7 +139,7 @@ try{
             const mvhd=full("mvhd",0,0,u32(0),u32(0),u32(fps),u32(n),u32(0x10000),u16(0x100),u16(0),zero(8),identity,zero(24),u32(2));
             const tkhd=full("tkhd",0,7,u32(0),u32(0),u32(1),u32(0),u32(n),zero(8),u16(0),u16(0),u16(0),u16(0),identity,u32(width*65536),u32(height*65536));
             const mdhd=full("mdhd",0,0,u32(0),u32(0),u32(fps),u32(n),u16(0x55c4),u16(0));
-            const hdlr=full("hdlr",0,0,u32(0),txt("vide"),zero(12),txt("VideoHandler\\0"));
+            const hdlr=full("hdlr",0,0,u32(0),txt("vide"),zero(12),txt("VideoHandler\0"));
             const vmhd=full("vmhd",0,1,u16(0),u16(0),u16(0),u16(0));
             const url=full("url ",0,1),dref=full("dref",0,0,u32(1),url),dinf=box("dinf",dref);
             const avc1=box("avc1",zero(6),u16(1),u16(0),u16(0),zero(12),u16(width),u16(height),u32(0x480000),u32(0x480000),u32(0),u16(1),zero(32),u16(0x18),u16(0xffff),box("avcC",avcConfig));
@@ -213,7 +216,7 @@ try{
     const direct=path.join(OUTPUT,name+".mp4");
     const frames=path.join(OUTPUT,name);
     if(fs.existsSync(direct)&&fs.statSync(direct).size>1000)continue;
-    const count=fs.existsSync(frames)?fs.readdirSync(frames).filter(file=>/^frame_\\d{4}\\.png$/.test(file)).length:0;
+    const count=fs.existsSync(frames)?fs.readdirSync(frames).filter(file=>/^frame_\d{4}\.png$/.test(file)).length:0;
     if(count!==FRAMES_PER_SCENE)throw new Error(name+" produced "+count+" PNG frames or no direct MP4.");
   }
   await fsp.writeFile(path.join(OUTPUT,"render_mode.json"),JSON.stringify({encoding:encodingMode,resolution:"1280x720",fps:FPS,sceneCount:SCENES.length},null,2));
