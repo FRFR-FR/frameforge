@@ -345,6 +345,50 @@
     const out = canvas.getContext('2d');
     const time = frame / Math.max(1, fps);
     const strength = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) * intensity : fallback;
+
+    if (type === 'depth-of-field') {
+      const blurred = makeCanvas(w,h,canvas);
+      const bctx = blurred.getContext('2d');
+      bctx.filter = 'blur(' + Math.max(0,Math.min(40,(Number(p.blur_radius)||7)*intensity)) + 'px)';
+      bctx.drawImage(source,0,0);
+      const basePixels = sourceCtx.getImageData(0,0,w,h);
+      const blurPixels = bctx.getImageData(0,0,w,h);
+      const outputPixels = basePixels;
+      const fx = Math.max(0,Math.min(1,Number(p.focus_x ?? 0.5)))*w;
+      const fy = Math.max(0,Math.min(1,Number(p.focus_y ?? 0.5)))*h;
+      const radius = Math.max(0.01,Math.min(1,Number(p.focus_radius)||0.24))*Math.min(w,h);
+      const edge = Math.max(radius+1,radius+Math.min(w,h)*0.18);
+      for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+        const i=(y*w+x)*4;
+        const distance=Math.hypot(x-fx,y-fy);
+        const mix=Math.max(0,Math.min(1,(distance-radius)/(edge-radius)))*intensity;
+        outputPixels.data[i]=Math.round(basePixels.data[i]*(1-mix)+blurPixels.data[i]*mix);
+        outputPixels.data[i+1]=Math.round(basePixels.data[i+1]*(1-mix)+blurPixels.data[i+1]*mix);
+        outputPixels.data[i+2]=Math.round(basePixels.data[i+2]*(1-mix)+blurPixels.data[i+2]*mix);
+      }
+      out.putImageData(outputPixels,0,0);
+      return {applied:true};
+    }
+    if (type === 'swirl-warp') {
+      let image;
+      try { image = sourceCtx.getImageData(0,0,w,h); }
+      catch (_) { return {applied:false,warning:'Pixel access is unavailable for the swirl transition.'}; }
+      const original=new Uint8ClampedArray(image.data);
+      const amount=Math.max(0,Math.min(3,Number(p.amount)||0))*intensity;
+      const cx=w/2, cy=h/2, maxRadius=Math.hypot(cx,cy);
+      for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+        const dx=x-cx, dy=y-cy, radius=Math.hypot(dx,dy);
+        const angle=amount*(1-radius/maxRadius)*Math.PI*2;
+        const sx=Math.max(0,Math.min(w-1,Math.round(cx+dx*Math.cos(angle)+dy*Math.sin(angle))));
+        const sy=Math.max(0,Math.min(h-1,Math.round(cy-dx*Math.sin(angle)+dy*Math.cos(angle))));
+        const from=(sy*w+sx)*4, to=(y*w+x)*4;
+        image.data[to]=original[from];image.data[to+1]=original[from+1];
+        image.data[to+2]=original[from+2];image.data[to+3]=original[from+3];
+      }
+      out.putImageData(image,0,0);
+      return {applied:true};
+    }
+
     if (type === 'blur') {
       const radius = Math.max(0, Math.min(40, strength(p.radius, 2)));
       out.clearRect(0,0,w,h);
@@ -542,7 +586,7 @@
           break;
         }
         case 'swirl_warp':
-          result.distortions.push({type:'ripple',parameters:{amount:0.6*intensity*progress,frequency:10,intensity:1}});
+          result.distortions.push({type:'swirl-warp',parameters:{amount:0.6*intensity*progress,intensity:1}});
           break;
         case 'glitch':
           result.distortions.push({type:'glitch',parameters:{amount:0.65*intensity*progress,seed:clip.start_frame+17,intensity:1}});
