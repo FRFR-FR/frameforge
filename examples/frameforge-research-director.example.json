@@ -153,30 +153,30 @@
   "research": {
     "sources": [
       {
-        "id": "source-firewall-guide",
-        "url": "https://example.org/firewall-guide",
-        "title": "Firewall technical guide",
-        "publisher": "Example Technical Institute",
-        "published_at": "2026-10-01T00:00:00Z",
+        "id": "source-nist-sp-800-41r1",
+        "url": "https://csrc.nist.gov/pubs/sp/800/41/r1/final",
+        "title": "Guidelines on Firewalls and Firewall Policy (SP 800-41 Rev. 1)",
+        "publisher": "National Institute of Standards and Technology",
+        "published_at": "2009-09-28T00:00:00Z",
         "retrieved_at": "2026-11-28T00:00:00Z",
         "source_type": "official_documentation",
         "access_status": "public",
         "confidence": "high",
-        "notes": "Illustrative source entry for schema validation; replace with a real reviewed source in production."
+        "notes": "NIST describes firewalls as devices or programs that control network traffic between networks or hosts with differing security postures."
       }
     ],
     "claims": [
       {
-        "id": "claim-firewall-rules",
-        "text": "A firewall compares network traffic with a configured rule set.",
+        "id": "claim-nist-firewall-definition",
+        "text": "NIST SP 800-41 Rev. 1 defines firewalls as devices or programs that control network traffic between networks or hosts with differing security postures.",
         "source_ids": [
-          "source-firewall-guide"
+          "source-nist-sp-800-41r1"
         ],
         "confidence": "high",
         "verification_status": "verified",
         "classification": "factual",
         "evidence_required": true,
-        "uncertainty_notes": "Specific filtering behaviour depends on the firewall type and configuration."
+        "uncertainty_notes": "This is a broad definition. A production script should identify the firewall type and avoid implying that all firewalls inspect traffic in the same way."
       }
     ],
     "visual_style_observations": [
@@ -185,15 +185,15 @@
     "researched_at": "2026-11-28T00:00:00Z",
     "reference_videos": [
       {
-        "id": "reference-network-explainer",
-        "url": "https://www.youtube.com/watch?v=example-reference",
-        "title": "Network explainer format reference",
-        "creator": "Example Channel",
-        "platform": "YouTube",
+        "id": "reference-video-placeholder",
+        "url": "https://example.org/reference-video",
+        "title": "Placeholder reference video — replace before production",
+        "creator": "Example Creator",
+        "platform": "Video platform",
         "published_at": "2026-09-12T00:00:00Z",
         "retrieved_at": "2026-11-28T00:00:00Z",
-        "access_status": "public",
-        "notes": "Reference only: study the pacing and diagram structure; do not reuse protected footage or audio.",
+        "access_status": "unknown",
+        "notes": "Schema demonstration only. Replace with a real public reference URL after reviewing it. This record is reference-only and grants no reuse rights.",
         "observed_format": [
           "Animated diagram reveals the network path",
           "Labels explain each decision point"
@@ -242,7 +242,7 @@
         "id": "shot-firewall-rules",
         "start_frame": 0,
         "end_frame": 120,
-        "narration": "A firewall compares network traffic with configured rules.",
+        "narration": "NIST defines firewalls as devices or programs that control network traffic between networks or hosts with different security postures.",
         "visual_purpose": "Show the packet path entering a firewall and the allow/block decision point.",
         "media_mix": [
           "diagram",
@@ -267,9 +267,9 @@
           "Quiet interface click when the rule is evaluated"
         ],
         "evidence_claim_ids": [
-          "claim-firewall-rules"
+          "claim-nist-firewall-definition"
         ],
-        "notes": "The diagram is an explanatory visual, not footage of a real packet capture."
+        "notes": "A sourced explanatory diagram. This is not captured footage of an operational firewall."
       }
     ]
   },
