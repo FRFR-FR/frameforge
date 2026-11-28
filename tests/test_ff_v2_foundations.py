@@ -78,6 +78,35 @@ class FrameForgeFoundationTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+
+    def test_editable_shot_recipe_is_schema_compatible(self) -> None:
+        payload = read_json(DIRECTOR_EXAMPLE_PATH)
+        beat = payload["shot_plan"]["beats"][0]
+        transition = {"type": "wipe", "direction": "left", "duration_frames": 12}
+        beat.update({
+            "composition": "annotated_system",
+            "motion_treatment": "draw_connections",
+            "recipe_overlay": "Source labels remain visible",
+            "recipe_duration_frames": 48,
+            "recipe_transition": transition,
+            "shot_recipe": {
+                "id": "diagram",
+                "label": "Technical diagram",
+                "layout": "annotated_system",
+                "media_priority": ["procedural_2d", "three_d"],
+                "camera": "Start wide, then focus the relevant component.",
+                "action": "Reveal components in causal order.",
+                "motion": "draw_connections",
+                "effects": ["glow"],
+                "transition": transition,
+                "overlay": "A concise legend",
+                "duration_scale": 1.2,
+                "emphasis": "Connection direction"
+            }
+        })
+        errors = list(self.project_validator.iter_errors(payload))
+        self.assertEqual(errors, [])
+
     def test_research_claim_can_record_page_and_timestamp_locators(self) -> None:
         payload = read_json(DIRECTOR_EXAMPLE_PATH)
         claim = payload["research"]["claims"][0]
