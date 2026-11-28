@@ -74,15 +74,16 @@ async function main() {
     const beforeSeek = await page.locator('#ffv2PlayheadLabel').innerText();
     await page.locator('#ffv2AudioWaveform').click({ position: { x: 0, y: 45 } });
     await page.waitForFunction(() => document.getElementById('ffv2PlayheadLabel').textContent.includes('Frame 0'));
-    await page.locator('#ffv2AudioWaveform').click({ position: { x: 400, y: 45 } });
+    const waveformBox = await page.locator('#ffv2AudioWaveform').boundingBox();
+    await page.locator('#ffv2AudioWaveform').click({ position: { x: waveformBox.width / 2, y: waveformBox.height / 2 } });
     await page.waitForFunction(() => document.getElementById('ffv2PlayheadLabel').textContent.includes('Frame 15'));
     assert.ok(beforeSeek.includes('Frame'));
 
     // Track gain/solo, clip mix and local gain automation remain editable project data.
-    await page.locator('#ffv2AudioTrackGain').fill('0.8');
+    await page.locator('#ffv2AudioTrackGain').evaluate(el => { el.value = '0.8'; el.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.locator('#ffv2AudioTrackSolo').check();
     await page.locator('#ffv2AudioApplyTrack').click();
-    await page.locator('#ffv2AudioClipGain').fill('0.75');
+    await page.locator('#ffv2AudioClipGain').evaluate(el => { el.value = '0.75'; el.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.locator('#ffv2AudioFadeIn').fill('4');
     await page.locator('#ffv2AudioApplyClip').click();
     await page.locator('#ffv2AudioAddGainKeyframe').click();
