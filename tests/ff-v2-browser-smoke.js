@@ -143,10 +143,40 @@ async function main() {
     assert.equal(await page.locator('.ffv2-clip').count(), 3);
     await page.locator('[data-panel="ffv2AssetsPanel"]').click();
     assert.equal(await page.locator('.ffv2-asset-card').count(), 1);
+
+    // Render a generated vector shape over the imported transparent-capable image.
+    await page.locator('#ffv2AddShape').click();
+    await page.waitForFunction(() => document.querySelectorAll('.ffv2-clip').length === 4);
+    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('visual layer'));
+    const pixels = await page.locator('#ffv2CompositorCanvas').evaluate(canvas => {
+      const ctx = canvas.getContext('2d');
+      return {
+        center: Array.from(ctx.getImageData(640, 360, 1, 1).data),
+        corner: Array.from(ctx.getImageData(8, 8, 1, 1).data),
+        size: [canvas.width, canvas.height]
+      };
+    });
+    assert.deepEqual(pixels.size, [1280, 720]);
+    assert.ok(pixels.center[3] > 0, 'Generated vector shape should composite onto the output frame');
+    assert.equal(pixels.corner[3], 0, 'Unoccupied compositor canvas must preserve transparent alpha');
+
+    // Apply a transform, keyframe and a feathered ellipse mask through the editor controls.
+    await page.locator('#ffv2TransformScaleX').fill('1.25');
+    await page.locator('#ffv2ApplyTransform').click();
+    await page.locator('#ffv2KeyframeProperty').selectOption('opacity');
+    await page.locator('#ffv2KeyframeValue').fill('1');
+    await page.locator('#ffv2SetKeyframe').click();
+    await page.locator('#ffv2MaskType').selectOption('shape');
+    await page.locator('#ffv2MaskShape').selectOption('ellipse');
+    await page.locator('#ffv2MaskFeather').fill('4');
+    await page.locator('#ffv2ApplyMask').click();
+    await page.waitForFunction(() => document.getElementById('ffv2CompositorStatus').textContent.includes('visual layer'));
+    assert.match(await page.locator('#ffv2KeyframeInfo').textContent(), /1 keyframe/);
+
     assert.deepEqual(pageErrors, [], 'Browser page errors should be empty');
 
     console.log('FRAMEFORGE_V2_BROWSER_SMOKE_PASS');
-    console.log('Validated: image import/decode, local asset library, independent tracks, timing edits, split, duplicate, delete, mute, recovery and reload persistence.');
+    console.log('Validated: asset import, multi-track edit/persistence, deterministic 720p alpha compositing, generated vector shapes, transforms, keyframes and feathered shape masks.');
     await context.close();
   } finally {
     if (browser) await browser.close();
