@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frameforge.dev/schemas/media-asset-manifest-v1.schema.json",
+  "title": "FrameForge Media Asset Manifest",
+  "description": "Provenance, licensing, attribution and review metadata for media used by a FrameForge project.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_format", "schema_version", "project_id", "assets"],
+  "properties": {
+    "manifest_format": { "const": "frameforge-media-manifest" },
+    "schema_version": { "const": 1 },
+    "project_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/asset" }
+    },
+    "notes": { "type": "string", "maxLength": 5000 }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["user_supplied", "procedural", "public_domain", "open_license", "permissioned", "paid_license", "unknown"]
+        },
+        "source_url": { "type": "string", "format": "uri" },
+        "source_title": { "type": "string", "maxLength": 500 },
+        "creator": { "type": "string", "maxLength": 300 },
+        "provider": { "type": "string", "maxLength": 200 },
+        "acquired_at": { "type": "string", "format": "date-time" },
+        "retrieved_by": { "type": "string", "maxLength": 200 },
+        "notes": { "type": "string", "maxLength": 3000 }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "attribution_required"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "approved", "restricted", "rejected", "unknown"] },
+        "license_name": { "type": "string", "maxLength": 300 },
+        "license_url": { "type": "string", "format": "uri" },
+        "permission_reference": { "type": "string", "maxLength": 1000 },
+        "attribution_required": { "type": "boolean" },
+        "attribution_text": { "type": "string", "maxLength": 2000 },
+        "review_basis": { "type": "string", "minLength": 10, "maxLength": 3000 },
+        "reviewed_by": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "reviewed_at": { "type": "string", "format": "date-time" },
+        "restrictions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "approved" } }, "required": ["status"] },
+          "then": { "required": ["review_basis", "reviewed_by", "reviewed_at"] }
+        },
+        {
+          "if": { "properties": { "attribution_required": { "const": true } }, "required": ["attribution_required"] },
+          "then": { "required": ["attribution_text"] }
+        }
+      ]
+    },
+    "assetMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "duration_seconds": { "type": "number", "minimum": 0 },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "sample_rate": { "type": "integer", "minimum": 1 },
+        "channels": { "type": "integer", "minimum": 1 },
+        "codec": { "type": "string", "maxLength": 100 },
+        "file_name": { "type": "string", "maxLength": 300 }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "uri", "media_type", "provenance", "rights"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "uri": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "media_type": { "type": "string", "enum": ["image", "video", "audio", "graphic", "model3d", "font", "other"] },
+        "role": { "type": "string", "maxLength": 200 },
+        "metadata": { "$ref": "#/$defs/assetMetadata" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "rights": { "$ref": "#/$defs/rights" },
+        "tags": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 80 }, "uniqueItems": true },
+        "intended_use": { "type": "string", "maxLength": 1000 }
+      }
+    }
+  }
+}
