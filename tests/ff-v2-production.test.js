@@ -131,7 +131,9 @@ test('Openverse results retain source and licence metadata but remain pending', 
   assert.equal(options.rights.status,'pending');
   assert.equal(options.rights.attribution_required,true);
   assert.equal(options.rights.license_url,'https://creativecommons.org/licenses/by/4.0/');
-  assert.throws(() => Production.importOptionsForSelection({ license_url: 'javascript:alert(1)' }).provenance.source_url, TypeError);
+  const unsafeUrlOptions = Production.importOptionsForSelection({ license_url: 'javascript:alert(1)', landing_url: 'javascript:alert(1)' });
+  assert.equal(unsafeUrlOptions.provenance.source_url, undefined);
+  assert.equal(unsafeUrlOptions.rights.license_url, undefined);
 });
 
 test('Wikimedia Commons adapter reads per-file metadata without approving rights', async () => {
