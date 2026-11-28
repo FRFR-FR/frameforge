@@ -305,6 +305,8 @@
     const parts = [bytesMB(meta.size_bytes || (asset.blob && asset.blob.size) || 0)];
     if (meta.width && meta.height) parts.push(meta.width + ' × ' + meta.height);
     if (meta.duration_seconds) parts.push(meta.duration_seconds.toFixed(2) + ' s');
+    if (meta.mesh_count !== undefined) parts.push(meta.mesh_count + ' mesh' + (meta.mesh_count === 1 ? '' : 'es'));
+    if (meta.animation_clips?.length) parts.push(meta.animation_clips.length + ' animation clip' + (meta.animation_clips.length === 1 ? '' : 's'));
     if (meta.codec || meta.mime_type) parts.push(meta.codec || meta.mime_type);
     return parts.join(' · ');
   }
