@@ -498,10 +498,30 @@
                  !claim.source_ids.length || !['factual','comparative'].includes(claim.classification))) {
               errors.push('Shot beat ' + beat.id + ' cannot present an unverified or unsourced claim as evidence: ' + claimId);
             }
+            if (['factual_evidence','comparative_evidence'].includes(beat.visual_role) && claim) {
+              for (const sourceId of claim.source_ids || []) {
+                const source = (research.sources || []).find(item => item.id === sourceId);
+                if (!source || source.access_status !== 'public') {
+                  errors.push('Evidence claim ' + claimId + ' relies on a source not marked publicly accessible: ' + sourceId);
+                }
+              }
+            }
           }
           if (['factual_evidence','comparative_evidence'].includes(beat.visual_role) &&
               !(beat.evidence_claim_ids || []).length) {
             errors.push('Evidence shot beat must reference at least one claim: ' + beat.id);
+          }
+          const requirement = beat.evidence_requirement || 'none';
+          const linkedAssets = (beat.asset_ids || []).map(id => project.assets.find(asset => asset.id === id)).filter(Boolean);
+          if (requirement === 'actual_footage' &&
+              (!Array.isArray(beat.media_mix) || !beat.media_mix.includes('source_footage') ||
+               !linkedAssets.some(asset => asset.media_type === 'video'))) {
+            errors.push('Shot beat ' + beat.id + ' requires source_footage media and a linked video asset.');
+          }
+          if (requirement === 'official_screenshot' &&
+              (!Array.isArray(beat.media_mix) || !beat.media_mix.includes('screenshots') ||
+               !linkedAssets.some(asset => asset.media_type === 'image'))) {
+            errors.push('Shot beat ' + beat.id + ' requires screenshots media and a linked image asset.');
           }
         }
       }
