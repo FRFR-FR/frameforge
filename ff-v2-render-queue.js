@@ -20,7 +20,9 @@
   function stamp() { return new Date().toISOString(); }
 
   async function signature(project) {
-    const bytes = new TextEncoder().encode(JSON.stringify(project));
+    const snapshot = root.FFV2Core.clone(project);
+    if (snapshot.project) snapshot.project.updated_at = '';
+    const bytes = new TextEncoder().encode(JSON.stringify(snapshot));
     if (root.crypto?.subtle) {
       const digest = await root.crypto.subtle.digest('SHA-256', bytes);
       return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
@@ -239,11 +241,23 @@
     }
   }
 
-  function updateButtons() {
+  async function updateButtons() {
     const start = $('ffv2RenderQueueStart');
     const pause = $('ffv2RenderQueuePause');
+    const exportButton = $('ffv2RenderQueueExport');
     if (start) start.disabled = running || currentJob?.status === 'complete';
     if (pause) pause.disabled = !running;
+    if (exportButton) {
+      exportButton.disabled = true;
+      if (currentJob) {
+        try {
+          const index = Number($('ffv2RenderQueueChunk')?.value) || 0;
+          const bounds = chunkBounds(currentJob, index);
+          const records = await root.FFV2Studio.renderStorage.getFrames(currentJob.id, bounds.start, bounds.end);
+          exportButton.disabled = records.length !== bounds.end - bounds.start;
+        } catch (_) { exportButton.disabled = true; }
+      }
+    }
   }
 
   function crc32(bytes) {
@@ -391,7 +405,7 @@
     $('ffv2RenderQueueJobs').addEventListener('change', async event => {
       try { await selectJob(event.target.value); updateButtons(); } catch (error) { setStatus(error.message, 'error'); }
     });
-    $('ffv2RenderQueueChunk').addEventListener('change', updateButtons);
+    $('ffv2RenderQueueChunk').addEventListener('change', () => { updateButtons(); });
     root.document.addEventListener('ffv2:ready', async () => {
       try {
         const jobs = await root.FFV2Studio.renderStorage.listJobs();
