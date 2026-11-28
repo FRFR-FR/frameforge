@@ -22,10 +22,10 @@ MAX_SOURCE_USES = 1
 MIN_BROLL_PERCENT = 75.0
 MAX_BROLL_PERCENT = 85.0
 CUTS = {
-    "section_01": "scene_01_wafer_macro",
+    "section_01": "scene_01_tin_plasma",
     "section_02": "scene_02_layer_stack",
     "section_03": "scene_03_wavelength",
-    "section_04": "scene_04_tin_plasma",
+    "section_04": "scene_04_tin_plasma_detail",
     "section_05": "scene_05_mirror_optics",
     "section_06": "scene_06_reticle_projection",
     "section_07": "scene_07_wafer_stage",
@@ -133,16 +133,15 @@ def make_shot(source, destination, seconds, seek):
 
 
 def make_3d_clips(frames_dir):
-    blender = shutil.which("blender")
-    if not blender:
-        raise RuntimeError("Blender executable missing; original explanatory 3D cutaways cannot be rendered.")
-    xvfb = shutil.which("xvfb-run")
-    command = [xvfb, "-a", blender] if xvfb else [blender]
-    run(command + [
-        "--background", "--factory-startup",
-        "--python", str(ROOT / "scripts" / "generate_3d_cutaways.py"),
-        "--", "--output-dir", str(frames_dir)
-    ])
+    node = shutil.which("node")
+    if not node:
+        raise RuntimeError("Node.js is missing; the upgraded Three.js cutaway renderer cannot run.")
+    renderer_script = ROOT / "scripts" / "render_threejs_cutaways.mjs"
+    scene_file = ROOT / "threejs" / "ep002_threejs_master.mjs"
+    html_file = ROOT / "threejs" / "render_frame.html"
+    if not renderer_script.is_file() or not scene_file.is_file() or not html_file.is_file():
+        raise RuntimeError("The Three.js scene module, render page or headless renderer is missing.")
+    run([node, str(renderer_script), "--output-dir", str(frames_dir)])
 
     output = {}
     for scene_name in sorted(CUTS.values()):
@@ -157,15 +156,18 @@ def make_3d_clips(frames_dir):
             "-framerate", "24", "-start_number", "1",
             "-i", str(folder / "frame_%04d.png"), "-frames:v", "288",
             "-vf", "scale=1280:720:flags=lanczos,setsar=1,fps=24,format=yuv420p",
-            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19",
             "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", "24", "-g", "48",
             str(clip_path)
         ])
         if abs(duration(clip_path) - CUTAWAY_SECONDS) > 0.06:
             raise RuntimeError(f"{scene_name} is not a measured 12-second cutaway.")
+        metadata = probe(clip_path)
+        video = next(stream for stream in metadata["streams"] if stream.get("codec_type") == "video")
+        if (video.get("width"), video.get("height")) != (1280, 720) or video.get("avg_frame_rate") != "24/1":
+            raise RuntimeError(f"{scene_name} is not a native 1280x720 24fps render.")
         output[scene_name] = clip_path
     return output
-
 
 def make_subtitle_filter(srt_path):
     escaped_path = str(srt_path).replace("\\", "/").replace(":", "\\:")
@@ -401,6 +403,20 @@ def main():
         uses = {clip: 0 for clip in clips}
         previous = None
 
+        cut = cutclips[CUTS[section_id]]
+        cut_duration = duration(cut)
+        if abs(cut_duration - CUTAWAY_SECONDS) > 0.06:
+            raise RuntimeError(f"{section_id}: Three.js cutaway duration is {cut_duration:.3f}s, not {CUTAWAY_SECONDS:.3f}s.")
+        concat_files.append(cut)
+        timeline.append({
+            "start_seconds": round(cursor, 3),
+            "duration_seconds": round(cut_duration, 3),
+            "section_id": section_id,
+            "visual_type": "original rigged Three.js engineering reconstruction; not proprietary factory footage",
+            "source_file": str(cut.relative_to(ROOT))
+        })
+        cursor += cut_duration
+
         while remaining > 0.01:
             shot_seconds = min(SHOT_SECONDS, remaining)
             available = [
@@ -455,18 +471,6 @@ def main():
 
         if max(uses.values(), default=0) > MAX_SOURCE_USES:
             raise RuntimeError(f"{section_id}: source clip reuse exceeded {MAX_SOURCE_USES}.")
-
-        cut = cutclips[CUTS[section_id]]
-        cut_duration = duration(cut)
-        concat_files.append(cut)
-        timeline.append({
-            "start_seconds": round(cursor, 3),
-            "duration_seconds": round(cut_duration, 3),
-            "section_id": section_id,
-            "visual_type": "original conceptual 3D reconstruction; not proprietary factory footage",
-            "source_file": str(cut.relative_to(ROOT))
-        })
-        cursor += cut_duration
 
     max_uses = max(source_uses.values(), default=0)
     if max_uses > MAX_SOURCE_USES:
