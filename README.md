@@ -207,7 +207,7 @@ A manual GitHub Actions workflow is available at [Actions → BROWN Blender CPU 
 **Important:** FrameForge's browser renderer remains a lightweight 3D preview. A static GitHub Pages website cannot start a native Blender process. The Blender scene, .blend project, GLB interchange export and MP4 are created by running the native pipeline. The scene's explosion motion is a connected, keyframed ragdoll-style impulse with damped joint movement, not a baked Bullet rigid-body simulation. The structural audit must be run, and the rendered video must receive visual review, before it is considered publication-ready.
 
 
-## FrameForge V2 — foundations, timeline, compositor, VFX, 3D, Blender, audio, research director and production workflows (steps 1–40)
+## FrameForge V2 — editing, directing, rendering, QA and delivery (steps 1–45)
 
 The V2 roadmap is tracked in [docs/FF_V2_50_STEP_ROADMAP.md](docs/FF_V2_50_STEP_ROADMAP.md). Batch status is recorded in [docs/FF_V2_PROGRESS.md](docs/FF_V2_PROGRESS.md).
 
@@ -226,13 +226,20 @@ Current editor workspace:
 - [V2 multi-track audio, waveforms, SFX cues, WAV mastering and FFmpeg mux guide](docs/FF_V2_AUDIO.md)
 - [V2 research intake, niche visual direction, shot planning and evidence/rights review](docs/FF_V2_RESEARCH_AND_DIRECTOR.md)
 - [V2 production recipes, open-media discovery, procedural graphics, audio rights and shot assembly (steps 36–40)](docs/FF_V2_PRODUCTION_WORKFLOWS.md)
+- [V2 resumable rendering, FFmpeg profiles, technical QA, review tools and delivery (steps 41–45)](docs/FF_V2_RENDERING_QA_DELIVERY.md)
 - [V2 project/timeline/effects/3D scene core](ff-v2-core.js)
 - [V2 audio engine and WAV master renderer](ff-v2-audio.js)
 - [V2 research intake and visual director](ff-v2-director.js)
 - [V2 recipes, source adapters, procedural graphics, audio rights and shot orchestrator](ff-v2-production.js)
 - [V2 production workflow controls](ff-v2-production-ui.js)
+- [V2 resumable browser frame queue](ff-v2-render-queue.js)
 - [NIST-backed research/director example project](examples/frameforge-research-director.example.json)
 - [FFmpeg audio/video mux utility](tools/mux_ffmpeg.py)
+- [V2 rendering chunk merger](tools/merge_render_chunks.py)
+- [V2 FFmpeg export profiles](tools/export_ffmpeg.py)
+- [V2 technical QA](tools/qa_render.py)
+- [V2 contact sheet / audio review generator](tools/create_review.py)
+- [V2 delivery packager](tools/package_delivery.py)
 - [V2 Canvas 2D and 3D scene compositor](ff-v2-renderer.js)
 - [V2 optional WebGL shader pipeline](ff-v2-shaders.js)
 - [V2 local Three.js scene loader](ff-v2-3d-studio.js)
@@ -249,6 +256,8 @@ Current editor workspace:
 - [V2 audio browser smoke test](tests/ff-v2-audio-browser-smoke.js)
 - [V2 research director browser smoke test](tests/ff-v2-director-browser-smoke.js)
 - [V2 production workflow browser smoke test](tests/ff-v2-production-browser-smoke.js)
+- [V2 resumable render queue browser smoke test](tests/ff-v2-render-queue-browser-smoke.js)
+- [Python render pipeline regression tests](tests/test_render_pipeline.py)
 - [Foundation CI](.github/workflows/ff-v2-foundation-tests.yml)
 - [Browser smoke CI](.github/workflows/ff-v2-browser-smoke.yml)
 
@@ -268,4 +277,4 @@ python tools/validate_media_manifest.py examples/media-asset-manifest.example.js
 
 The checks run in the scoped [FrameForge V2 Foundation Validation](.github/workflows/ff-v2-foundation-tests.yml) workflow. The real-browser integration check runs separately in [FrameForge V2 Browser Smoke](.github/workflows/ff-v2-browser-smoke.yml). Both use read-only repository permissions and do not start any Blender or media-render job.
 
-**Current V2 boundary:** steps 6–30 add validated local media import, an editable multi-track timeline, local recovery, a Canvas 2D layer compositor, transform/effect keyframes, masks/mattes/blend modes, generated graphics/particles, optional WebGL post-processing, stylised effects and transitions, a locally vendored Three.js r164.1 GLB/glTF scene renderer, 3D camera/light/environment controls, model animation and constraints, a portable Blender bridge, editable multi-track audio, waveforms, event-linked SFX, gain automation, ducking and WAV mastering, plus an FFmpeg mux utility for an already-rendered silent picture and WAV master. Steps 31–35 add the production brief and ambiguity intake, public-source/reference-video dossier, editable niche profiles, a timed narration-to-shot director, and claim/evidence/asset-rights review. Claims can carry optional page/section/timecode locators and media start/end seconds. Steps 36–40 add nine reusable shot recipes; capped Openverse/Wikimedia discovery and manual Poly Haven/Internet Archive paths; procedural SVG and seeded particle clips; a rights-aware audio catalogue with credits and usage limits; and an editable shot-plan assembler. The director is rule-assisted and human-reviewed; it does not independently verify source pages, claims, licences or legal rights. Provider search is not automatic downloading, and imported media stays pending until reviewed. Reference-video records are style references only and do not grant reuse permission. Required source shots that are not linked remain explicitly unfilled and keep the director readiness gate blocked. The compositor still renders only the current frame and exports PNG; it is not yet a full-sequence or automatic V2 MP4 renderer. 3D model pixels require WebGL. Project JSON does not embed imported binary media, which remains in the originating browser's IndexedDB. See [the V2 progress log](docs/FF_V2_PROGRESS.md) for verified step status.
+**Current V2 boundary:** steps 6–30 add validated local media import, the editable multi-track timeline, local recovery, the Canvas 2D layer compositor, transform/effect keyframes, masks/mattes/blend modes, procedural graphics/particles, optional WebGL post-processing, stylised effects/transitions, a locally vendored Three.js r164.1 GLB/glTF scene renderer, 3D camera/light/environment controls, model animation/constraints, a portable Blender bridge and multi-track audio mastering. Steps 31–35 add the production brief and ambiguity intake, public-source/reference dossier, niche profiles, timed narration-to-shot direction and claim/evidence/rights review. Steps 36–40 add nine shot recipes, capped Openverse/Wikimedia discovery, manual Poly Haven/Internet Archive paths, procedural SVG/particle clips, audio rights/credits/usage limits and editable shot assembly. Steps 41–45 add a resumable browser frame queue persisted in IndexedDB, per-chunk PNG ZIP export, local H.264 FFmpeg profiles, FFprobe/FFmpeg technical QA, contact sheets/waveform/scene previews and a final delivery ZIP with asset rights/attribution notes. The browser queue uses the actual V2 compositor and renders frames locally; the final MP4 encode and packaging tools run in a local/free environment with FFmpeg. This is not a cloud renderer and does not automatically upload project media to GitHub. The director remains rule-assisted and human-reviewed; source search is not automatic downloading or licence verification, and imported media stays pending until reviewed. Reference-video records are style references only and do not grant reuse permission. Required source shots that are not linked remain explicitly unfilled and readiness-blocked. 3D model pixels require WebGL. Project JSON does not embed imported binary media held in the originating browser's IndexedDB; export those assets separately when handing off the editable project. See [the V2 progress log](docs/FF_V2_PROGRESS.md) for verified step status.
