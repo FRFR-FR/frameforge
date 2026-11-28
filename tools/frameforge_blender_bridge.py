@@ -59,6 +59,20 @@ def xyz(value, default=(0.0, 0.0, 0.0)):
     return tuple(float(v) for v in values)
 
 
+def three_vector_to_blender(value, default=(0.0, 0.0, 0.0)):
+    """Convert FrameForge/Three Y-up vectors to Blender Z-up coordinates."""
+    x, y, z = xyz(value, default)
+    return (x, -z, y)
+
+
+def three_euler_to_blender(value):
+    """Convert a Three XYZ Euler orientation into Blender's Z-up basis."""
+    from mathutils import Euler, Matrix
+    rotation = Euler(tuple(math.radians(v) for v in xyz(value)), "XYZ").to_matrix().to_4x4()
+    basis = Matrix.Rotation(math.pi / 2.0, 4, "X")
+    return (basis @ rotation @ basis.inverted()).to_euler("XYZ")
+
+
 def hex_rgba(value, default=(0.5, 0.5, 0.5, 1.0)):
     if not isinstance(value, str) or not value.startswith("#"):
         return default
@@ -136,8 +150,9 @@ def import_model(bpy, manifest_path, model):
     root_obj.name = model.get("name") or model.get("asset_id") or filepath.stem
     root_obj["frameforge_id"] = str(model.get("asset_id", root_obj.name))
     transform = model.get("transform") or {}
-    root_obj.location = xyz(transform.get("position"))
-    root_obj.rotation_euler = xyz(transform.get("rotation"))
+    root_obj.location = three_vector_to_blender(transform.get("position"))
+    root_obj.rotation_mode = "XYZ"
+    root_obj.rotation_euler = three_euler_to_blender(transform.get("rotation"))
     root_obj.scale = xyz(transform.get("scale"), (1.0, 1.0, 1.0))
     animation_name = (model.get("animation") or {}).get("clip_name", "")
     time_scale = max(0.001, float((model.get("animation") or {}).get("time_scale", 1.0)))
@@ -154,10 +169,16 @@ def import_model(bpy, manifest_path, model):
                         strip.repeat = 1.0
     # V2 3D transform keys are clip-local and component-based.
     clip_start = int(model.get("start_frame", 0)) + 1
-    field_map = {
-        "position3d": ("location", False),
-        "rotation3d": ("rotation_euler", True),
-        "scale3d": ("scale", False)
+    component_map = {
+        "position3d.x": ("location", 0, 1.0, False),
+        "position3d.y": ("location", 2, 1.0, False),
+        "position3d.z": ("location", 1, -1.0, False),
+        "rotation3d.x": ("rotation_euler", 0, 1.0, True),
+        "rotation3d.y": ("rotation_euler", 2, 1.0, True),
+        "rotation3d.z": ("rotation_euler", 1, -1.0, True),
+        "scale3d.x": ("scale", 0, 1.0, False),
+        "scale3d.y": ("scale", 2, 1.0, False),
+        "scale3d.z": ("scale", 1, 1.0, False)
     }
     interpolation_map = {
         "linear": "LINEAR", "step": "CONSTANT",
@@ -167,11 +188,13 @@ def import_model(bpy, manifest_path, model):
     for key in model.get("keyframes", []):
         property_name = str(key.get("property", ""))
         parts = property_name.split(".")
-        if len(parts) != 2 or parts[0] not in field_map or parts[1] not in ("x", "y", "z"):
+        if len(parts) != 2:
             continue
-        data_path, radians = field_map[parts[0]]
-        index = ("x", "y", "z").index(parts[1])
-        value = float(key.get("value", 0.0))
+        mapped = component_map.get(property_name)
+        if not mapped:
+            continue
+        data_path, index, sign, radians = mapped
+        value = float(key.get("value", 0.0)) * sign
         if radians:
             value = math.radians(value)
         frame = clip_start + int(key.get("frame", 0))
@@ -191,8 +214,8 @@ def setup_camera(bpy, config):
     data = bpy.data.cameras.new("FrameForge V2 Camera")
     camera = bpy.data.objects.new("FrameForge V2 Camera", data)
     bpy.context.scene.collection.objects.link(camera)
-    camera.location = xyz(config.get("position"), (6.0, 4.0, 7.0))
-    target = xyz(config.get("target"))
+    camera.location = three_vector_to_blender(config.get("position"), (6.0, 4.0, 7.0))
+    target = three_vector_to_blender(config.get("target"))
     direction = tuple(target[index] - camera.location[index] for index in range(3))
     from mathutils import Vector
     camera.rotation_euler = Vector(direction).to_track_quat("-Z", "Y").to_euler()
@@ -215,9 +238,9 @@ def setup_lights(bpy, lights):
         bpy.context.scene.collection.objects.link(obj)
         data.color = hex_rgba(config.get("color", "#ffffff"))[:3]
         data.energy = max(0.0, float(config.get("intensity", 1.0))) * (120.0 if kind == "ambient" else 900.0)
-        obj.location = xyz(config.get("position"), (0.0, 3.0, 2.0))
+        obj.location = three_vector_to_blender(config.get("position"), (0.0, 3.0, 2.0))
         if kind == "directional":
-            direction = xyz(config.get("direction"), (-0.55, 0.78, 0.48))
+            direction = three_vector_to_blender(config.get("direction"), (-0.55, 0.78, 0.48))
             from mathutils import Vector
             obj.rotation_euler = Vector(tuple(-v for v in direction)).to_track_quat("-Z", "Y").to_euler()
         if kind == "spot":
@@ -261,7 +284,7 @@ def world_bounds(obj):
 
 
 def solve_contacts(bpy, objects, constraints_by_id, frame):
-    """Apply explicit ground clamping and simple vertical AABB separation; not a physics solver."""
+    """Apply explicit ground clamping and approximate horizontal AABB separation; not a physics solver."""
     scene = bpy.context.scene
     scene.frame_set(frame)
     id_objects = {str(obj.get("frameforge_id", obj.name)): obj for obj in objects}
