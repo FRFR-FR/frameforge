@@ -39,7 +39,9 @@ async function waitForServer(server) {
     if (server.exitCode !== null) throw new Error('Production smoke server exited.');
     try {
       const response = await fetch(BASE_URL);
-      if (response.ok) return;
+      const ready = response.ok;
+      await response.arrayBuffer();
+      if (ready) return;
     } catch (_) { /* Wait for the local test server. */ }
     await new Promise(resolve => setTimeout(resolve, 200));
   }
