@@ -111,6 +111,7 @@
     'light-rays':5, 'chromatic-aberration':6, glitch:7, ripple:8, shake:9, 'motion-blur':10, 'depth-of-field':11
   };
   let state = null;
+  let capabilityCache = null;
 
   function createShader(gl, type, source) {
     const shader = gl.createShader(type);
@@ -266,13 +267,22 @@
   }
 
   function capabilities() {
+    if (capabilityCache) return capabilityCache;
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (!gl) return { webgl:false, reason:'WebGL is not available in this browser or hardware configuration.' };
+      if (!gl) {
+        capabilityCache = { webgl:false, reason:'WebGL is not available in this browser or hardware configuration.' };
+        return capabilityCache;
+      }
       const precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT);
-      return { webgl:true, version:gl.getParameter(gl.VERSION), maxTextureSize:gl.getParameter(gl.MAX_TEXTURE_SIZE), highPrecision:Boolean(precision && precision.precision > 0) };
-    } catch (error) { return { webgl:false,reason:error.message }; }
+      capabilityCache = { webgl:true, version:gl.getParameter(gl.VERSION), maxTextureSize:gl.getParameter(gl.MAX_TEXTURE_SIZE), highPrecision:Boolean(precision && precision.precision > 0) };
+      try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch (_) {}
+      return capabilityCache;
+    } catch (error) {
+      capabilityCache = { webgl:false,reason:error.message };
+      return capabilityCache;
+    }
   }
 
   root.FFV2Shaders={apply,capabilities};
