@@ -538,7 +538,8 @@
       attribution_text: asset.rights?.attribution_text || '',
       attribution_required: asset.rights?.attribution_required !== false,
       status: asset.rights?.status || 'unknown',
-      source: asset.provenance?.provider || asset.provenance?.source_type || 'unknown'
+      source: asset.provenance?.provider || asset.provenance?.source_type || 'unknown',
+      restrictions: (asset.rights?.restrictions || []).filter(item => !String(item).includes('Pending individual rights review'))
     }));
   }
 
@@ -560,6 +561,9 @@
       audio_assets: entries.length,
       blockers: blockers,
       credits: buildAudioCredits(project),
+      usage_limits: entries.filter(item => item.restrictions.length).map(item => ({
+        asset_id: item.id, label: item.label, restrictions: item.restrictions
+      })),
       note: 'This is a metadata gate, not an independent legal or licence verification.'
     };
   }
