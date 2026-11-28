@@ -224,19 +224,35 @@
     const project = currentProject();
     if (!project) return;
     try {
-      const labels = value('ffv2GraphicLabels').split(/\r?\n/).map(item => item.trim()).filter(Boolean);
-      const clip = root.FFV2Production.createProceduralGraphicClip(project, {
-        type: value('ffv2GraphicType'),
-        title: value('ffv2GraphicTitle'),
-        subtitle: value('ffv2GraphicSubtitle'),
-        labels: labels
-      }, {
-        start_frame: Number(value('ffv2GraphicStart')) || studio().getPlayheadFrame(),
-        duration_frames: Number(value('ffv2GraphicDuration')) || 90
-      });
+      const type = value('ffv2GraphicType');
+      const startInput = Number(value('ffv2GraphicStart'));
+      const durationInput = Number(value('ffv2GraphicDuration'));
+      const options = {
+        start_frame: Number.isFinite(startInput) && startInput >= 0 ? startInput : studio().getPlayheadFrame(),
+        duration_frames: Number.isFinite(durationInput) && durationInput > 0 ? durationInput : 90
+      };
+      let clip;
+      if (type === 'particles') {
+        clip = root.FFV2Production.createProceduralParticleClip(project, {
+          preset: value('ffv2GraphicParticlePreset'),
+          count: Number(value('ffv2GraphicParticleCount')) || 72,
+          seed: Number(value('ffv2GraphicParticleSeed')) || 1337
+        }, options);
+      } else {
+        const labels = value('ffv2GraphicLabels').split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+        const values = value('ffv2GraphicValues').split(/\r?\n/)
+          .map(item => Number(item.trim())).filter(item => Number.isFinite(item) && item >= 0);
+        clip = root.FFV2Production.createProceduralGraphicClip(project, {
+          type: type,
+          title: value('ffv2GraphicTitle'),
+          subtitle: value('ffv2GraphicSubtitle'),
+          labels: labels,
+          values: values
+        }, options);
+      }
       studio().markDirty();
       studio().refreshTimeline();
-      status('Created editable procedural SVG clip ' + clip.id + ' on the Graphics track.', 'success');
+      status('Created editable procedural ' + (type === 'particles' ? 'particle' : 'SVG') + ' clip ' + clip.id + '.', 'success');
     } catch (error) {
       status('Graphic creation failed: ' + error.message, 'error');
     }
