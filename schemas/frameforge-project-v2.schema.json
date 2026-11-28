@@ -247,6 +247,10 @@
             "maxLength": 1000
           },
           "uniqueItems": true
+        },
+        "intended_use": {
+          "type": "string",
+          "maxLength": 1000
         }
       },
       "allOf": [
@@ -2056,6 +2060,10 @@
         "notes": {
           "type": "string",
           "maxLength": 3000
+        },
+        "effect_notes": {
+          "type": "string",
+          "maxLength": 2000
         }
       }
     },
